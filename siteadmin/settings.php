@@ -1,0 +1,379 @@
+<?php
+$path_prefix = "../";
+$page_title = "Global Settings";
+require_once $path_prefix . 'components/admin-header.php';
+require_once $path_prefix . 'components/admin-sidebar.php';
+?>
+
+<div id="page-content-wrapper" class="flex-grow-1 bg-white">
+    <?php require_once $path_prefix . 'components/admin-navbar.php'; ?>
+
+    <div class="container-fluid p-3 p-md-4" style="max-width: 1200px;">
+        <div class="row mb-3">
+            <div class="col-12">
+                <h4 class="fw-bold text-dark mb-0">Global Settings</h4>
+                <p class="text-muted small mb-0">Manage system-wide configurations and defaults.</p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Settings Navigation -->
+            <div class="col-lg-3 mb-3">
+                <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="list-group list-group-flush settings-nav">
+                        <a href="#event-types" class="list-group-item list-group-item-action active py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-calendar-event-line me-3 fs-5 text-warning"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Event Types</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">Default categories & colors</small>
+                            </div>
+                        </a>
+                        <!-- Future tabs can go here -->
+                        <a href="#general-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0 disabled opacity-50" data-bs-toggle="list">
+                            <i class="ri-settings-line me-3 fs-5 text-primary"></i>
+                            <div>
+                                <span class="fw-bold d-block small">General</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">System name & logo</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="col-lg-9">
+                <div class="tab-content">
+                    <!-- Event Types -->
+                    <div class="tab-pane fade show active" id="event-types">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-3 me-3">
+                                        <i class="ri-calendar-event-line fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0">Global Event Types</h5>
+                                        <p class="text-muted small mb-0">These types will be available to all families by default.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="input-group input-group-sm" style="width: 200px;">
+                                        <span class="input-group-text bg-light border-0"><i class="ri-search-line"></i></span>
+                                        <input type="text" id="eventTypeSearch" class="form-control bg-light border-0" placeholder="Search...">
+                                    </div>
+                                    <button class="btn btn-primary btn-sm rounded-2 px-3 py-1" data-bs-toggle="modal" data-bs-target="#eventTypeModal" onclick="prepareEventTypeModal('add')">
+                                        <i class="ri-add-line me-1"></i> Add Global Type
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="eventTypesTable" class="table table-hover align-middle border-0 mb-0">
+                                    <thead class="bg-light border-0">
+                                        <tr>
+                                            <th class="border-0 rounded-start px-3 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Label</th>
+                                            <th class="border-0 py-2 text-uppercase extra-small ls-1 fw-bold text-muted text-center">Color</th>
+                                            <th class="border-0 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Scope</th>
+                                            <th class="border-0 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Family</th>
+                                            <th class="border-0 rounded-end px-3 py-2 text-end text-uppercase extra-small ls-1 fw-bold text-muted">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="event-types-table-body" class="border-0">
+                                        <!-- Populated via AJAX -->
+                                        <tr id="loading-row">
+                                            <td colspan="4" class="text-center py-4">
+                                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                <span class="small text-muted">Loading event types...</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-nav .list-group-item {
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent !important;
+    }
+
+    .settings-nav .list-group-item.active {
+        background-color: rgba(13, 110, 253, 0.05);
+        color: #0d6efd;
+        border-left-color: #0d6efd !important;
+    }
+
+    .settings-nav .list-group-item:not(.active):hover:not(.disabled) {
+        background-color: #f8f9fa;
+    }
+
+    .ls-1 {
+        letter-spacing: 0.05rem;
+    }
+
+    .extra-small {
+        font-size: 0.65rem;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+        transform: translateY(-1px);
+    }
+</style>
+
+<!-- Event Type Modal -->
+<div class="modal fade" id="eventTypeModal" tabindex="-1" aria-labelledby="eventTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold" id="eventTypeModalLabel">Add Global Event Type</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <form id="eventTypeForm">
+                    <input type="hidden" id="event_type_id" name="id">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Label Name <span class="text-danger">*</span></label>
+                        <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                            <input type="text" class="form-control border-0 px-3 py-2 small" id="event_type_name" name="name" placeholder="e.g. Work, School" required>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold text-dark small">Color Theme <span class="text-danger">*</span></label>
+                        <div class="d-flex align-items-center gap-2 bg-light p-2 rounded-3">
+                            <input type="color" class="form-control form-control-color border-0 p-0 bg-transparent" id="event_type_colour" name="colour" value="#0d6efd" style="width: 40px; height: 30px;">
+                            <span class="small text-muted" id="color-hex-label">#0D6EFD</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveEventTypeBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm">Save Type</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ADMIN_API_PATH = '<?php echo $path_prefix; ?>api/admin/event_types.php';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadEventTypes();
+
+        document.getElementById('event_type_colour').addEventListener('input', (e) => {
+            document.getElementById('color-hex-label').innerText = e.target.value.toUpperCase();
+        });
+    });
+
+    async function loadEventTypes() {
+        const tableBody = document.getElementById('event-types-table-body');
+        try {
+            const response = await fetch(`${ADMIN_API_PATH}?action=list`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                renderEventTypesTable(result.data);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger small">${result.message}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error loading event types:', error);
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger small">Failed to connect to server</td></tr>`;
+        }
+    }
+
+    function renderEventTypesTable(types) {
+        const tableBody = document.getElementById('event-types-table-body');
+
+        // Destroy existing DataTable if it exists
+        if ($.fn.DataTable.isDataTable('#eventTypesTable')) {
+            $('#eventTypesTable').DataTable().destroy();
+        }
+
+        tableBody.innerHTML = '';
+
+        if (types.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted small">No global event types found.</td></tr>';
+            return;
+        }
+
+        types.forEach(type => {
+            const tr = document.createElement('tr');
+            let badge = '';
+            tr.className = 'border-bottom';
+            if (type.is_default == 1 && type.family_id == null) {
+                badge = `<span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill extra-small">Global</span>`;
+            } else {
+                badge = `<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill extra-small">Family</span>`;
+            }
+
+            let familyContent = type.family_name 
+                ? `<span class="small fw-semibold text-dark">${type.family_name}</span>`
+                : `<span class="badge bg-light text-muted px-2 py-1 rounded-pill extra-small border">N/A</span>`;
+
+            tr.innerHTML = `
+                <td class="px-3 py-2 fw-bold text-dark small">${type.name}</td>
+                <td class="py-2 text-center">
+                    <div class="rounded-circle border border-2 border-white shadow-sm d-inline-block" style="width: 18px; height: 18px; background-color: ${type.colour};"></div>
+                </td>
+                <td class="py-2">
+                    ${badge}
+                </td>
+                <td class="py-2">
+                    ${familyContent}
+                </td>
+                <td class="px-3 py-2 text-end">
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 me-1 hover-shadow" style="width: 32px; height: 32px;" onclick="editEventType(${type.id})" title="Edit">
+                        <i class="ri-pencil-line fs-6"></i>
+                    </button>
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteEventType(${type.id})" title="Delete">
+                        <i class="ri-delete-bin-line fs-6"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        // Re-initialize DataTable
+        const table = $('#eventTypesTable').DataTable({
+            "dom": 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+            "pageLength": 10,
+            "destroy": true,
+            "language": {
+                "paginate": {
+                    "next": '<i class="ri-arrow-right-s-line"></i>',
+                    "previous": '<i class="ri-arrow-left-s-line"></i>'
+                }
+            },
+            "columnDefs": [
+                { "orderable": false, "targets": 4 }
+            ]
+        });
+
+        // Custom search
+        document.getElementById('eventTypeSearch').addEventListener('keyup', function() {
+            table.search(this.value).draw();
+        });
+    }
+
+    function prepareEventTypeModal(action, id = null) {
+        const modalTitle = document.getElementById('eventTypeModalLabel');
+        const form = document.getElementById('eventTypeForm');
+        form.reset();
+        document.getElementById('event_type_id').value = '';
+        document.getElementById('color-hex-label').innerText = '#0D6EFD';
+
+        if (action === 'add') {
+            modalTitle.innerText = 'Add Global Event Type';
+        } else {
+            modalTitle.innerText = 'Edit Global Event Type';
+        }
+    }
+
+    async function editEventType(id) {
+        try {
+            const response = await fetch(`${ADMIN_API_PATH}?action=get&id=${id}`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                prepareEventTypeModal('edit', id);
+                document.getElementById('event_type_id').value = result.data.id;
+                document.getElementById('event_type_name').value = result.data.name;
+                document.getElementById('event_type_colour').value = result.data.colour;
+                document.getElementById('color-hex-label').innerText = result.data.colour.toUpperCase();
+
+                const modal = new bootstrap.Modal(document.getElementById('eventTypeModal'));
+                modal.show();
+            }
+        } catch (error) {
+            console.error('Error fetching event type:', error);
+            if (typeof showAlert === 'function') showAlert('Failed to fetch event type details', 'error');
+            else alert('Failed to fetch event type details');
+        }
+    }
+
+    async function deleteEventType(id) {
+        if (confirm('Are you sure you want to delete this global event type? This will affect all families.')) {
+            try {
+                const response = await fetch(`${ADMIN_API_PATH}?action=delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: id
+                    })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (typeof showAlert === 'function') showAlert('Event type deleted successfully', 'success');
+                    else alert('Event type deleted successfully');
+                    loadEventTypes();
+                } else {
+                    if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                    else alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting event type:', error);
+                if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+                else alert('Network error occurred');
+            }
+        }
+    }
+
+    document.getElementById('saveEventTypeBtn').addEventListener('click', async () => {
+        const form = document.getElementById('eventTypeForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const action = data.id ? 'update' : 'create';
+
+        const btn = document.getElementById('saveEventTypeBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        try {
+            const response = await fetch(`${ADMIN_API_PATH}?action=${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                if (typeof showAlert === 'function') showAlert(result.message, 'success');
+                else alert(result.message);
+
+                const modalEl = document.getElementById('eventTypeModal');
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+
+                loadEventTypes();
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                else alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error saving event type:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+</script>
+
+<?php require_once $path_prefix . 'components/admin-footer.php'; ?>
