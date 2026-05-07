@@ -14,6 +14,51 @@ if (isset($_GET['action']) && $_GET['action'] == 'clear_session') {
     exit;
 }
 
+// Database Export Logic
+if (isset($_GET['action']) && $_GET['action'] == 'export_db') {
+    $config = require __DIR__ . '/../config/config.php';
+    $db = $config['database'];
+    $scratchDir = __DIR__ . '/../scratch';
+    
+    if (!is_dir($scratchDir)) {
+        mkdir($scratchDir, 0777, true);
+    }
+    
+    $filename = $scratchDir . '/full_database_export.sql';
+    
+    // Find mysqldump
+    $mysqldump = 'mysqldump';
+    exec("where mysqldump 2>&1", $whereOutput, $whereRet);
+    if ($whereRet !== 0) {
+        $xamppPath = 'C:\xampp\mysql\bin\mysqldump.exe';
+        if (file_exists($xamppPath)) {
+            $mysqldump = '"' . $xamppPath . '"';
+        }
+    }
+
+    // Construct mysqldump command
+    $passArg = !empty($db['pass']) ? "-p" . escapeshellarg($db['pass']) : "";
+    $command = "$mysqldump -h " . escapeshellarg($db['host']) . " -u " . escapeshellarg($db['user']) . " $passArg " . escapeshellarg($db['dbname']) . " > " . escapeshellarg($filename) . " 2>&1";
+    
+    exec($command, $output, $returnVar);
+    
+    if ($returnVar === 0) {
+        $_SESSION['flash_message'] = [
+            'type' => 'success',
+            'title' => 'EXPORT SUCCESS',
+            'text' => 'Full database saved to /scratch/full_database_export.sql'
+        ];
+    } else {
+        $_SESSION['flash_message'] = [
+            'type' => 'error',
+            'title' => 'EXPORT FAILED',
+            'text' => 'Error: ' . implode(" ", $output)
+        ];
+    }
+    header("Location: index.php");
+    exit;
+}
+
 // Recursive Renderer for Session Data
 function renderSessionData($data) {
     if (is_array($data) || is_object($data)) {
@@ -143,6 +188,27 @@ function renderSessionData($data) {
             <?php endif; ?>
         </section>
 
+        <!-- Database Tools -->
+        <section class="glass rounded-2xl p-5 hover:border-emerald-500/30 transition-all duration-300">
+            <h2 class="font-orbitron text-[10px] text-emerald-400 mb-4 flex items-center gap-2 border-b border-white/5 pb-3 uppercase tracking-widest">
+                <i class="fa-solid fa-database text-xs"></i> DATABASE TOOLS
+            </h2>
+            <div class="space-y-4">
+                <p class="text-[9px] text-gray-500 uppercase tracking-wider">Export full schema & data to scratch directory.</p>
+                <a href="?action=export_db" class="w-full bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 py-2 rounded-lg text-[10px] font-orbitron uppercase tracking-widest hover:bg-emerald-500 hover:text-white flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-file-export"></i> Export DB
+                </a>
+                <?php 
+                $exportFile = __DIR__ . '/../scratch/full_database_export.sql';
+                if (file_exists($exportFile)): ?>
+                <div class="pt-2 border-t border-white/5">
+                    <label class="block text-[8px] text-gray-500 uppercase tracking-widest mb-1">Last Export</label>
+                    <div class="text-[9px] font-mono text-emerald-500/70"><?php echo date("Y-m-d H:i:s", filemtime($exportFile)); ?></div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </section>
+
         <!-- Environment Metrics (Moved here) -->
         <section class="glass rounded-2xl p-5 border-l-2 border-l-neon-purple">
             <h2 class="font-orbitron text-[10px] text-neon-purple mb-4 flex items-center gap-2 border-b border-white/5 pb-3 uppercase tracking-widest">
@@ -167,6 +233,23 @@ function renderSessionData($data) {
 
     <!-- Content Area -->
     <section class="flex-grow flex flex-col gap-6">
+        <?php if (isset($_SESSION['flash_message'])): ?>
+        <div class="glass rounded-2xl p-4 border-l-4 <?php echo $_SESSION['flash_message']['type'] === 'success' ? 'border-l-emerald-500' : 'border-l-red-500'; ?> animate-in fade-in slide-in-from-top-4 duration-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-orbitron text-[10px] <?php echo $_SESSION['flash_message']['type'] === 'success' ? 'text-emerald-400' : 'text-red-400'; ?> tracking-widest uppercase mb-1">
+                        <?php echo $_SESSION['flash_message']['title']; ?>
+                    </h3>
+                    <p class="text-xs text-gray-400"><?php echo $_SESSION['flash_message']['text']; ?></p>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+        <?php unset($_SESSION['flash_message']); ?>
+        <?php endif; ?>
+
         <div class="glass rounded-2xl p-5">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-white/5 pb-4">
                 <h2 class="font-orbitron text-[10px] text-neon-blue flex items-center gap-2 uppercase tracking-widest">

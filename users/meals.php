@@ -3,7 +3,61 @@ $path_prefix = "../";
 $page_title = "Meals";
 include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
+
+$family_id = $_SESSION['user']['families'][0]['id'] ?? 1;
 ?>
+<script>
+    const FAMILY_ID = <?php echo $family_id; ?>;
+</script>
+
+<style>
+    /* Modal Styles */
+    .border-dashed {
+        border-style: dashed !important;
+        border-width: 2px !important;
+        transition: all 0.3s ease;
+    }
+
+    .border-dashed:hover {
+        border-color: var(--bs-primary) !important;
+        background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
+    }
+
+    .fs-7 {
+        font-size: 0.85rem;
+    }
+
+    .fs-8 {
+        font-size: 0.75rem;
+    }
+
+    .fs-9 {
+        font-size: 0.65rem;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .meal-card {
+        transition: transform 0.2s ease, shadow 0.2s ease;
+    }
+
+    .meal-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .options-btn {
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+
+    .meal-card:hover .options-btn {
+        opacity: 1;
+    }
+</style>
 
 <!-- Page Content -->
 <div id="page-content-wrapper" class="flex-grow-1 bg-white">
@@ -60,8 +114,9 @@ include $path_prefix . 'components/sidebar.php';
                             id="btn-today">Today</button>
                     </div>
                     <div class="d-flex gap-3 mt-2 mt-lg-0">
-                        <button
-                            class="btn btn-primary rounded-3 px-4 py-2 fw-medium shadow-sm d-flex align-items-center">
+                        <button id="add-meal-btn"
+                            class="btn btn-primary rounded-3 px-4 py-2 fw-medium shadow-sm d-flex align-items-center"
+                            data-bs-toggle="modal" data-bs-target="#mealModal">
                             <i class="fa-solid fa-plus me-2"></i> Add Meal
                         </button>
                         <button
@@ -77,7 +132,7 @@ include $path_prefix . 'components/sidebar.php';
                     <div class="tab-pane fade show active" id="planner" role="tabpanel">
                         <div class="bg-white border mob-overflows rounded-3 overflow-hidden">
                             <!-- Planner Header -->
-                            <div
+                            <div id="planner-header"
                                 class="meal-planner-grid border-bottom fw-bold text-center bg-light bg-opacity-50">
                                 <div class="meal-time-cell border-bottom-0 py-3"></div>
                                 <div class="meal-day-cell border-bottom-0 py-3 h-auto">Mon<br><span
@@ -98,7 +153,7 @@ include $path_prefix . 'components/sidebar.php';
                             </div>
 
                             <!-- Breakfast Row -->
-                            <div class="meal-planner-grid meals-card-div">
+                            <div class="meal-planner-grid meals-card-div" id="breakfast-row">
                                 <div class="meal-time-cell">
                                     <span class="iu-breakfast yelows">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="29"
@@ -110,157 +165,11 @@ include $path_prefix . 'components/sidebar.php';
                                     </span>
                                     <div class="fw-bold fs-8">Breakfast</div>
                                 </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Oatmeal with Berries</div>
-                                        <img src="https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Oatmeal" data-member="dad">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="mom">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Greek Yogurt with Granola</div>
-                                        <img src="https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Yogurt">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="emma">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Avocado Toast</div>
-                                        <img src="https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Toast">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="liam">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Pancakes & Fruit</div>
-                                        <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7bb7445?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Pancakes">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="ava">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Scrambled Eggs</div>
-                                        <img src="https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Eggs">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="grandma">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Smoothie Bowl</div>
-                                        <img src="https://images.unsplash.com/photo-1546039907-7fa05f864c02?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Smoothie">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-right: none;">
-                                    <div class="meal-card" data-member="grandpa">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Breakfast Burrito</div>
-                                        <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Burrito">
-                                    </div>
-                                </div>
+                                <!-- Days will be populated by JS -->
                             </div>
 
                             <!-- Lunch Row -->
-                            <div class="meal-planner-grid">
+                            <div class="meal-planner-grid" id="lunch-row">
                                 <div class="meal-time-cell">
                                     <span class="iu-breakfast grens">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="29"
@@ -272,141 +181,11 @@ include $path_prefix . 'components/sidebar.php';
                                     </span>
                                     <div class="fw-bold fs-8">Lunch</div>
                                 </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="dad">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Grilled Cheese & Tomato Soup</div>
-                                        <img src="https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Soup">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="mom">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Chicken Caesar Salad</div>
-                                        <img src="https://images.unsplash.com/photo-1550304943-4f24f54ddde9?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Salad">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="emma">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Turkey Wrap</div>
-                                        <img src="https://images.unsplash.com/photo-1533470192478-9993ca0a8308?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Wrap">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="liam">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Pasta Salad</div>
-                                        <img src="https://images.unsplash.com/photo-1543339308-43e59d6b73a6?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Pasta">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="ava">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Quesadilla & Salsa</div>
-                                        <img src="https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Quesadilla">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="grandma">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Leftovers</div>
-                                        <img src="https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Leftovers">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-right: none;">
-                                    <div class="add-meal-placeholder">
-                                        <i class="fa-solid fa-plus fs-3"></i>
-                                    </div>
-                                </div>
+                                <!-- Days will be populated by JS -->
                             </div>
 
                             <!-- Dinner Row -->
-                            <div class="meal-planner-grid">
+                            <div class="meal-planner-grid" id="dinner-row">
                                 <div class="meal-time-cell">
                                     <span class="iu-breakfast dinners">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="29"
@@ -418,141 +197,11 @@ include $path_prefix . 'components/sidebar.php';
                                     </span>
                                     <div class="fw-bold fs-8">Dinner</div>
                                 </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="dad">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Baked Salmon & Veggies</div>
-                                        <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Salmon">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="mom">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Taco Night</div>
-                                        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Tacos">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="emma">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Lemon Chicken & Rice</div>
-                                        <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Chicken">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="liam">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Spaghetti & Meatballs</div>
-                                        <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Spaghetti">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="ava">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Stir Fry & Rice</div>
-                                        <img src="https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Stir Fry">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell">
-                                    <div class="meal-card" data-member="grandma">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Homemade Pizza</div>
-                                        <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Pizza">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-right: none;">
-                                    <div class="add-meal-placeholder">
-                                        <i class="fa-solid fa-plus fs-3"></i>
-                                    </div>
-                                </div>
+                                <!-- Days will be populated by JS -->
                             </div>
 
                             <!-- Snacks Row -->
-                            <div class="meal-planner-grid">
+                            <div class="meal-planner-grid" id="snacks-row">
                                 <div class="meal-time-cell" style="border-bottom: none;">
 
                                     <span class="iu-breakfast dinner2s">
@@ -560,137 +209,7 @@ include $path_prefix . 'components/sidebar.php';
                                     </span>
                                     <div class="fw-bold fs-8">Snacks</div>
                                 </div>
-                                <div class="meal-day-cell" style="border-bottom: none;">
-                                    <div class="meal-card">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Apple & Peanut Butter</div>
-                                        <img src="https://images.unsplash.com/photo-1576675466969-38eeae4b41f6?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Apple">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-bottom: none;">
-                                    <div class="meal-card" data-member="dad">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Carrot Sticks & Hummus</div>
-                                        <img src="https://images.unsplash.com/photo-1541533338070-2ec2b5a3ccc4?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Carrot">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-bottom: none;">
-                                    <div class="meal-card" data-member="emma">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Banana Smoothie</div>
-                                        <img src="https://images.unsplash.com/photo-1525385133336-24426fe13bc7?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Smoothie">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-bottom: none;">
-                                    <div class="meal-card" data-member="liam">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Cheese & Crackers</div>
-                                        <img src="https://images.unsplash.com/photo-1541280910158-c4e14f9c94a3?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Cheese">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-bottom: none;">
-                                    <div class="meal-card" data-member="ava">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Trail Mix</div>
-                                        <img src="https://images.unsplash.com/photo-1514944288352-fffbb99f0bdf?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Trail Mix">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-bottom: none;">
-                                    <div class="meal-card" data-member="mom">
-                                        <div class="dropdown position-absolute"
-                                            style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                            <i class="fa-solid fa-ellipsis options-btn"
-                                                data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                                                style="font-size: 0.8rem;">
-                                                <li><a class="dropdown-item py-2" href="#"><i
-                                                            class="fa-solid fa-pen-to-square me-2 text-muted"></i>
-                                                        Edit meal</a></li>
-                                                <li><a class="dropdown-item py-2 text-danger" href="#"><i
-                                                            class="fa-solid fa-trash-can me-2"></i> Remove</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="meal-name">Yogurt & Berries</div>
-                                        <img src="https://images.unsplash.com/photo-1488477181946-6428a0291777?q=80&w=200&h=150&auto=format&fit=crop"
-                                            alt="Yogurt">
-                                    </div>
-                                </div>
-                                <div class="meal-day-cell" style="border-right: none; border-bottom: none;">
-                                    <div class="add-meal-placeholder">
-                                        <i class="fa-solid fa-plus fs-3"></i>
-                                    </div>
-                                </div>
+                                <!-- Days will be populated by JS -->
                             </div>
                         </div>
 
@@ -875,6 +394,363 @@ include $path_prefix . 'components/sidebar.php';
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentDate = new Date(); // Start with today
+
+        // Helper to format date as YYYY-MM-DD
+        const formatDate = (date) => {
+            return date.toISOString().split('T')[0];
+        };
+
+        // Helper to get week range (Monday to Sunday)
+        const getWeekRange = (date) => {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+            const monday = new Date(d.setDate(diff));
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            return {
+                start: monday,
+                end: sunday
+            };
+        };
+
+        const updateUI = () => {
+            const range = getWeekRange(currentDate);
+            const startStr = formatDate(range.start);
+            const endStr = formatDate(range.end);
+
+            // Update date picker text
+            const options = {
+                month: 'short',
+                day: 'numeric'
+            };
+            const yearOptions = {
+                year: 'numeric'
+            };
+            const dateRangeText = `${range.start.toLocaleDateString('en-US', options)} – ${range.end.toLocaleDateString('en-US', options)}, ${range.end.toLocaleDateString('en-US', yearOptions)}`;
+            document.getElementById('date-picker-btn').innerHTML = `<i class="fa-regular fa-calendar me-2"></i> ${dateRangeText}`;
+
+            // Update Planner Header
+            const headerCells = document.querySelectorAll('#planner-header .meal-day-cell');
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            headerCells.forEach((cell, index) => {
+                const dayDate = new Date(range.start);
+                dayDate.setDate(range.start.getDate() + index);
+                cell.innerHTML = `${days[index]}<br><span class="text-muted fw-normal fs-8">${dayDate.toLocaleDateString('en-US', options)}</span>`;
+            });
+
+            fetchMeals(startStr, endStr);
+        };
+
+        const fetchMeals = (startDate, endDate) => {
+            const formData = new FormData();
+            formData.append('startDate', startDate);
+            formData.append('endDate', endDate);
+            formData.append('family_id', FAMILY_ID);
+
+            fetch(`${API_PATH}meals.php?action=getByDateRange`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        renderMeals(data.meals, startDate);
+                    } else {
+                        console.error('Error fetching meals:', data.message);
+                    }
+                })
+                .catch(error => console.error('Fetch error:', error));
+        };
+
+        const renderMeals = (meals, startDate) => {
+            const types = ['breakfast', 'lunch', 'dinner', 'snacks'];
+            const start = new Date(startDate);
+
+            types.forEach(type => {
+                const row = document.getElementById(`${type}-row`);
+                // Clear existing day cells except the first one
+                const existingCells = row.querySelectorAll('.meal-day-cell');
+                existingCells.forEach(cell => cell.remove());
+
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(start);
+                    dayDate.setDate(start.getDate() + i);
+                    const dateStr = formatDate(dayDate);
+
+                    const meal = meals.find(m => m.type === type && m.date === dateStr);
+                    const cell = document.createElement('div');
+                    cell.className = 'meal-day-cell';
+                    if (i === 6) cell.style.borderRight = 'none';
+                    if (type === 'snacks') cell.style.borderBottom = 'none';
+
+                    if (meal) {
+                        let imageUrl = meal.image;
+                        const fallbackImage = `../public/img/${type}.webp`;
+
+                        // Check if image is null, empty or not existing (client-side we can only check null/empty easily)
+                        if (!imageUrl || imageUrl.trim() === "") {
+                            imageUrl = fallbackImage;
+                        }
+
+                        cell.innerHTML = `
+                            <div class="meal-card">
+                                <div class="dropdown position-absolute" style="top: 0.5rem; right: 0.5rem; z-index: 10;">
+                                    <i class="fa-solid fa-ellipsis options-btn" data-bs-toggle="dropdown" aria-expanded="false"></i>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 0.8rem;">
+                                        <li><a class="dropdown-item py-2 edit-meal-link" href="#" data-meal='${JSON.stringify(meal).replace(/'/g, "&apos;")}'><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Edit meal</a></li>
+                                        <li><a class="dropdown-item py-2 text-danger delete-meal-link" href="#" data-id="${meal.id}"><i class="fa-solid fa-trash-can me-2"></i> Remove</a></li>
+                                    </ul>
+                                </div>
+                                <div class="meal-name">${meal.name}</div>
+                                <img src="${imageUrl}" alt="${meal.name}" onerror="this.src='${fallbackImage}'">
+                            </div>
+                        `;
+                    } else {
+                        cell.innerHTML = `
+                            <div class="add-meal-placeholder cursor-pointer" data-date="${dateStr}" data-type="${type}">
+                                <i class="fa-solid fa-plus fs-3 text-muted opacity-50"></i>
+                            </div>
+                        `;
+                    }
+                    row.appendChild(cell);
+                }
+            });
+        };
+
+        // Handle Placeholder Click (Event Delegation)
+        document.addEventListener('click', (e) => {
+            const placeholder = e.target.closest('.add-meal-placeholder');
+            if (placeholder) {
+                const date = placeholder.getAttribute('data-date');
+                const type = placeholder.getAttribute('data-type');
+
+                document.getElementById('mealForm').reset();
+                document.getElementById('mealId').value = '';
+                document.getElementById('mealDate').value = date;
+                document.getElementById('mealType').value = type;
+
+                document.getElementById('mealModalLabel').textContent = 'Add New Meal';
+                document.getElementById('saveMealBtn').textContent = 'Save Meal';
+                imagePreview.classList.add('d-none');
+                uploadPlaceholder.classList.remove('d-none');
+
+                const mealModal = new bootstrap.Modal(document.getElementById('mealModal'));
+                mealModal.show();
+            }
+        });
+
+        // Event Listeners
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            currentDate.setDate(currentDate.getDate() - 7);
+            updateUI();
+        });
+
+        document.getElementById('btn-next').addEventListener('click', () => {
+            currentDate.setDate(currentDate.getDate() + 7);
+            updateUI();
+        });
+
+        document.getElementById('btn-today').addEventListener('click', () => {
+            currentDate = new Date();
+            updateUI();
+        });
+
+        // Modal Image Preview
+        const mealImageInput = document.getElementById('mealImage');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imagePreview = document.getElementById('imagePreview');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+
+        imageUploadArea.addEventListener('click', () => mealImageInput.click());
+
+        mealImageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.querySelector('img').src = e.target.result;
+                    imagePreview.classList.remove('d-none');
+                    uploadPlaceholder.classList.add('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Add Meal Button Click
+        document.getElementById('add-meal-btn').addEventListener('click', () => {
+            document.getElementById('mealForm').reset();
+            document.getElementById('mealId').value = '';
+            document.getElementById('mealModalLabel').textContent = 'Add New Meal';
+            document.getElementById('saveMealBtn').textContent = 'Save Meal';
+            imagePreview.classList.add('d-none');
+            uploadPlaceholder.classList.remove('d-none');
+        });
+
+        // Edit Meal Click (Event Delegation)
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-meal-link')) {
+                e.preventDefault();
+                const meal = JSON.parse(e.target.closest('.edit-meal-link').getAttribute('data-meal'));
+
+                document.getElementById('mealId').value = meal.id;
+                document.getElementById('mealName').value = meal.name;
+                document.getElementById('mealType').value = meal.type;
+                document.getElementById('mealDate').value = meal.date;
+                document.getElementById('mealExistingImage').value = meal.image || '';
+
+                document.getElementById('mealModalLabel').textContent = 'Edit Meal';
+                document.getElementById('saveMealBtn').textContent = 'Update Meal';
+
+                if (meal.image) {
+                    imagePreview.querySelector('img').src = meal.image;
+                    imagePreview.classList.remove('d-none');
+                    uploadPlaceholder.classList.add('d-none');
+                } else {
+                    imagePreview.classList.add('d-none');
+                    uploadPlaceholder.classList.remove('d-none');
+                }
+
+                const mealModal = new bootstrap.Modal(document.getElementById('mealModal'));
+                mealModal.show();
+            }
+        });
+
+        // Delete Meal Click
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-meal-link')) {
+                e.preventDefault();
+                const id = e.target.closest('.delete-meal-link').getAttribute('data-id');
+
+                if (confirm('Are you sure you want to delete this meal?')) {
+                    const formData = new FormData();
+                    formData.append('id', id);
+
+                    fetch(`${API_PATH}meals.php?action=delete`, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                showAlert(data.message || 'Meal removed successfully', 'success');
+                                updateUI();
+                            } else {
+                                showAlert(data.message || 'Error deleting meal', 'error');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Delete error:', err);
+                            showAlert('Connection error. Please try again.', 'error');
+                        });
+                }
+            }
+        });
+
+        // Form Submission
+        document.getElementById('mealForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const id = document.getElementById('mealId').value;
+            const action = id ? 'update' : 'add';
+
+            fetch(`${API_PATH}meals.php?action=${action}`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        bootstrap.Modal.getInstance(document.getElementById('mealModal')).hide();
+                        showAlert(data.message || 'Meal saved successfully', 'success');
+                        updateUI();
+                        this.reset();
+                    } else {
+                        showAlert(data.message || 'Error saving meal', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Save error:', err);
+                    showAlert('Connection error. Please try again.', 'error');
+                });
+        });
+
+        // Initialize UI
+        updateUI();
+    });
+</script>
+
+<!-- Add/Edit Meal Modal -->
+<div class="modal fade" id="mealModal" tabindex="-1" aria-labelledby="mealModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="mealModalLabel">Add New Meal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="mealForm" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="mealId" name="id">
+                    <input type="hidden" id="mealFamilyId" name="family_id" value="<?php echo $family_id; ?>">
+                    <input type="hidden" id="mealExistingImage" name="image">
+
+                    <div class="mb-4">
+                        <label for="mealName" class="form-label fw-semibold text-dark fs-7">Meal Name <span class="text-danger">*</span></label>
+                        <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                            <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-utensils"></i></span>
+                            <input type="text" class="form-control border-0 px-1 py-2 text-dark fw-medium" id="mealName" name="name" placeholder="e.g. Grilled Salmon with Asparagus" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="mealType" class="form-label fw-semibold text-dark fs-7">Meal Type <span class="text-danger">*</span></label>
+                            <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-layer-group"></i></span>
+                                <select class="form-select border-0 px-1 py-2 text-dark fw-medium" id="mealType" name="type" required>
+                                    <option value="breakfast">Breakfast</option>
+                                    <option value="lunch">Lunch</option>
+                                    <option value="dinner">Dinner</option>
+                                    <option value="snacks">Snacks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="mealDate" class="form-label fw-semibold text-dark fs-7">Date <span class="text-danger">*</span></label>
+                            <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                <span class="input-group-text bg-white border-0 text-muted"><i class="fa-regular fa-calendar"></i></span>
+                                <input type="date" class="form-control border-0 px-1 py-2 text-dark fw-medium" id="mealDate" name="date" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="mealImage" class="form-label fw-semibold text-dark fs-7">Meal Image</label>
+                        <div class="border rounded-3 p-3 text-center bg-light bg-opacity-50 border-dashed cursor-pointer" id="imageUploadArea">
+                            <input type="file" id="mealImage" name="image" class="d-none" accept="image/*">
+                            <div id="imagePreview" class="mb-2 d-none">
+                                <img src="" alt="Preview" class="img-fluid rounded-3 shadow-sm" style="max-height: 150px;">
+                            </div>
+                            <div id="uploadPlaceholder">
+                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2"></i>
+                                <p class="mb-0 fs-8 text-muted">Click to upload or drag & drop</p>
+                                <p class="mb-0 fs-9 text-muted opacity-75">JPG, PNG or WEBP (Max 2MB)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-white border px-4 py-2 fw-medium rounded-3 text-dark shadow-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-medium rounded-3 shadow-sm" id="saveMealBtn">Save Meal</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

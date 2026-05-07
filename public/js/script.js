@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `text-center position-relative cursor-pointer avatar-selector ${index === 0 ? 'selected opacity-100' : 'opacity-75 hover-opacity-100'}`;
             div.setAttribute('data-member-id', member.id);
-            
+
             const avatarUrl = member.avatar;
             const borderClass = index === 0 ? 'border-primary' : 'border-transparent';
             const checkIconClass = index === 0 ? '' : 'd-none';
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const startT = e.startHour.replace(' ', 'T');
                     const endT = e.endHour.replace(' ', 'T');
                     const d = new Date(startT);
-                    
+
                     return {
                         ...e,
                         day: d.getDay(),
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Update UI
                 refreshCalendarUI();
-                
+
                 // Refresh FullCalendar if initialized
                 if (window.calendarInstance) {
                     window.calendarInstance.refetchEvents();
@@ -479,13 +479,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const height = evt.duration * rowHeight;
             const block = document.createElement('div');
             block.className = `event-block`;
-            
+
             const baseColor = evt.colorCode || '#0d6efd';
             block.style.top = `${top}px`;
             block.style.height = `${height - 4}px`;
             block.style.backgroundColor = lightenColor(baseColor, 92);
             block.style.borderLeft = `4px solid ${baseColor}`;
-            
+
             block.setAttribute('data-member', evt.member);
             block.innerHTML = createEventBlockHtml(evt, false);
             if (cols[evt.day]) cols[evt.day].appendChild(block);
@@ -500,12 +500,12 @@ document.addEventListener('DOMContentLoaded', () => {
         allDayEvents.forEach(evt => {
             const div = document.createElement('div');
             div.className = `all-day-event`;
-            
+
             const baseColor = evt.colorCode || '#0d6efd';
             div.style.backgroundColor = lightenColor(baseColor, 92);
             div.style.color = baseColor;
             div.style.borderLeft = `4px solid ${baseColor}`;
-            
+
             div.innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${evt.title}`;
             div.setAttribute('data-member', evt.member);
             allDayContainer.appendChild(div);
@@ -604,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dayAllDayEvents.forEach(evt => {
             const allDayRow = document.createElement('div');
             allDayRow.className = 'day-view-row d-flex align-items-center p-3 border-bottom bg-light bg-opacity-25';
-            
+
             const baseColor = evt.colorCode || '#0d6efd';
             const bgColor = lightenColor(baseColor, 92);
 
@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
             initialView: 'dayGridMonth',
             headerToolbar: false,
             height: 'auto',
-            events: function(info, successCallback) {
+            events: function (info, successCallback) {
                 const timed = events.map(e => ({
                     title: e.title,
                     start: e.startStr,
@@ -796,7 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnPrev) btnPrev.addEventListener('click', () => navigate('prev'));
     if (btnNext) btnNext.addEventListener('click', () => navigate('next'));
     if (btnToday) btnToday.addEventListener('click', () => navigate('today'));
-    
+
     // 10.5 Handle Save Event (Handled by normal PHP form submission now)
 
     // 11. Modal Avatar Selection Logic (Handled in populateModalMembers for dynamic elements)
