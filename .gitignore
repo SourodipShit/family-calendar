@@ -9,6 +9,9 @@ scratch/
 .DS_Store
 Thumbs.db
 
+#tools
+x-tools/
+
 # IDE settings
 .vscode/
 .idea/

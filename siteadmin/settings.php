@@ -29,7 +29,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             </div>
                         </a>
                         <!-- Future tabs can go here -->
-                        <a href="#general-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0 disabled opacity-50" data-bs-toggle="list">
+                        <a href="#general-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
                             <i class="ri-settings-line me-3 fs-5 text-primary"></i>
                             <div>
                                 <span class="fw-bold d-block small">General</span>
@@ -88,6 +88,53 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="tab-pane fade" id="general-settings">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
+                                    <i class="ri-settings-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">General Settings</h5>
+                                    <p class="text-muted small mb-0">Update system logo and general information.</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <form id="logoForm" enctype="multipart/form-data">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">System Logo</label>
+                                            <div class="d-flex align-items-center gap-4 mt-2">
+                                                <div id="logoPreviewContainer" class="bg-light rounded-3 d-flex align-items-center justify-content-center border-dashed border-2 overflow-hidden" style="width: 120px; height: 120px; border: 2px dashed #dee2e6; cursor: pointer;" onclick="document.getElementById('logoInput').click();">
+                                                    <div id="logoPlaceholder" class="text-center">
+                                                        <i class="ri-image-add-line fs-1 text-muted"></i>
+                                                        <p class="extra-small text-muted mb-0">Upload Logo</p>
+                                                    </div>
+                                                    <img id="logoPreview" src="" class="w-100 h-100 d-none" style="object-fit: contain;">
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <input type="file" name="logo" id="logoInput" class="d-none" accept="image/*" onchange="previewLogo(this)">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm mb-2 px-3" onclick="document.getElementById('logoInput').click();">
+                                                        <i class="ri-upload-2-line me-1"></i> Choose New Logo
+                                                    </button>
+                                                    <p class="extra-small text-muted mb-0">Recommended: Transparent PNG or SVG.<br>Max size: 2MB.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-4 pt-3 border-top">
+                                            <button type="button" id="saveLogoBtn" class="btn btn-primary px-4">
+                                                <i class="ri-save-line me-1"></i> Save Changes
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -163,9 +210,11 @@ require_once $path_prefix . 'components/admin-sidebar.php';
 
 <script>
     const ADMIN_API_PATH = '<?php echo $path_prefix; ?>api/admin/event_types.php';
+    const SETTINGS_API_PATH = '<?php echo $path_prefix; ?>api/admin/settings.php';
 
     document.addEventListener('DOMContentLoaded', () => {
         loadEventTypes();
+        loadGeneralSettings();
 
         document.getElementById('event_type_colour').addEventListener('input', (e) => {
             document.getElementById('color-hex-label').innerText = e.target.value.toUpperCase();
@@ -372,6 +421,95 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         } finally {
             btn.disabled = false;
             btn.innerText = originalText;
+        }
+    });
+
+    // --- General Settings Logic ---
+
+    async function loadGeneralSettings() {
+        try {
+            const response = await fetch(`${SETTINGS_API_PATH}?action=fetch_all`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                const settings = result.data;
+                const logoSetting = settings.find(s => s.setting_key === 'site_logo');
+                
+                if (logoSetting && logoSetting.setting_value) {
+                    const logoPreview = document.getElementById('logoPreview');
+                    const logoPlaceholder = document.getElementById('logoPlaceholder');
+                    
+                    // The path is stored as ../public/uploads/logo/...
+                    // We need to adjust it if it's already a relative path from the root
+                    let logoPath = logoSetting.setting_value;
+                    if (logoPath.startsWith('../')) {
+                        logoPath = '<?php echo $path_prefix; ?>' + logoPath.replace('../', '');
+                    }
+
+                    logoPreview.src = logoPath;
+                    logoPreview.classList.remove('d-none');
+                    logoPlaceholder.classList.add('d-none');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    }
+
+    function previewLogo(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const logoPreview = document.getElementById('logoPreview');
+                const logoPlaceholder = document.getElementById('logoPlaceholder');
+                
+                logoPreview.src = e.target.result;
+                logoPreview.classList.remove('d-none');
+                logoPlaceholder.classList.add('d-none');
+                document.getElementById('logoPreviewContainer').style.border = 'none';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    document.getElementById('saveLogoBtn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('logoInput');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            if (typeof showAlert === 'function') showAlert('Please select a logo to upload', 'warning');
+            else alert('Please select a logo to upload');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('logo', fileInput.files[0]);
+
+        const btn = document.getElementById('saveLogoBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        try {
+            const response = await fetch(`${SETTINGS_API_PATH}?action=update_logo`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                if (typeof showAlert === 'function') showAlert(result.message, 'success');
+                else alert(result.message);
+                loadGeneralSettings();
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                else alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error updating logo:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
         }
     });
 </script>

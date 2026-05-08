@@ -1,6 +1,15 @@
 <?php
 $path_prefix = isset($path_prefix) ? $path_prefix : "../";
 $current_page = basename($_SERVER['PHP_SELF']);
+require_once __DIR__ . '/../classes/GlobalSettings.php';
+$logoData = GlobalSettings::getSetting('site_logo')['data'] ?? [];
+$globalSettingsLogo = $logoData['setting_value'] ?? null;
+
+if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
+    // Keep as is
+} else {
+    $globalSettingsLogo = $path_prefix . "public/img/logo-fmly.png";
+}
 ?>
 <!-- Admin Sidebar -->
 <div class="sidebar admin-sidebar offcanvas-lg offcanvas-start d-flex flex-column" tabindex="-1" id="sidebar-wrapper"
@@ -8,7 +17,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="offcanvas-header border-bottom border-secondary d-lg-none">
         <a href="<?php echo $path_prefix; ?>siteadmin/index.php"
             class="sidebar-heading fw-bold fs-4 d-flex align-items-center m-0 p-0 text-decoration-none">
-            <img src="<?php echo $path_prefix; ?>public/img/logo-fmly.png" alt="logo" style="max-height: 60px;" />
+            <img src="<?php echo $globalSettingsLogo; ?>" alt="logo" style="max-height: 60px;" />
         </a>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebar-wrapper"
             aria-label="Close"></button>
@@ -16,7 +25,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="offcanvas-body flex-column p-0 flex-grow-1">
         <div class="sidebar-heading fw-bold fs-4 d-none d-lg-flex align-items-center mb-3 mt-3 px-4">
             <a href="<?php echo $path_prefix; ?>siteadmin/index.php" class="text-decoration-none d-flex align-items-center">
-                <img src="<?php echo $path_prefix; ?>public/img/logo-fmly.png" alt="logo" style="max-height: 60px;" />
+                <img src="<?php echo $globalSettingsLogo; ?>" alt="logo" style="max-height: 60px;" />
             </a>
         </div>
 

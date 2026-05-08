@@ -1,6 +1,14 @@
 <?php
 $path_prefix = isset($path_prefix) ? $path_prefix : "";
 $page_title = isset($page_title) ? $page_title : "Family Calendar";
+$logoData = GlobalSettings::getSetting('site_logo')['data'] ?? [];
+$globalSettingsLogo = $logoData['setting_value'] ?? null;
+
+if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
+    // Keep as is
+} else {
+    $globalSettingsLogo = $path_prefix . "public/img/logo-fmly.png";
+}
 ?>
 <!-- Top Navigation -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4 py-3">
@@ -10,7 +18,7 @@ $page_title = isset($page_title) ? $page_title : "Family Calendar";
             <i class="fa-solid fa-bars"></i>
         </button>
         <a href="<?php echo $path_prefix; ?>users/index.php" class="d-block d-lg-none">
-            <img src="<?php echo $path_prefix; ?>public/img/logo-fmly.png" alt="logo" /> </a>
+            <img src="<?php echo $globalSettingsLogo; ?>" alt="logo" style="max-height: 50px;" /> </a>
 
         <h2 class="mb-0 fw-bold fs-3 fs-md-2 d-none d-lg-inline-block"><?php echo $page_title; ?></h2>
     </div>
