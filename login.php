@@ -18,8 +18,21 @@ if (isset($_POST['login'])) {
     $result = Auth::login($email, $password);
 
     if ($result['status'] == 'success') {
-        $_SESSION['user'] = $result['data'];
-        $success = "Logged in successfully! Redirecting...";
+        $user = $result['data'];
+        $is_siteadmin = ($user['role'] === 'siteadmin');
+        
+        $family_approved = true;
+        if (!$is_siteadmin && !empty($user['families'])) {
+            // Assuming we check the primary family (first one)
+            $family_approved = !empty($user['families'][0]['approved']);
+        }
+
+        if (!$is_siteadmin && !$family_approved) {
+            $error = "Family not approved!";
+        } else {
+            $_SESSION['user'] = $user;
+            $success = "Logged in successfully! Redirecting...";
+        }
     } else {
         $error = $result['message'];
     }
@@ -144,8 +157,9 @@ if (isset($_POST['login'])) {
 
                     <!-- Footer Link -->
                     <div class="text-center">
-                        <p class="text-secondary">Don't have an account? <a href="#" class="fw-semibold">Contact
+                        <p class="text-secondary mb-1">Don't have an account? <a href="#" class="fw-semibold">Contact
                                 your admin</a></p>
+                        <p class="text-secondary">Want to set up a new family? <a href="index.php" class="fw-semibold">Register here</a></p>
                     </div>
                 </form>
             </div>

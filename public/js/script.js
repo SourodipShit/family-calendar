@@ -286,62 +286,107 @@ document.addEventListener('DOMContentLoaded', () => {
     loadEvents();
 
     // --- MEALS DATA ---
-    // Schema: { type, icon, color, time, menu: [{ name, img }] }
-    // Note: 'menu' should have 7 items representing Sun-Sat.
-    let mealsData = [
-        {
-            type: 'Breakfast',
-            icon: 'fa-solid fa-sun',
-            color: 'warning',
-            time: '7:00 AM',
-            menu: [
-                { name: 'Oatmeal', img: 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Pancakes', img: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Eggs, Toast', img: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&q=80&w=200' },
-                { name: ' Fruits', img: 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Pancakes', img: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Eggs, Toast', img: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Cereal, Milk', img: 'https://images.unsplash.com/photo-1517093157656-b9421f3f8e2d?auto=format&fit=crop&q=80&w=200' }
-            ]
-        },
-        {
-            type: 'Lunch',
-            icon: 'fa-solid fa-cloud-sun',
-            color: 'success',
-            time: '12:30 PM',
-            menu: [
-                { name: 'Grilled Rice', img: 'https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Pasta Bread', img: 'https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Turkey Sandwich', img: 'https://images.unsplash.com/photo-1524391169734-217a1f15893e?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Chicken Rice', img: 'https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Garlic Bread', img: 'https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Tuna Fruit', img: 'https://images.unsplash.com/photo-1540713434306-58505cf1b6fc?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Pizza Carrots', img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=200' }
-            ]
-        },
-        {
-            type: 'Dinner',
-            icon: 'fa-solid fa-moon',
-            color: 'danger',
-            time: '6:30 PM',
-            menu: [
-                { name: 'Pasta Sauce', img: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Beef Salad', img: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Salmon Veggies', img: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Pasta  Sauce', img: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Chicken Stir Fry', img: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=200' },
-                { name: 'Soup  Bread', img: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=200' },
-                { name: 'BBQ Corn', img: 'https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&q=80&w=200' }
-            ]
-        }
-    ];
+    let allMeals = [];
+    let mealsData = [];
+
+    function getWeekRange(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day; // Sunday is 0
+        const sunday = new Date(d.setDate(diff));
+        const saturday = new Date(sunday);
+        saturday.setDate(sunday.getDate() + 6);
+        return { start: sunday, end: saturday };
+    }
+
+    function loadMeals() {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+        const end = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString().split('T')[0];
+
+        const formData = new FormData();
+        formData.append('startDate', start);
+        formData.append('endDate', end);
+
+        fetch(API_PATH + 'meals.php?action=getByDateRange', {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    allMeals = data.meals;
+                    refreshCalendarUI();
+                }
+            })
+            .catch(err => console.error('Error fetching meals:', err));
+    }
+
+    loadMeals();
+
+    function updateMealsData() {
+        const week = getWeekRange(currentDate);
+        const mealTypes = [
+            { type: 'breakfast', label: 'Breakfast', icon: 'fa-solid fa-sun', color: 'warning', time: '7:00 AM' },
+            { type: 'lunch', label: 'Lunch', icon: 'fa-solid fa-cloud-sun', color: 'success', time: '12:30 PM' },
+            { type: 'dinner', label: 'Dinner', icon: 'fa-solid fa-moon', color: 'danger', time: '6:30 PM' }
+        ];
+
+        mealsData = mealTypes.map(mt => {
+            const menu = [];
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(week.start);
+                dayDate.setDate(week.start.getDate() + i);
+                const dateStr = dayDate.toISOString().split('T')[0];
+
+                const meal = allMeals.find(m => m.type === mt.type && m.date === dateStr);
+                if (meal) {
+                    menu.push({ name: meal.name, img: meal.image || `../public/img/${mt.type}.webp`, type: mt.type });
+                } else {
+                    menu.push({ name: 'Not planned', img: `../public/img/unknown.png`, empty: true, type: mt.type });
+                }
+            }
+            return {
+                type: mt.label,
+                icon: mt.icon,
+                color: mt.color,
+                time: mt.time,
+                menu: menu
+            };
+        });
+    }
+
+    function updateWeekHeaders() {
+        const week = getWeekRange(currentDate);
+        const headerCells = document.querySelectorAll('#view-week .header-row .day-col');
+        if (headerCells.length === 0) return;
+
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const options = { month: 'short', day: 'numeric' };
+
+        headerCells.forEach((cell, index) => {
+            const dayDate = new Date(week.start);
+            dayDate.setDate(week.start.getDate() + index);
+
+            const isToday = dayDate.toDateString() === new Date().toDateString();
+
+            if (isToday) {
+                cell.className = 'day-col flex-fill border-end p-3 text-primary';
+                if (index === 6) cell.className = 'day-col flex-fill p-3 text-primary';
+                cell.innerHTML = `<span class="fw-bold">${days[index]}</span><br><span class="d-inline-block bg-primary text-white rounded-circle mt-1 fw-bold" style="width: 30px; height: 30px; line-height: 30px;">${dayDate.getDate()}</span>`;
+            } else {
+                cell.className = 'day-col flex-fill border-end p-3';
+                if (index === 6) cell.className = 'day-col flex-fill p-3';
+                cell.innerHTML = `${days[index]}<br><span class="fw-normal">${dayDate.toLocaleDateString('en-US', options)}</span>`;
+            }
+        });
+    }
 
     // 3. UI RENDERING FUNCTIONS
     // ---------------------------------------------------------
-    // These functions should be encapsulated and called whenever 
-    // data is updated from the API.
-
     function refreshCalendarUI() {
+        updateWeekHeaders();
+        updateMealsData();
         renderMealsWeek();
         renderTimedEventsWeek();
         renderAllDayEventsWeek();
@@ -363,12 +408,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             mealType.menu.forEach(item => {
+                const imgOp = item.empty ? 'opacity: 0.5;' : '';
+                const textCls = item.empty ? 'text-muted fst-italic' : 'text-dark fw-bold';
+                const defaultImg = item.empty ? '../public/img/unknown.png' : `../public/img/${item.type}.webp`;
                 cellsHtml += `
                     <div class="day-col flex-fill p-2">
                         <div class="meal-card border-0">
                             <div class="d-flex align-items-center gap-1">
-                                <img src="${item.img}" alt="${item.name}" class="meal-recipe-img" width="30" height="30" style="object-fit: contain;">
-                                <div class="meal-title fw-bold text-dark fs-7 lh-sm">${item.name}</div>
+                                <img src="${item.img}" alt="${item.name}" class="meal-recipe-img" width="30" height="30" 
+                                     style="object-fit: cover; border-radius: 4px; ${imgOp}" 
+                                     onerror="this.src='${defaultImg}';">
+                                <div class="meal-title ${textCls} fs-7 lh-sm" style="font-size: 0.75rem;">${item.name}</div>
                             </div>
                         </div>
                     </div>
@@ -380,29 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. Time Grid Setup
-    const startHour = 8;
-    const endHour = 18;
-    const rowHeight = 50;
-    const totalHours = endHour - startHour + 1;
-
-    const timeCol = document.querySelector('.time-slots-wrapper .time-col');
-    const gridColsWrapper = document.getElementById('calendar-grid-columns');
-    if (timeCol && gridColsWrapper) {
-        for (let i = startHour; i <= endHour; i++) {
-            let label = i < 12 ? i + ' AM' : (i === 12 ? '12 PM' : (i - 12) + ' PM');
-            const div = document.createElement('div');
-            div.className = 'time-slot-label w-100';
-            div.innerHTML = `<span>${label}</span>`;
-            timeCol.appendChild(div);
-        }
-        gridColsWrapper.style.height = `${(totalHours - 1) * rowHeight + 50}px`;
-        for (let i = 0; i < 7; i++) {
-            const col = document.createElement('div');
-            col.className = 'grid-col';
-            col.setAttribute('data-day', i);
-            gridColsWrapper.appendChild(col);
-        }
-    }
+    // 4. (Removed Time Grid Setup)
 
     // 5. Helper Functions
     function formatTime(decimalHour) {
@@ -465,31 +493,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 6. Render Timed Events (Week View)
     function renderTimedEventsWeek() {
-        const cols = document.querySelectorAll('.grid-col');
-        if (!cols.length) return;
+        const container = document.getElementById('week-events-list-container');
+        if (!container) return;
+        container.innerHTML = '';
+        container.className = 'd-flex flex-column w-100 gap-2 p-3 bg-white';
 
-        // Clear existing events
-        cols.forEach(col => {
-            const eventBlocks = col.querySelectorAll('.event-block');
-            eventBlocks.forEach(b => b.remove());
+        const week = getWeekRange(currentDate);
+        // Normalize week start/end to midnight for accurate comparison
+        const weekStart = new Date(week.start);
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(week.end);
+        weekEnd.setHours(23, 59, 59, 999);
+
+        const currentWeekEvents = events.filter(e => {
+            const eDate = new Date(e.startStr.split('T')[0]);
+            eDate.setHours(0, 0, 0, 0);
+            return eDate >= weekStart && eDate <= weekEnd;
         });
 
-        events.forEach(evt => {
-            const top = (evt.startHour - startHour) * rowHeight;
-            const height = evt.duration * rowHeight;
-            const block = document.createElement('div');
-            block.className = `event-block`;
+        // Sort events chronologically
+        currentWeekEvents.sort((a, b) => a.startHour - b.startHour);
 
-            const baseColor = evt.colorCode || '#0d6efd';
-            block.style.top = `${top}px`;
-            block.style.height = `${height - 4}px`;
-            block.style.backgroundColor = lightenColor(baseColor, 92);
-            block.style.borderLeft = `4px solid ${baseColor}`;
+        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-            block.setAttribute('data-member', evt.member);
-            block.innerHTML = createEventBlockHtml(evt, false);
-            if (cols[evt.day]) cols[evt.day].appendChild(block);
-        });
+        for (let i = 0; i < 7; i++) {
+            const dayDate = new Date(week.start);
+            dayDate.setDate(dayDate.getDate() + i);
+            const isToday = dayDate.toDateString() === new Date().toDateString();
+
+            const dayEvents = currentWeekEvents.filter(e => e.day === i);
+
+            const row = document.createElement('div');
+            row.className = 'd-flex border-bottom pb-3 pt-2';
+
+            // Left side: Day label
+            const leftCol = document.createElement('div');
+            leftCol.className = 'd-flex flex-column align-items-center fw-bold text-muted me-3';
+            leftCol.style.width = '50px';
+            leftCol.innerHTML = `
+                <span class="fs-7 text-dark">${daysOfWeek[i]}</span>
+                <span class="fs-5 mt-1 ${isToday ? 'bg-primary text-white rounded-circle d-flex align-items-center justify-content-center' : 'text-dark fw-normal'}" 
+                      style="${isToday ? 'width: 32px; height: 32px;' : ''}">${dayDate.getDate()}</span>
+            `;
+
+            // Right side: Events list
+            const rightCol = document.createElement('div');
+            rightCol.className = 'flex-fill d-flex flex-column gap-2';
+
+            if (dayEvents.length > 0) {
+                dayEvents.forEach(evt => {
+                    const block = document.createElement('div');
+                    block.className = `event-block position-relative rounded p-2 shadow-sm w-100 d-flex align-items-center justify-content-between`;
+
+                    const baseColor = evt.colorCode || '#0d6efd';
+                    const bgColor = lightenColor(baseColor, 92);
+                    block.style.backgroundColor = bgColor;
+                    block.style.borderLeft = `4px solid ${baseColor}`;
+
+                    const startStr = formatTime(evt.startHour);
+                    const endStr = formatTime(evt.startHour + evt.duration);
+
+                    block.innerHTML = `
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold text-dark fs-7" style="line-height: 1.2;">${evt.title}</span>
+                            <span class="text-muted mt-1" style="font-size: 0.75rem;">${startStr} - ${endStr}</span>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
+                             style="width: 24px; height: 24px; background-color: ${baseColor}; font-size: 0.7rem;">
+                            ${evt.member.charAt(0).toUpperCase()}
+                        </div>
+                    `;
+                    rightCol.appendChild(block);
+                });
+            } else {
+                rightCol.innerHTML = '<div class="text-muted fst-italic fs-7 mt-2">No scheduled events</div>';
+            }
+
+            row.appendChild(leftCol);
+            row.appendChild(rightCol);
+            container.appendChild(row);
+        }
     }
 
     // 7. Render All Day Events (Week View)
@@ -497,7 +580,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const allDayContainer = document.getElementById('all-day-events-container');
         if (!allDayContainer) return;
         allDayContainer.innerHTML = '';
-        allDayEvents.forEach(evt => {
+
+        const week = getWeekRange(currentDate);
+        // Normalize week start/end to midnight for accurate comparison
+        const weekStart = new Date(week.start);
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(week.end);
+        weekEnd.setHours(23, 59, 59, 999);
+
+        const currentWeekAllDayEvents = allDayEvents.filter(e => {
+            const eDate = new Date(e.startStr.split('T')[0]);
+            eDate.setHours(0, 0, 0, 0);
+            return eDate >= weekStart && eDate <= weekEnd;
+        });
+
+        currentWeekAllDayEvents.forEach(evt => {
             const div = document.createElement('div');
             div.className = `all-day-event`;
 
@@ -583,24 +680,28 @@ document.addEventListener('DOMContentLoaded', () => {
         mealsForRow.forEach(meal => {
             const row = document.createElement('div');
             row.className = 'day-view-row d-flex align-items-center p-3 border-bottom';
+            const defaultImg = meal.item.empty ? '../public/img/unknown.png' : `../public/img/${meal.item.type}.webp`;
             row.innerHTML = `
-                <div class="row-left d-flex align-items-center" style="width: 150px;">
-                    <i class="${meal.icon} text-${meal.color} fs-5 me-3"></i>
-                    <span class="fw-bold text-dark">${meal.type}</span>
-                </div>
-                <div class="row-time text-muted fs-7" style="width: 100px;">${meal.time}</div>
-                <div class="row-content flex-grow-1 d-flex align-items-center">
-                    <img src="${meal.item.img}" class="meal-recipe-img me-3" width="50" height="50" style="object-fit: cover;">
-                    <span class="text-dark fw-medium">${meal.item.name}</span>
-                </div>
-                <div class="row-meta text-muted fs-7">Added by Mom</div>
-                <div class="ms-3 cursor-pointer"><i class="fa-solid fa-ellipsis text-muted"></i></div>
-            `;
+                    <div class="row-left d-flex align-items-center" style="width: 150px;">
+                        <i class="${meal.icon} text-${meal.color} fs-5 me-3"></i>
+                        <span class="fw-bold text-dark">${meal.type}</span>
+                    </div>
+                    <div class="row-time text-muted fs-7" style="width: 100px;">${meal.time}</div>
+                    <div class="row-content flex-grow-1 d-flex align-items-center">
+                        <img src="${meal.item.img}" class="meal-recipe-img me-3 rounded" width="50" height="50" 
+                             style="object-fit: cover; ${meal.item.empty ? 'opacity:0.5;' : ''}"
+                             onerror="this.src='${defaultImg}';">
+                        <span class="${meal.item.empty ? 'text-muted fst-italic' : 'text-dark fw-medium'}">${meal.item.name}</span>
+                    </div>
+                    <div class="row-meta text-muted fs-7">Added by Mom</div>
+                    <div class="ms-3 cursor-pointer"><i class="fa-solid fa-ellipsis text-muted"></i></div>
+                `;
             container.appendChild(row);
         });
 
         // 2. All Day Events for this day
-        const dayAllDayEvents = allDayEvents.filter(e => e.day === dayIndex);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayAllDayEvents = allDayEvents.filter(e => e.startStr.startsWith(dateStr));
         dayAllDayEvents.forEach(evt => {
             const allDayRow = document.createElement('div');
             allDayRow.className = 'day-view-row d-flex align-items-center p-3 border-bottom bg-light bg-opacity-25';
@@ -627,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 3. Time-based Events for this day
-        const dayEvents = events.filter(e => e.day === dayIndex);
+        const dayEvents = events.filter(e => e.startStr.startsWith(dateStr));
         dayEvents.sort((a, b) => a.startHour - b.startHour);
 
         if (dayEvents.length === 0) {
@@ -748,9 +849,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateDateText(date) {
         if (dateBtnText) {
-            // Simple formatter for the button text
-            const options = { month: 'short', day: 'numeric', year: 'numeric' };
-            dateBtnText.innerHTML = '<i class="fa-regular fa-calendar me-2"></i> ' + date.toLocaleDateString('en-US', options);
+            if (currentView === 'view-week') {
+                const range = getWeekRange(date);
+                const options = { month: 'short', day: 'numeric' };
+                const yearOptions = { year: 'numeric' };
+                dateBtnText.innerHTML = '<i class="fa-regular fa-calendar me-2"></i> ' +
+                    `${range.start.toLocaleDateString('en-US', options)} – ${range.end.toLocaleDateString('en-US', options)}, ${range.end.toLocaleDateString('en-US', yearOptions)} <i class="fa-solid fa-chevron-down ms-2 fs-7"></i>`;
+            } else {
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                dateBtnText.innerHTML = '<i class="fa-regular fa-calendar me-2"></i> ' + date.toLocaleDateString('en-US', options) + ' <i class="fa-solid fa-chevron-down ms-2 fs-7"></i>';
+            }
         }
     }
 
@@ -784,11 +892,11 @@ document.addEventListener('DOMContentLoaded', () => {
             else currentDate.setDate(currentDate.getDate() + days);
             renderDayView(currentDate);
         } else {
-            // Week view navigation (simple 7 day jump for now)
+            // Week view navigation
             const days = direction === 'prev' ? -7 : (direction === 'next' ? 7 : 0);
             if (days === 0) currentDate = new Date();
             else currentDate.setDate(currentDate.getDate() + days);
-            // In a real app, you'd re-render the week grid here
+            refreshCalendarUI();
         }
         updateDateText(currentDate);
     }

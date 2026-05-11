@@ -40,6 +40,7 @@ require_once $path_prefix . 'classes/Family.php';
                                 <th class="border-0">Location</th>
                                 <th class="border-0">Timezone</th>
                                 <th class="border-0">Members</th>
+                                <th class="border-0">Status</th>
                                 <th class="text-end pe-4 border-0">Actions</th>
                             </tr>
                         </thead>
@@ -72,12 +73,21 @@ require_once $path_prefix . 'classes/Family.php';
                                         <?php endif; ?>
                                     </div>
                                 </td>
+                                <td>
+                                    <span class="badge bg-<?php echo $family['approved'] ? 'success' : 'danger'; ?>"><?php echo htmlspecialchars($family['approved'] ? 'Approved' : 'Pending'); ?></span>
+                                </td>
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             <li><a class="dropdown-item" href="edit-family.php?id=<?php echo $family['id']; ?>"><i class="ri-edit-line me-2"></i>Edit Family</a></li>
                                             <li><a class="dropdown-item" href="#"><i class="ri-group-line me-2"></i>Manage Members</a></li>
+                                            <li>
+                                                <a class="dropdown-item <?php echo !empty($family['approved']) ? 'disabled' : ''; ?>" href="#" onclick="approveFamily(<?php echo $family['id']; ?>); return false;" <?php echo !empty($family['approved']) ? 'tabindex="-1" aria-disabled="true"' : ''; ?>>
+                                                    <i class="ri-check-line me-2"></i>
+                                                    <?php echo !empty($family['approved']) ? 'Approved' : 'Approve'; ?>
+                                                </a>
+                                            </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-danger" href="../helpers/admin/deleteFamily.php?id=<?php echo $family['id']; ?>" onclick="return confirm('Are you sure you want to delete the family \'<?php echo htmlspecialchars($family['name']); ?>\'? This will also remove all associated members.')"><i class="ri-delete-bin-line me-2"></i>Delete</a></li>
                                         </ul>
@@ -118,4 +128,32 @@ $(document).ready(function() {
     });
 
 });
+
+function approveFamily(id) {
+    if(confirm('Are you sure you want to approve this family?')) {
+        fetch(`../api/admin/family.php?action=approve&id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                if(typeof showAlert === 'function') {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    alert(data.message);
+                    window.location.reload();
+                }
+            } else {
+                if(typeof showAlert === 'function') {
+                    showAlert(data.message, 'error');
+                } else {
+                    alert(data.message);
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('An error occurred while approving the family.');
+        });
+    }
+}
 </script>

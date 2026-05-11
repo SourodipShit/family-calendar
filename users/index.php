@@ -57,55 +57,49 @@ include $path_prefix . 'components/sidebar.php';
 
                     <!-- Week View (Default) -->
                     <div id="view-week" class="calendar-grid bg-white border rounded-3 overflow-hidden ">
-                        <!-- Header Row -->
-                        <div class="calendar-row header-row d-flex text-center border-bottom bg-white fw-bold">
-                            <div class="time-col border-end p-3 text-muted">Time / Day</div>
-                            <div class="day-col flex-fill border-end p-3">Sun<br><span class="fw-normal">May
-                                    12</span></div>
-                            <div class="day-col flex-fill border-end p-3">Mon<br><span class="fw-normal">May
-                                    13</span></div>
-                            <div class="day-col flex-fill border-end p-3">Tue<br><span class="fw-normal">May
-                                    14</span></div>
-                            <div class="day-col flex-fill border-end p-3 text-primary"><span
-                                    class="fw-bold">Wed</span><br><span
-                                    class="d-inline-block bg-primary text-white rounded-circle mt-1 fw-bold"
-                                    style="width: 30px; height: 30px; line-height: 30px;">15</span></div>
-                            <div class="day-col flex-fill border-end p-3">Thu<br><span class="fw-normal">May
-                                    16</span></div>
-                            <div class="day-col flex-fill border-end p-3">Fri<br><span class="fw-normal">May
-                                    17</span></div>
-                            <div class="day-col flex-fill p-3">Sat<br><span class="fw-normal">May 18</span>
+                        <!-- Wrapper for scrollable grid part -->
+                        <div class="calendar-grid-header-meals">
+                            <!-- Header Row -->
+                            <div class="calendar-row header-row d-flex text-center border-bottom bg-white fw-bold">
+                                <div class="time-col border-end p-3 text-muted">Time / Day</div>
+                                <div class="day-col flex-fill border-end p-3">Sun<br><span class="fw-normal">May
+                                        12</span></div>
+                                <div class="day-col flex-fill border-end p-3">Mon<br><span class="fw-normal">May
+                                        13</span></div>
+                                <div class="day-col flex-fill border-end p-3">Tue<br><span class="fw-normal">May
+                                        14</span></div>
+                                <div class="day-col flex-fill border-end p-3 text-primary"><span
+                                        class="fw-bold">Wed</span><br><span
+                                        class="d-inline-block bg-primary text-white rounded-circle mt-1 fw-bold"
+                                        style="width: 30px; height: 30px; line-height: 30px;">15</span></div>
+                                <div class="day-col flex-fill border-end p-3">Thu<br><span class="fw-normal">May
+                                        16</span></div>
+                                <div class="day-col flex-fill border-end p-3">Fri<br><span class="fw-normal">May
+                                        17</span></div>
+                                <div class="day-col flex-fill p-3">Sat<br><span class="fw-normal">May 18</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Meals Rows (Breakfast, Lunch, Dinner) -->
-                        <div id="meals-container">
-                            <!-- Populated by JS -->
-                        </div>
-
-                        <!-- All Day Events Row -->
-                        <div class="calendar-row all-day-row d-flex border-bottom bg-light">
-                            <div
-                                class="time-col border-end p-2 d-flex align-items-center fw-bold text-dark fs-7">
-                                <i class="fa-regular fa-calendar-check text-primary me-2"></i> All Day Events
-                            </div>
-                            <div class="events-col flex-fill p-2 d-flex gap-2" id="all-day-events-container">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-
-                        <!-- Time Slots Grid -->
-                        <div class="time-slots-wrapper d-flex position-relative">
-                            <!-- Time Column (8 AM to 6 PM) -->
-                            <div class="time-col border-end d-flex flex-column text-muted fs-7 text-center">
+                            <!-- Meals Rows (Breakfast, Lunch, Dinner) -->
+                            <div id="meals-container">
                                 <!-- Populated by JS -->
                             </div>
 
-                            <!-- Grid Columns (7 days) -->
-                            <div class="grid-cols-wrapper flex-fill d-flex position-relative"
-                                id="calendar-grid-columns">
-                                <!-- Populated by JS -->
+                            <!-- All Day Events Row -->
+                            <div class="calendar-row all-day-row d-flex border-bottom bg-light">
+                                <div
+                                    class="time-col border-end p-2 d-flex align-items-center fw-bold text-dark fs-7">
+                                    <i class="fa-regular fa-calendar-check text-primary me-2"></i> All Day Events
+                                </div>
+                                <div class="events-col flex-fill p-2 d-flex gap-2" id="all-day-events-container">
+                                    <!-- Populated by JS -->
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Scheduled Events Row (List View) -->
+                        <div class="calendar-row events-list-row bg-white p-3" id="week-events-list-container">
+                            <!-- Populated by JS (Vertical List) -->
                         </div>
                     </div>
 

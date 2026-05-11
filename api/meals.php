@@ -48,7 +48,9 @@ if ($action == 'delete') {
     echo json_encode($result);
 }
 
+session_start();
 if ($action == 'getByDateRange') {
-    $result = Meals::getByDateRange($_POST['startDate'], $_POST['endDate'], $_POST['family_id']);
+    $family_id = $_POST['family_id'] ?? $_SESSION['user']['families'][0]['id'] ?? 1;
+    $result = Meals::getByDateRange($_POST['startDate'], $_POST['endDate'], $family_id);
     echo json_encode($result);
 }
