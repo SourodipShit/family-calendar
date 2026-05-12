@@ -34,6 +34,14 @@ if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>public/css/style.css">
     <script>
         const API_PATH = "<?php echo $path_prefix; ?>api/";
+        window.familySettings = <?php 
+            $settings = $_SESSION['user']['families'][0]['settings'] ?? '{}';
+            if (is_string($settings) && !empty($settings)) {
+                echo $settings;
+            } else {
+                echo json_encode($settings ?: new stdClass());
+            }
+        ?>;
     </script>
 </head>
 

@@ -4,16 +4,7 @@ $page_title = "Calendar";
 include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 ?>
-<script>
-    window.familySettings = <?php 
-        $settings = $_SESSION['user']['families'][0]['settings'] ?? '{}';
-        if (is_string($settings) && !empty($settings)) {
-            echo $settings;
-        } else {
-            echo json_encode($settings ?: new stdClass());
-        }
-    ?>;
-</script>
+
 
 <!-- Page Content -->
 <div id="page-content-wrapper" class="flex-grow-1 bg-white">

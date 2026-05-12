@@ -10,8 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            console.log('Fetched family members:', data);
-            console.log('Family settings:', window.familySettings);
             // Map database fields to script expectations
             familyMembers = data.map(member => {
                 // Determine color class based on name/role for legacy compatibility
