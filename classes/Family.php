@@ -80,7 +80,7 @@ class Family
         try {
             // First delete links in user_family
             Database::runPrepared("DELETE FROM user_family WHERE family_id = ?", [$family_id]);
-            
+
             // Then delete the family
             $result = Database::runPrepared("DELETE FROM families WHERE id = ?", [$family_id]);
             if ($result) {
@@ -110,6 +110,20 @@ class Family
             return ['status' => 'success', 'message' => 'Family updated successfully'];
         } catch (PDOException $e) {
             return ['status' => 'error', 'message' => 'Failed to update family: ' . $e->getMessage()];
+        }
+    }
+
+    public static function updateFamilySettings($settings, $familyId)
+    {
+        try {
+            $result = Database::runPrepared("UPDATE families SET settings = ? WHERE id = ?", [
+                json_encode($settings),
+                $familyId
+            ]);
+
+            return ['status' => 'success', 'message' => 'Family settings updated successfully'];
+        } catch (PDOException $e) {
+            return ['status' => 'error', 'message' => 'Failed to update family settings: ' . $e->getMessage()];
         }
     }
 }

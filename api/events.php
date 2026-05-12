@@ -31,6 +31,7 @@ function getEventsByDateRange()
                 'id' => $event['id'],
                 'user_id' => $event['user_id'],
                 'member' => $event['member'],
+                'member_nickname' => $event['member_nickname'],
                 'location' => $event['location'] ?? '',
                 'is_all_day' => (isset($event['is_all_day']) && $event['is_all_day']) ? true : false
             ];

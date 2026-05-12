@@ -24,7 +24,7 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
     <div class="offcanvas-body flex-column p-0 flex-grow-1">
         <div class="sidebar-heading text-primary fw-bold fs-4 d-none d-lg-flex align-items-center mb-4 mt-4">
             <a href="<?php echo $path_prefix; ?>users/index.php">
-                <img src="<?php echo $globalSettingsLogo; ?>" alt="logo" style="max-height: 60px;" />
+                <img src="<?php echo $globalSettingsLogo; ?>" alt="logo" style="max-height: 90px;" />
             </a>
 
         </div>

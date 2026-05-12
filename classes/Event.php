@@ -6,7 +6,7 @@ class  Event
 {
     public static function getEventsByDateRange($startDate, $endDate, $familyId)
     {
-        $sql = "SELECT e.*, et.name AS type, et.colour AS color, em.user_id, u.name as member
+        $sql = "SELECT e.*, et.name AS type, et.colour AS color, em.user_id, u.name as member, u.nickname as member_nickname
                 FROM events AS e 
                 INNER JOIN event_types AS et ON e.type_id = et.id 
                 INNER JOIN event_members AS em ON e.id = em.event_id 

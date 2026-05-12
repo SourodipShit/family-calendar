@@ -32,6 +32,13 @@ $family_id = $_SESSION['user']['families'][0]['id'] ?? null;
                                 <small class="opacity-75" style="font-size: 0.7rem;">Basic info & location</small>
                             </div>
                         </a>
+                        <a href="#general-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-settings-4-line me-3 fs-5 text-secondary"></i>
+                            <div>
+                                <span class="fw-bold d-block small">General Settings</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">Display & app preferences</small>
+                            </div>
+                        </a>
                         <a href="#event-types" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
                             <i class="ri-calendar-event-line me-3 fs-5 text-warning"></i>
                             <div>
@@ -126,6 +133,35 @@ $family_id = $_SESSION['user']['families'][0]['id'] ?? null;
                                     </div>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="tab-pane fade" id="general-settings">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-secondary bg-opacity-10 text-secondary p-2 rounded-3 me-3">
+                                    <i class="ri-settings-4-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">General Settings</h5>
+                                    <p class="text-muted small mb-0">Manage app-wide display preferences.</p>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1 small">Show Nicknames</h6>
+                                            <p class="text-muted extra-small mb-0">Display user nicknames instead of full names on the calendar.</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="show_nicknames_toggle" style="width: 40px; height: 20px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -257,6 +293,8 @@ $family_id = $_SESSION['user']['families'][0]['id'] ?? null;
 </div>
 
 <script>
+    let familySettings = {};
+
     document.addEventListener('DOMContentLoaded', () => {
         loadFamilyProfile();
         loadEventTypes();
@@ -276,6 +314,19 @@ $family_id = $_SESSION['user']['families'][0]['id'] ?? null;
                 document.getElementById('family_email').value = family.email;
                 document.getElementById('family_location').value = family.location;
                 document.getElementById('family_timezone').value = family.timezone;
+
+                // Load general settings
+                if (family.settings) {
+                    try {
+                        familySettings = typeof family.settings === 'string' ? JSON.parse(family.settings) : family.settings;
+                        document.getElementById('show_nicknames_toggle').checked = familySettings.show_nicknames || false;
+                    } catch (e) {
+                        console.error('Error parsing settings:', e);
+                        familySettings = {};
+                    }
+                } else {
+                    familySettings = {};
+                }
             }
         } catch (error) {
             console.error('Error loading family profile:', error);
@@ -313,6 +364,38 @@ $family_id = $_SESSION['user']['families'][0]['id'] ?? null;
         } finally {
             btn.disabled = false;
             btn.innerText = originalText;
+        }
+    });
+
+    document.getElementById('show_nicknames_toggle').addEventListener('change', async (e) => {
+        const isChecked = e.target.checked;
+        
+        // Update local state
+        familySettings.show_nicknames = isChecked;
+        
+        try {
+            const response = await fetch(`${API_PATH}family.php?action=updateSettings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    settings: familySettings
+                })
+            });
+            const result = await response.json();
+            if (result.status !== 'success') {
+                showAlert(result.message, 'error');
+                // Revert local state and UI
+                familySettings.show_nicknames = !isChecked;
+                e.target.checked = !isChecked;
+            }
+        } catch (error) {
+            console.error('Error updating settings:', error);
+            showAlert('Network error occurred', 'error');
+            // Revert local state and UI
+            familySettings.show_nicknames = !isChecked;
+            e.target.checked = !isChecked;
         }
     });
 

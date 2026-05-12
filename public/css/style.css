@@ -155,6 +155,18 @@ body {
     font-weight: 700;
 }
 
+.family-member-filter-add {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 8px;
+    border-radius: 12px;
+}
+
+.meal-card-wrapper {
+    height: 100%;
+    transition: opacity 0.3s ease;
+}
+
 
 .meal-card {
     transition: opacity 0.3s ease, transform 0.3s ease;

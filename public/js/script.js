@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Family Members Data
     let familyMembers = [];
+    let activeMemberFilter = 'all';
 
     fetch(API_PATH + 'getMembers.php')
         .then(response => {
@@ -9,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
+            console.log('Fetched family members:', data);
+            console.log('Family settings:', window.familySettings);
             // Map database fields to script expectations
             familyMembers = data.map(member => {
                 // Determine color class based on name/role for legacy compatibility
@@ -42,32 +45,72 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => console.error('Error fetching family members:', error));
 
+    function getDisplayName(member) {
+        let settings = window.familySettings || {};
+        
+        // Handle case where settings might be a string
+        if (typeof settings === 'string' && settings.trim() !== '') {
+            try {
+                settings = JSON.parse(settings);
+            } catch (e) {
+                console.error('Error parsing family settings:', e);
+                settings = {};
+            }
+        }
+
+        const showNicknames = settings.show_nicknames === true || settings.show_nicknames === "true" || settings.show_nicknames === 1 || settings.show_nicknames === "1";
+
+        if (showNicknames) {
+            if (member.nickname && member.nickname.trim() !== '') {
+                return member.nickname;
+            } else if (member.name) {
+                // If nickname is null, show first part of name
+                return member.name.trim().split(' ')[0];
+            }
+        }
+        return member.name || '';
+    }
+
     function renderMembers() {
         const membersContainer = document.querySelector('.family-members-list');
         if (!membersContainer) return;
 
         membersContainer.innerHTML = '';
 
+        // Add "All" Filter
+        const allDiv = document.createElement('div');
+        allDiv.className = `family-member-filter ${activeMemberFilter === 'all' ? 'active' : ''}`;
+        allDiv.setAttribute('data-member', 'all');
+        allDiv.innerHTML = `
+            <div class="avatar-wrapper position-relative">
+                <div class="rounded-circle border border-2 border-white shadow-sm d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="width: 60px; height: 60px; font-size: 1.2rem;">
+                    ALL
+                </div>
+                <span class="name text-dark">Everyone</span>
+            </div>
+        `;
+        membersContainer.appendChild(allDiv);
+
         familyMembers.forEach(member => {
             const div = document.createElement('div');
-            div.className = 'family-member-filter';
-            div.setAttribute('data-member', member.filterId);
+            const memberFilterId = member.name.toLowerCase();
+            div.className = `family-member-filter ${activeMemberFilter === memberFilterId ? 'active' : ''}`;
+            div.setAttribute('data-member', memberFilterId);
             div.innerHTML = `
                 <div class="avatar-wrapper position-relative">
                     <img src="${member.avatar}" alt="${member.name}" width="60" height="60" class="rounded-circle border border-2 border-white shadow-sm">
                     <a href="../users/edit-member.php?id=${member.id}" class="edit-member-btn position-absolute top-0 end-0 bg-white rounded-circle shadow-sm text-primary" style="width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: translate(10%, -10%); border: 1px solid #eee; z-index: 10;">
                         <i class="fa-solid fa-pen"></i>
                     </a>
-                    <span class="name text-dark">${member.name}</span>
+                    <span class="name text-dark">${getDisplayName(member)}</span>
                 </div>
             `;
-            if (member.filterId === 'dad') div.classList.add('active');
             membersContainer.appendChild(div);
         });
 
         // Add Button for Members
         const addDiv = document.createElement('div');
-        addDiv.className = 'family-member-filter';
+        addDiv.className = 'family-member-filter-add';
         addDiv.innerHTML = `
             <div class="avatar-wrapper">
                 <button class="add-avatar-btn" onclick="window.location.href='../users/add-member.php'">
@@ -85,32 +128,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 const memberId = filter.getAttribute('data-member');
                 if (!memberId) return;
 
+                activeMemberFilter = memberId;
                 filters.forEach(f => f.classList.remove('active'));
                 filter.classList.add('active');
 
-                // Apply filters
-                document.querySelectorAll('.meal-card').forEach(card => {
-                    const cardMember = card.getAttribute('data-member') || 'all';
-                    card.style.display = (memberId === 'all' || cardMember === memberId || cardMember === 'all') ? 'block' : 'none';
-                });
-
-                document.querySelectorAll('tr[data-member]').forEach(row => {
-                    const rowMember = row.getAttribute('data-member');
-                    row.style.display = (memberId === 'all' || rowMember === memberId || rowMember === 'all') ? '' : 'none';
-                });
-
-                document.querySelectorAll('.event-block').forEach(block => {
-                    const blockMember = block.getAttribute('data-member') || 'all';
-                    if (memberId === 'all' || blockMember === memberId) {
-                        block.style.opacity = '1';
-                        block.style.pointerEvents = 'auto';
-                    } else {
-                        block.style.opacity = '0.15';
-                        block.style.pointerEvents = 'none';
-                    }
-                });
+                applyFilters();
             });
         });
+    }
+
+    function applyFilters() {
+        const memberId = activeMemberFilter;
+        
+        // Apply to meals
+        document.querySelectorAll('.meal-card-wrapper').forEach(wrapper => {
+            // Meals currently don't have member data, so we show them all or handle 'all'
+            wrapper.style.display = 'block'; 
+        });
+
+        document.querySelectorAll('.event-block').forEach(block => {
+            const blockMember = block.getAttribute('data-member') || 'all';
+            if (memberId === 'all' || blockMember === memberId) {
+                block.style.opacity = '1';
+                block.style.pointerEvents = 'auto';
+                block.classList.remove('filtered-out');
+            } else {
+                block.style.opacity = '0.15';
+                block.style.pointerEvents = 'none';
+                block.classList.add('filtered-out');
+            }
+        });
+
+        document.querySelectorAll('.all-day-event').forEach(evt => {
+            const evtMember = evt.getAttribute('data-member') || 'all';
+            if (memberId === 'all' || evtMember === memberId) {
+                evt.style.opacity = '1';
+                evt.style.display = 'inline-flex';
+            } else {
+                evt.style.opacity = '0.15';
+                evt.style.display = 'none';
+            }
+        });
+
+        // Update FullCalendar if it exists
+        if (window.calendarInstance) {
+            window.calendarInstance.refetchEvents();
+        }
     }
 
     function renderLegend() {
@@ -122,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = 'legend-item';
             const color = member.colorCode || '#0d6efd';
-            item.innerHTML = `<span class="legend-dot" style="background-color: ${color}"></span> ${member.name}`;
+            item.innerHTML = `<span class="legend-dot" style="background-color: ${color}"></span> ${getDisplayName(member)}`;
             legendContainer.appendChild(item);
         });
     }
@@ -145,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.innerHTML = `
                 <img src="${avatarUrl}" class="rounded-circle border ${borderClass} border-2 p-1 avatar-img" width="44" height="44">
                 <i class="fa-solid fa-circle-check text-primary position-absolute bg-white rounded-circle check-icon ${checkIconClass}" style="top: -2px; right: -2px; font-size: 14px;"></i>
-                <div class="fs-8 mt-1 text-dark avatar-name ${nameWeight}" style="font-size: 0.7rem;">${member.name}</div>
+                <div class="fs-8 mt-1 text-dark avatar-name ${nameWeight}" style="font-size: 0.7rem;">${getDisplayName(member)}</div>
             `;
 
             div.addEventListener('click', () => {
@@ -392,6 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAllDayEventsWeek();
         if (currentView === 'view-day') renderDayView(currentDate);
         if (window.calendarInstance) window.calendarInstance.refetchEvents();
+        
+        // Re-apply member filters after UI refresh
+        applyFilters();
     }
 
     // 4. Meals Rendering (Week View)
@@ -413,12 +479,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const defaultImg = item.empty ? '../public/img/unknown.png' : `../public/img/${item.type}.webp`;
                 cellsHtml += `
                     <div class="day-col flex-fill p-2">
-                        <div class="meal-card border-0">
-                            <div class="d-flex align-items-center gap-1">
-                                <img src="${item.img}" alt="${item.name}" class="meal-recipe-img" width="30" height="30" 
-                                     style="object-fit: cover; border-radius: 4px; ${imgOp}" 
-                                     onerror="this.src='${defaultImg}';">
-                                <div class="meal-title ${textCls} fs-7 lh-sm" style="font-size: 0.75rem;">${item.name}</div>
+                        <div class="meal-card-wrapper">
+                            <div class="meal-card border-0">
+                                <div class="d-flex align-items-center gap-1">
+                                    <img src="${item.img}" alt="${item.name}" class="meal-recipe-img" width="30" height="30" 
+                                         style="object-fit: cover; border-radius: 4px; ${imgOp}" 
+                                         onerror="this.src='${defaultImg}';">
+                                    <div class="meal-title ${textCls} fs-7 lh-sm" style="font-size: 0.75rem;">${item.name}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -487,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="event-time" style="color: ${baseColor}"><i class="fa-regular fa-clock me-1"></i> ${startStr}</div>
             <div class="event-title" style="color: ${textColor === 'white' ? '#fff' : '#1a1a1a'}">${evt.title}</div>
             ${showLocation && evt.location ? `<div class="event-location"><i class="fa-solid fa-location-dot me-1"></i> ${evt.location}</div>` : ''}
-            <div class="event-assigned" style="color: ${baseColor}">${evt.member.charAt(0).toUpperCase() + evt.member.slice(1)}</div>
+            <div class="event-assigned" style="color: ${baseColor}">${getDisplayName({name: evt.member, nickname: evt.member_nickname})}</div>
         `;
     }
 
@@ -544,6 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayEvents.forEach(evt => {
                     const block = document.createElement('div');
                     block.className = `event-block position-relative rounded p-2 shadow-sm w-100 d-flex align-items-center justify-content-between`;
+                    block.setAttribute('data-member', evt.member);
 
                     const baseColor = evt.colorCode || '#0d6efd';
                     const bgColor = lightenColor(baseColor, 92);
@@ -560,7 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
                              style="width: 24px; height: 24px; background-color: ${baseColor}; font-size: 0.7rem;">
-                            ${evt.member.charAt(0).toUpperCase()}
+                            ${getDisplayName({name: evt.member, nickname: evt.member_nickname}).charAt(0).toUpperCase()}
                         </div>
                     `;
                     rightCol.appendChild(block);
@@ -679,7 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         mealsForRow.forEach(meal => {
             const row = document.createElement('div');
-            row.className = 'day-view-row d-flex align-items-center p-3 border-bottom';
+            row.className = 'day-view-row meal-card-wrapper d-flex align-items-center p-3 border-bottom';
             const defaultImg = meal.item.empty ? '../public/img/unknown.png' : `../public/img/${meal.item.type}.webp`;
             row.innerHTML = `
                     <div class="row-left d-flex align-items-center" style="width: 150px;">
@@ -716,12 +785,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="row-time" style="width: 100px;"></div>
                 <div class="row-content flex-grow-1 d-flex gap-2">
-                    <div class="all-day-event" style="background-color: ${bgColor}; color: ${baseColor}; border-left: 4px solid ${baseColor};">
+                    <div class="all-day-event" data-member="${evt.member}" style="background-color: ${bgColor}; color: ${baseColor}; border-left: 4px solid ${baseColor};">
                         <i class="fa-solid fa-calendar-day me-1"></i> ${evt.title}
                     </div>
                 </div>
                 <div class="row-meta text-muted fs-7 ps-3 d-flex align-items-center">
-                    <i class="fa-solid fa-user me-1"></i> ${evt.member.charAt(0).toUpperCase() + evt.member.slice(1)}
+                    <i class="fa-solid fa-user me-1"></i> ${getDisplayName({name: evt.member, nickname: evt.member_nickname})}
                 </div>
             `;
             container.appendChild(allDayRow);
@@ -751,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="fw-bold text-muted">${startStr}</span>
                     </div>
                     <div class="row-content flex-grow-1">
-                        <div class="event-block position-relative" style="background-color: ${bgColor}; border-left: 4px solid ${baseColor};">
+                        <div class="event-block position-relative" data-member="${evt.member}" style="background-color: ${bgColor}; border-left: 4px solid ${baseColor};">
                             ${createEventBlockHtml(evt, true)}
                         </div>
                     </div>
@@ -765,6 +834,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.appendChild(row);
             });
         }
+        
+        // Apply filters to newly rendered day view content
+        applyFilters();
     }
 
 
@@ -806,7 +878,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }));
 
-                successCallback([...timed, ...allDay]);
+                const combined = [...timed, ...allDay];
+                const filtered = combined.filter(e => activeMemberFilter === 'all' || e.extendedProps.member === activeMemberFilter);
+                successCallback(filtered);
             },
             eventContent: function (info) {
                 const props = info.event.extendedProps;

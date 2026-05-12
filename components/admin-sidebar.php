@@ -23,9 +23,9 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
             aria-label="Close"></button>
     </div>
     <div class="offcanvas-body flex-column p-0 flex-grow-1">
-        <div class="sidebar-heading fw-bold fs-4 d-none d-lg-flex align-items-center mb-3 mt-3 px-4">
+        <div class="sidebar-heading fw-bold fs-4 d-none d-lg-flex align-items-center mb-3 mt-3 px-4 justify-content-center align-items-center">
             <a href="<?php echo $path_prefix; ?>siteadmin/index.php" class="text-decoration-none d-flex align-items-center">
-                <img src="<?php echo $globalSettingsLogo; ?>" alt="logo" style="max-height: 60px;" />
+                <img src="<?php echo $globalSettingsLogo; ?>" alt="logo" style="max-height: 90px;" />
             </a>
         </div>
 

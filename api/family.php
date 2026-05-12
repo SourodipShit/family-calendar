@@ -35,6 +35,14 @@ switch ($action) {
         $result = Family::update($data);
         echo json_encode($result);
         break;
+    
+    case 'updateSettings':
+        $result = Family::updateFamilySettings($data['settings'], $family_id);
+        if ($result['status'] === 'success') {
+            $_SESSION['user']['families'][0]['settings'] = json_encode($data['settings']);
+        }
+        echo json_encode($result);
+        break;
 
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);

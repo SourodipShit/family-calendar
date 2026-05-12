@@ -12,8 +12,9 @@ class User
         }
 
         try {
-            $result = Database::runPrepared("INSERT INTO users(name, email, phone, role, image, password) VALUES(?, ?, ?, ?, ?, ?)", [
+            $result = Database::runPrepared("INSERT INTO users(name, nickname, email, phone, role, image, password) VALUES(?, ?, ?, ?, ?, ?, ?)", [
                 $data['name'],
+                $data['nickname'] ?? null,
                 $data['email'],
                 $data['phone'],
                 $data['role'],

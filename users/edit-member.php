@@ -21,6 +21,7 @@ if (!$user) {
 
 if (isset($_POST['submit'])) {
     $name = $_POST['name'];
+    $nickname = $_POST['nickname'] ?? null;
     $email = $_POST['email'];
     $phone = $_POST['phone'];
     $image = $_FILES['member_image'];
@@ -28,6 +29,7 @@ if (isset($_POST['submit'])) {
 
     $update_data = [
         'name' => $name,
+        'nickname' => $nickname,
         'email' => $email,
         'phone' => $phone
     ];
@@ -111,7 +113,7 @@ if (isset($_SESSION['error_msg'])) {
                                 </div>
 
                                 <!-- Full Name -->
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
                                     <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-muted"><i class="fa-regular fa-user"></i></span>
@@ -119,18 +121,27 @@ if (isset($_SESSION['error_msg'])) {
                                     </div>
                                 </div>
 
+                                <!-- Nickname -->
+                                <div class="col-md-6">
+                                    <label for="nickname" class="form-label fw-semibold">Nickname (optional)</label>
+                                    <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                        <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-tag"></i></span>
+                                        <input type="text" class="form-control border-0 py-2" id="nickname" name="nickname" placeholder="Enter nickname" value="<?php echo htmlspecialchars($user['nickname'] ?? ''); ?>">
+                                    </div>
+                                </div>
+
                                 <!-- Email Address -->
                                 <div class="col-md-6">
-                                    <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                                    <label for="email" class="form-label fw-semibold">Email Address (optional)</label>
                                     <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-muted"><i class="fa-regular fa-envelope"></i></span>
-                                        <input type="email" class="form-control border-0 py-2" id="email" name="email" placeholder="email@example.com" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                                        <input type="email" class="form-control border-0 py-2" id="email" name="email" placeholder="email@example.com" value="<?php echo htmlspecialchars($user['email']); ?>">
                                     </div>
                                 </div>
 
                                 <!-- Phone Number -->
                                 <div class="col-md-6">
-                                    <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                                    <label for="phone" class="form-label fw-semibold">Phone Number (optional)</label>
                                     <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-phone-flip"></i></span>
                                         <input type="tel" class="form-control border-0 py-2" id="phone" name="phone" placeholder="+1 (555) 000-0000" value="<?php echo htmlspecialchars($user['phone']); ?>">
