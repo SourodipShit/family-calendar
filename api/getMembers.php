@@ -1,5 +1,6 @@
 <?php
 session_start();
+header('Content-Type: application/json');
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../classes/Family.php';
 
@@ -9,3 +10,4 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 echo json_encode(Family::getMembers());
+exit;

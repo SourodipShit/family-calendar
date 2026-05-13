@@ -1,4 +1,7 @@
 <?php
+session_start();
+header('Content-Type: application/json');
+
 require_once __DIR__ . "/../classes/Meals.php";
 require_once __DIR__ . "/../classes/File.php";
 require_once __DIR__ . "/../config/Database.php";
@@ -16,6 +19,7 @@ if ($action == 'add') {
     $_POST['image'] = $imagePath;
     $result = Meals::addMeal($_POST);
     echo json_encode($result);
+    exit;
 }
 
 if ($action == 'update') {
@@ -35,6 +39,7 @@ if ($action == 'update') {
     $_POST['image'] = $imagePath;
     $result = Meals::updateMeal($_POST);
     echo json_encode($result);
+    exit;
 }
 
 if ($action == 'delete') {
@@ -46,11 +51,12 @@ if ($action == 'delete') {
     
     $result = Meals::deleteMeal($_POST['id']);
     echo json_encode($result);
+    exit;
 }
 
-session_start();
 if ($action == 'getByDateRange') {
     $family_id = $_POST['family_id'] ?? $_SESSION['user']['families'][0]['family_id'] ?? 1;
     $result = Meals::getByDateRange($_POST['startDate'], $_POST['endDate'], $family_id);
     echo json_encode($result);
+    exit;
 }
