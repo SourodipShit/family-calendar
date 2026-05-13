@@ -9,7 +9,7 @@ if (isset($_POST['save'])) {
         exit;
     }
 
-    $family_id = $_SESSION['user']['families'][0]['id'] ?? null;
+    $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
     $user_id = $_SESSION['user']['id'] ?? null;
 
     if (!$family_id || !$user_id) {

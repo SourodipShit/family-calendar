@@ -17,7 +17,7 @@ switch ($action) {
 function getEventsByDateRange()
 {
     try {
-        $familyId = $_SESSION['user']['families'][0]['id'];
+        $familyId = $_SESSION['user']['families'][0]['family_id'];
         $events = Event::getEventsByDateRange($_GET['start'], $_GET['end'], $familyId);
         $filteredEvents = [];
         foreach ($events as $key => $event) {

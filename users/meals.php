@@ -4,7 +4,7 @@ $page_title = "Meals";
 include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 
-$family_id = $_SESSION['user']['families'][0]['id'] ?? 1;
+$family_id = $_SESSION['user']['families'][0]['family_id'] ?? 1;
 ?>
 <script>
     const FAMILY_ID = <?php echo $family_id; ?>;

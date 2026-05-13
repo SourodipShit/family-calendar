@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $recipeData = [
             'user_id' => $_SESSION['user']['id'],
-            'family_id' => $_SESSION['user']['families'][0]['id'],
+            'family_id' => $_SESSION['user']['families'][0]['family_id'],
             'name' => $_POST['name'],
             'category' => $_POST['category'],
             'cuisine' => $_POST['cuisine'],

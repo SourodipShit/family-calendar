@@ -5,7 +5,7 @@ include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 require_once $path_prefix . 'classes/EventTypes.php';
 
-$family_id = $_SESSION['user']['families'][0]['id'] ?? null;
+$family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
 ?>
 
 <!-- Page Content -->

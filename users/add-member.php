@@ -38,7 +38,7 @@ if (isset($_POST['submit'])) {
             'role' => 'member',
             'image' => $image_path,
             'password' => $hashed_password,
-            'family_id' => $_SESSION['user']['families'][0]['id']
+            'family_id' => $_SESSION['user']['families'][0]['family_id']
         ];
 
         $add_result = User::addUser($user_data);

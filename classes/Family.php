@@ -12,7 +12,7 @@ class Family
             ON users.id = user_family.user_id 
          WHERE user_family.family_id = ?
          AND users.role IN ('member','family-head')",
-            [$_SESSION['user']['families'][0]['id']]
+            [$_SESSION['user']['families'][0]['family_id']]
         )->fetchAll(PDO::FETCH_ASSOC);
 
         return $members;

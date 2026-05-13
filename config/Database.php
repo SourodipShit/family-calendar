@@ -42,4 +42,9 @@ class Database
         $stmt->execute($params);
         return $stmt;
     }
+
+    public static function getLastInsertId()
+    {
+        return self::getInstance()->lastInsertId();
+    }
 }

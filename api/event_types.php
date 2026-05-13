@@ -17,7 +17,7 @@ $action = $_GET['action'] ?? '';
 $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
 // Current family ID - assuming the first one for now or from session if set
-$family_id = $_SESSION['user']['families'][0]['id'] ?? null;
+$family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
 
 if (!$family_id) {
     echo json_encode(['status' => 'error', 'message' => 'Family context not found']);
