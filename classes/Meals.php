@@ -7,13 +7,11 @@ class Meals
     {
         try {
             $sql = "SELECT m.*, 
-                           COALESCE(AVG(r.rating), 0) as average_rating, 
-                           COUNT(r.id) as total_ratings,
+                           (SELECT COALESCE(AVG(rating), 0) FROM meal_ratings WHERE meal_id = m.id) as average_rating, 
+                           (SELECT COUNT(*) FROM meal_ratings WHERE meal_id = m.id) as total_ratings,
                            (SELECT COUNT(*) FROM meal_favorites f WHERE f.meal_id = m.id AND f.user_id = ?) as is_favorite
                     FROM meals m 
-                    LEFT JOIN meal_ratings r ON m.id = r.meal_id 
                     WHERE m.date BETWEEN ? AND ? AND m.family_id = ? 
-                    GROUP BY m.id 
                     ORDER BY m.date";
             
             $meals = Database::runPrepared($sql, [$userId, $startDate, $endDate, $familyId])->fetchAll(PDO::FETCH_ASSOC);

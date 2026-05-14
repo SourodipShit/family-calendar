@@ -797,9 +797,15 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? 1;
                 .then(data => {
                     if (data.status === 'success') {
                         renderFavorites(data.favorites);
+                    } else {
+                        console.error('Error fetching favorites:', data.message);
+                        renderFavorites([]); // Show 'No Favorites' message if it's an API error
                     }
                 })
-                .catch(err => console.error('Error fetching favorites:', err));
+                .catch(err => {
+                    console.error('Error fetching favorites:', err);
+                    renderFavorites([]); // Show 'No Favorites' message if it's a fetch error
+                });
         };
 
         const renderFavorites = (favorites) => {

@@ -4,7 +4,7 @@ public/uploads/
 # Temporary and scratch files
 scratch/
 *.sql
-
+services/
 # System files
 .DS_Store
 Thumbs.db

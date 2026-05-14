@@ -61,14 +61,12 @@ class Favorite
     {
         try {
             $sql = "SELECT m.*, 
-                           COALESCE(AVG(r.rating), 0) as average_rating, 
-                           COUNT(r.id) as total_ratings,
+                           (SELECT COALESCE(AVG(rating), 0) FROM meal_ratings WHERE meal_id = m.id) as average_rating, 
+                           (SELECT COUNT(*) FROM meal_ratings WHERE meal_id = m.id) as total_ratings,
                            1 as is_favorite
                     FROM meals m 
                     JOIN meal_favorites f ON m.id = f.meal_id 
-                    LEFT JOIN meal_ratings r ON m.id = r.meal_id
                     WHERE f.user_id = ? 
-                    GROUP BY m.id
                     ORDER BY f.created_at DESC";
             
             $favorites = Database::runPrepared($sql, [$user_id])->fetchAll(PDO::FETCH_ASSOC);
