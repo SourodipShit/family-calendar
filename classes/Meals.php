@@ -3,10 +3,26 @@ require_once __DIR__ . "/../config/Database.php";
 
 class Meals
 {
-    public static function getByDateRange($startDate, $endDate, $familyId)
+    public static function getByDateRange($startDate, $endDate, $familyId, $userId = null)
     {
         try {
-            $meals = Database::runPrepared("SELECT * FROM meals WHERE date BETWEEN ? AND ? AND family_id = ? ORDER BY date", [$startDate, $endDate, $familyId])->fetchAll(PDO::FETCH_ASSOC);
+            $sql = "SELECT m.*, 
+                           COALESCE(AVG(r.rating), 0) as average_rating, 
+                           COUNT(r.id) as total_ratings,
+                           (SELECT COUNT(*) FROM meal_favorites f WHERE f.meal_id = m.id AND f.user_id = ?) as is_favorite
+                    FROM meals m 
+                    LEFT JOIN meal_ratings r ON m.id = r.meal_id 
+                    WHERE m.date BETWEEN ? AND ? AND m.family_id = ? 
+                    GROUP BY m.id 
+                    ORDER BY m.date";
+            
+            $meals = Database::runPrepared($sql, [$userId, $startDate, $endDate, $familyId])->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Format average_rating to 1 decimal place
+            foreach ($meals as &$meal) {
+                $meal['average_rating'] = round($meal['average_rating'], 1);
+            }
+
             return ["status" => "success", "meals" => $meals];
         } catch (PDOException $e) {
             error_log("Meal Fetch Error: " . $e->getMessage());

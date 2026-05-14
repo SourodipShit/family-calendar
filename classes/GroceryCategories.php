@@ -59,7 +59,7 @@ class GroceryCategories
             $values = [];
             foreach($data as $key => $value){
                 if($value !== null){
-                    $keys[] = $key;
+                    $keys[] = "$key = ?";
                     $values[] = $value;
                 }
             }
