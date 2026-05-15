@@ -82,8 +82,8 @@ class  Event
                 INNER JOIN users u ON er.member_id = u.id
                 INNER JOIN families f ON e.family_id = f.id
                 WHERE e.remainder IS NOT NULL
-                  AND NOW() >= DATE_SUB(e.start_time, INTERVAL CAST(e.remainder AS UNSIGNED) MINUTE)
-                  AND e.start_time > NOW()
+                  AND DATE_SUB(e.start_time, INTERVAL CAST(e.remainder AS UNSIGNED) MINUTE) >= DATE_ADD(NOW(), INTERVAL '05:30' HOUR_MINUTE)
+                  AND e.start_time > DATE_ADD(NOW(), INTERVAL '05:30' HOUR_MINUTE)
                   AND er.status = 'pending'
                   AND er.type = 'mail'";
 

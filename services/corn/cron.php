@@ -18,18 +18,18 @@ require_once __DIR__ . '/jobs/EventReminderJob.php';
 // Set default timezone for server output
 date_default_timezone_set('UTC');
 
-echo "========================================\n";
-echo "        FAMILY CALENDAR CRON            \n";
-echo "========================================\n";
-echo "Server Time (UTC): " . date('Y-m-d H:i:s') . "\n";
+echo "========================================<br>";
+echo "        FAMILY CALENDAR CRON            <br>";
+echo "========================================<br>";
+echo "Server Time (UTC): " . date('Y-m-d H:i:s') . "<br>";
 
 $indiaTz = new DateTimeZone('Asia/Kolkata');
 $indiaTime = new DateTime('now', $indiaTz);
-echo "Indian Time:       " . $indiaTime->format('Y-m-d H:i:s') . "\n";
-echo "----------------------------------------\n\n";
+echo "Indian Time:       " . $indiaTime->format('Y-m-d H:i:s') . "<br>";
+echo "----------------------------------------<br><br>";
 
 // Run the Event Reminder Job
-echo "Checking for pending event reminders...\n";
+echo "Checking for pending event reminders...<br>";
 EventReminderJob::run();
-echo "\nCron execution finished.\n";
-echo "========================================\n";
+echo "<br>Cron execution finished.<br>";
+echo "========================================<br>";

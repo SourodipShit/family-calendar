@@ -7,7 +7,7 @@ class EventReminderJob
      */
     public static function run()
     {
-        // Fetch tasks that meet the basic SQL criteria (past threshold, not yet started, mail not sent)
+        // Fetch tasks that meet the basic SQL criteria (upcoming reminders, future events, mail pending)
         $tasks = Event::getPendingReminders();
 
         if (empty($tasks)) {
