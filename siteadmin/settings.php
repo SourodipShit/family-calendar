@@ -50,6 +50,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                 <small class="text-muted" style="font-size: 0.7rem;">Mail & system configuration</small>
                             </div>
                         </a>
+                        <a href="#timezone-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-global-line me-3 fs-5 text-info"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Time Zones</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">Manage system time zones</small>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -235,6 +242,47 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             </div>
                         </div>
                     </div>
+
+                    <!-- Timezone Settings -->
+                    <div class="tab-pane fade" id="timezone-settings">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                        <i class="ri-global-line fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0">System Time Zones</h5>
+                                        <p class="text-muted small mb-0">Manage time zones available for families and events.</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary btn-sm rounded-2 px-3 py-1" data-bs-toggle="modal" data-bs-target="#timezoneModal" onclick="prepareTimezoneModal('add')">
+                                    <i class="ri-add-line me-1"></i> Add Time Zone
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="timezonesTable" class="table table-hover align-middle border-0 mb-0">
+                                    <thead class="bg-light border-0">
+                                        <tr>
+                                            <th class="border-0 rounded-start px-3 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Timezone</th>
+                                            <th class="border-0 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Lable</th>
+                                            <th class="border-0 rounded-end px-3 py-2 text-end text-uppercase extra-small ls-1 fw-bold text-muted">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="timezones-table-body" class="border-0">
+                                        <!-- Populated via AJAX -->
+                                        <tr id="timezone-loading-row">
+                                            <td colspan="3" class="text-center py-4">
+                                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                <span class="small text-muted">Loading time zones...</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -332,6 +380,39 @@ require_once $path_prefix . 'components/admin-sidebar.php';
     </div>
 </div>
 
+<!-- Timezone Modal -->
+<div class="modal fade" id="timezoneModal" tabindex="-1" aria-labelledby="timezoneModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold" id="timezoneModalLabel">Add Time Zone</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <form id="timezoneForm">
+                    <input type="hidden" id="timezone_index" name="index">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Timezone (e.g. Asia/Kolkata) <span class="text-danger">*</span></label>
+                        <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                            <input type="text" class="form-control border-0 px-3 py-2 small" id="timezone_value" name="timezone" placeholder="Asia/Kolkata" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Lable (e.g. Kolkata GMT+5:30) <span class="text-danger">*</span></label>
+                        <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                            <input type="text" class="form-control border-0 px-3 py-2 small" id="timezone_lable" name="lable" placeholder="Kolkata GMT+5:30" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveTimezoneBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm">Save Time Zone</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const ADMIN_API_PATH = '<?php echo $path_prefix; ?>api/admin/event_types.php';
     const SETTINGS_API_PATH = '<?php echo $path_prefix; ?>api/admin/settings.php';
@@ -341,6 +422,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         loadGroceryCategories();
         loadGeneralSettings();
         loadConfigSettings();
+        loadTimezones();
 
         document.getElementById('event_type_colour').addEventListener('input', (e) => {
             document.getElementById('color-hex-label').innerText = e.target.value.toUpperCase();
@@ -868,6 +950,185 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             }
         } catch (error) {
             console.error('Error saving grocery category:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+
+    // --- Timezone Logic ---
+
+    async function loadTimezones() {
+        const tableBody = document.getElementById('timezones-table-body');
+        try {
+            const response = await fetch(`${SETTINGS_API_PATH}?action=fetch_all`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                const timezoneSetting = result.data.find(s => s.setting_key === 'timezone');
+                const timezones = timezoneSetting ? JSON.parse(timezoneSetting.setting_value || '[]') : [];
+                renderTimezonesTable(timezones);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">${result.message}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error loading timezones:', error);
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">Failed to connect to server</td></tr>`;
+        }
+    }
+
+    function renderTimezonesTable(timezones) {
+        const tableBody = document.getElementById('timezones-table-body');
+
+        if ($.fn.DataTable.isDataTable('#timezonesTable')) {
+            $('#timezonesTable').DataTable().destroy();
+        }
+
+        tableBody.innerHTML = '';
+
+        if (timezones.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted small">No time zones found.</td></tr>';
+            return;
+        }
+
+        timezones.forEach((tz, index) => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-bottom';
+
+            tr.innerHTML = `
+                <td class="px-3 py-2 fw-bold text-dark small">${tz.timezone}</td>
+                <td class="py-2 text-dark small">${tz.lable}</td>
+                <td class="px-3 py-2 text-end">
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 me-1 hover-shadow" style="width: 32px; height: 32px;" onclick="editTimezone(${index}, '${tz.timezone}', '${tz.lable}')" title="Edit">
+                        <i class="ri-pencil-line fs-6"></i>
+                    </button>
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteTimezone(${index})" title="Delete">
+                        <i class="ri-delete-bin-line fs-6"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        $('#timezonesTable').DataTable({
+            "dom": 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+            "pageLength": 10,
+            "destroy": true,
+            "language": {
+                "paginate": {
+                    "next": '<i class="ri-arrow-right-s-line"></i>',
+                    "previous": '<i class="ri-arrow-left-s-line"></i>'
+                }
+            },
+            "columnDefs": [
+                { "orderable": false, "targets": 2 }
+            ]
+        });
+    }
+
+    function prepareTimezoneModal(action) {
+        const modalTitle = document.getElementById('timezoneModalLabel');
+        const form = document.getElementById('timezoneForm');
+        form.reset();
+        document.getElementById('timezone_index').value = '';
+
+        if (action === 'add') {
+            modalTitle.innerText = 'Add Time Zone';
+        } else {
+            modalTitle.innerText = 'Edit Time Zone';
+        }
+    }
+
+    function editTimezone(index, timezone, lable) {
+        prepareTimezoneModal('edit');
+        document.getElementById('timezone_index').value = index;
+        document.getElementById('timezone_value').value = timezone;
+        document.getElementById('timezone_lable').value = lable;
+
+        const modal = new bootstrap.Modal(document.getElementById('timezoneModal'));
+        modal.show();
+    }
+
+    async function deleteTimezone(index) {
+        if (confirm('Are you sure you want to delete this time zone?')) {
+            try {
+                const response = await fetch(`${SETTINGS_API_PATH}?action=delete_timezone`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        index: index
+                    })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (typeof showAlert === 'function') showAlert('Time zone deleted successfully', 'success');
+                    else alert('Time zone deleted successfully');
+                    loadTimezones();
+                } else {
+                    if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                    else alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting timezone:', error);
+                if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+                else alert('Network error occurred');
+            }
+        }
+    }
+
+    document.getElementById('saveTimezoneBtn').addEventListener('click', async () => {
+        const form = document.getElementById('timezoneForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const index = data.index;
+        const action = index !== '' ? 'update_timezone' : 'add_timezone';
+
+        const btn = document.getElementById('saveTimezoneBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        const timezoneData = {
+            timezone: data.timezone,
+            lable: data.lable
+        };
+
+        try {
+            const response = await fetch(`${SETTINGS_API_PATH}?action=${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    index: index !== '' ? parseInt(index) : null,
+                    timezone_data: timezoneData
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                if (typeof showAlert === 'function') showAlert(result.message, 'success');
+                else alert(result.message);
+
+                const modalEl = document.getElementById('timezoneModal');
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+
+                loadTimezones();
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                else alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error saving timezone:', error);
             if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
             else alert('Network error occurred');
         } finally {

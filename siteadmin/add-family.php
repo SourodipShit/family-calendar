@@ -106,12 +106,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-0"><i class="ri-time-line"></i></span>
                                         <select name="timezone" class="form-select bg-light border-0">
-                                            <option value="UTC">UTC</option>
-                                            <option value="Eastern Time">Eastern Time</option>
-                                            <option value="Central Time">Central Time</option>
-                                            <option value="Mountain Time">Mountain Time</option>
-                                            <option value="Pacific Time">Pacific Time</option>
-                                            <option value="Kolkata, India">Kolkata, India</option>
+                                            <?php
+                                            require_once $path_prefix . 'classes/GlobalSettings.php';
+                                            $timezone_setting = GlobalSettings::getSetting('timezone');
+                                            $timezones = [];
+                                            if ($timezone_setting['status'] === 'success' && !empty($timezone_setting['data'])) {
+                                                $timezones = json_decode($timezone_setting['data']['setting_value'], true);
+                                            }
+                                            if (is_array($timezones)) {
+                                                foreach ($timezones as $tz) {
+                                                    $val = htmlspecialchars($tz['timezone']);
+                                                    $lbl = htmlspecialchars($tz['lable']);
+                                                    echo "<option value=\"$val\">$lbl</option>";
+                                                }
+                                            }
+                                            ?>
                                         </select>
                                     </div>
                                 </div>

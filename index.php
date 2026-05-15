@@ -202,15 +202,21 @@ if (isset($_POST['signup'])) {
                                 <span class="input-icon"><i class="fa-solid fa-globe"></i></span>
                                 <select class="form-control text-muted" id="timezone" name="timezone" style="appearance: auto;">
                                     <option value="" disabled selected>Select your timezone</option>
-                                    <option value="America/New_York">(GMT-05:00) Eastern Time</option>
-                                    <option value="America/Chicago">(GMT-06:00) Central Time</option>
-                                    <option value="America/Denver">(GMT-07:00) Mountain Time</option>
-                                    <option value="America/Los_Angeles">(GMT-08:00) Pacific Time</option>
-                                    <option value="Europe/London">(GMT+00:00) London</option>
-                                    <option value="Europe/Paris">(GMT+01:00) Paris, Berlin</option>
-                                    <option value="Asia/Kolkata">(GMT+05:30) India Standard Time</option>
-                                    <option value="Asia/Tokyo">(GMT+09:00) Tokyo</option>
-                                    <option value="Australia/Sydney">(GMT+10:00) Sydney</option>
+                                    <?php
+                                    require_once __DIR__ . '/classes/GlobalSettings.php';
+                                    $timezone_setting = GlobalSettings::getSetting('timezone');
+                                    $timezones = [];
+                                    if ($timezone_setting['status'] === 'success' && !empty($timezone_setting['data'])) {
+                                        $timezones = json_decode($timezone_setting['data']['setting_value'], true);
+                                    }
+                                    if (is_array($timezones)) {
+                                        foreach ($timezones as $tz) {
+                                            $val = htmlspecialchars($tz['timezone']);
+                                            $lbl = htmlspecialchars($tz['lable']);
+                                            echo "<option value=\"$val\">$lbl</option>";
+                                        }
+                                    }
+                                    ?>
                                 </select>
                             </div>
                         </div>
@@ -321,23 +327,13 @@ if (isset($_POST['signup'])) {
         try {
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const tzSelect = document.getElementById('timezone');
-            let found = false;
             for(let i=0; i<tzSelect.options.length; i++) {
                 if(tzSelect.options[i].value === tz) {
                     tzSelect.selectedIndex = i;
-                    found = true;
+                    tzSelect.classList.remove('text-muted');
                     break;
                 }
             }
-            if(!found && tz) {
-                // Add it if it's not in the common list
-                const opt = document.createElement('option');
-                opt.value = tz;
-                opt.text = tz;
-                tzSelect.add(opt);
-                tzSelect.value = tz;
-            }
-            tzSelect.classList.remove('text-muted');
         } catch(e) {}
         
         document.getElementById('timezone').addEventListener('change', function() {

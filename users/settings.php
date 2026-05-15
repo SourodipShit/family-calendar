@@ -125,10 +125,21 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
                                         <div class="input-group border rounded-3 overflow-hidden shadow-sm bg-light border-light">
                                             <span class="input-group-text bg-transparent border-0 text-muted ps-2"><i class="ri-time-line"></i></span>
                                             <select class="form-select border-0 bg-transparent py-1 px-1 cursor-pointer small" id="family_timezone" name="timezone">
-                                                <option value="Central Time">(GMT-06:00) Central Time</option>
-                                                <option value="Eastern Time">(GMT-05:00) Eastern Time</option>
-                                                <option value="Mountain Time">(GMT-07:00) Mountain Time</option>
-                                                <option value="Pacific Time">(GMT-08:00) Pacific Time</option>
+                                                <?php
+                                                require_once $path_prefix . 'classes/GlobalSettings.php';
+                                                $timezone_setting = GlobalSettings::getSetting('timezone');
+                                                $timezones = [];
+                                                if ($timezone_setting['status'] === 'success' && !empty($timezone_setting['data'])) {
+                                                    $timezones = json_decode($timezone_setting['data']['setting_value'], true);
+                                                }
+                                                if (is_array($timezones)) {
+                                                    foreach ($timezones as $tz) {
+                                                        $val = htmlspecialchars($tz['timezone']);
+                                                        $lbl = htmlspecialchars($tz['lable']);
+                                                        echo "<option value=\"$val\">$lbl</option>";
+                                                    }
+                                                }
+                                                ?>
                                             </select>
                                         </div>
                                     </div>

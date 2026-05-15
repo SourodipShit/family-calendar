@@ -84,20 +84,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <input type="text" name="location" class="form-control bg-light border-0" value="<?php echo htmlspecialchars($family['location'] ?? ''); ?>">
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-medium">Timezone</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-0"><i class="ri-time-line"></i></span>
-                                        <select name="timezone" class="form-select bg-light border-0">
-                                            <option value="UTC" <?php echo ($family['timezone'] == 'UTC') ? 'selected' : ''; ?>>UTC</option>
-                                            <option value="Eastern Time" <?php echo ($family['timezone'] == 'Eastern Time') ? 'selected' : ''; ?>>Eastern Time</option>
-                                            <option value="Central Time" <?php echo ($family['timezone'] == 'Central Time') ? 'selected' : ''; ?>>Central Time</option>
-                                            <option value="Mountain Time" <?php echo ($family['timezone'] == 'Mountain Time') ? 'selected' : ''; ?>>Mountain Time</option>
-                                            <option value="Pacific Time" <?php echo ($family['timezone'] == 'Pacific Time') ? 'selected' : ''; ?>>Pacific Time</option>
-                                            <option value="Kolkata, India" <?php echo ($family['timezone'] == 'Kolkata, India') ? 'selected' : ''; ?>>Kolkata, India</option>
-                                        </select>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium">Timezone</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-0"><i class="ri-time-line"></i></span>
+                                            <select name="timezone" class="form-select bg-light border-0">
+                                                <?php
+                                                require_once $path_prefix . 'classes/GlobalSettings.php';
+                                                $timezone_setting = GlobalSettings::getSetting('timezone');
+                                                $timezones = [];
+                                                if ($timezone_setting['status'] === 'success' && !empty($timezone_setting['data'])) {
+                                                    $timezones = json_decode($timezone_setting['data']['setting_value'], true);
+                                                }
+                                                if (is_array($timezones)) {
+                                                    foreach ($timezones as $tz) {
+                                                        $val = htmlspecialchars($tz['timezone']);
+                                                        $lbl = htmlspecialchars($tz['lable']);
+                                                        $selected = ($family['timezone'] == $tz['timezone']) ? 'selected' : '';
+                                                        echo "<option value=\"$val\" $selected>$lbl</option>";
+                                                    }
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
 
                                 <div class="col-12 mt-5">
                                     <hr class="opacity-50 mb-4">

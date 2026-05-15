@@ -103,39 +103,39 @@ function updateLogo() {
 }
 
 function addTimezone($data) {
-    $newTimezone = $data['timezone'] ?? null;
+    $newTimezone = $data['timezone_data'] ?? null;
     if (!$newTimezone) {
         echo json_encode(['status' => 'error', 'message' => 'Timezone data missing']);
         return;
     }
 
-    $timezonesJson = getSettingValue('timezones') ?: '[]';
+    $timezonesJson = getSettingValue('timezone') ?: '[]';
     $timezones = json_decode($timezonesJson, true);
     if (!is_array($timezones)) $timezones = [];
 
     $timezones[] = $newTimezone;
     
     $updatedJson = json_encode($timezones);
-    updateOrInsertSetting('timezones', $updatedJson);
+    updateOrInsertSetting('timezone', $updatedJson);
     echo json_encode(['status' => 'success', 'message' => 'Timezone added successfully', 'data' => $timezones]);
 }
 
 function updateTimezone($data) {
     $index = $data['index'] ?? null;
-    $updatedTimezone = $data['timezone'] ?? null;
+    $updatedTimezone = $data['timezone_data'] ?? null;
 
     if ($index === null || !$updatedTimezone) {
         echo json_encode(['status' => 'error', 'message' => 'Index or timezone data missing']);
         return;
     }
 
-    $timezonesJson = getSettingValue('timezones') ?: '[]';
+    $timezonesJson = getSettingValue('timezone') ?: '[]';
     $timezones = json_decode($timezonesJson, true);
 
     if (isset($timezones[$index])) {
         $timezones[$index] = $updatedTimezone;
         $updatedJson = json_encode($timezones);
-        updateOrInsertSetting('timezones', $updatedJson);
+        updateOrInsertSetting('timezone', $updatedJson);
         echo json_encode(['status' => 'success', 'message' => 'Timezone updated successfully', 'data' => $timezones]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Timezone index not found']);
@@ -150,13 +150,13 @@ function deleteTimezone($data) {
         return;
     }
 
-    $timezonesJson = getSettingValue('timezones') ?: '[]';
+    $timezonesJson = getSettingValue('timezone') ?: '[]';
     $timezones = json_decode($timezonesJson, true);
 
     if (isset($timezones[$index])) {
         array_splice($timezones, $index, 1);
         $updatedJson = json_encode($timezones);
-        updateOrInsertSetting('timezones', $updatedJson);
+        updateOrInsertSetting('timezone', $updatedJson);
         echo json_encode(['status' => 'success', 'message' => 'Timezone deleted successfully', 'data' => $timezones]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Timezone index not found']);
