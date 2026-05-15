@@ -1,6 +1,11 @@
 <?php
 session_start();
 require_once __DIR__ . '/../classes/Event.php';
+require_once __DIR__ . '/../classes/User.php';
+require_once __DIR__ . '/../classes/Family.php';
+require_once __DIR__ . '/../services/mail/ICS.php';
+require_once __DIR__ . '/../services/mail/Mailer.php';
+require_once __DIR__ . '/../services/mail/Mail.php';
 
 if (isset($_POST['save'])) {
     // Basic validation
@@ -53,6 +58,31 @@ if (isset($_POST['save'])) {
     // Redirect back to index with status and message
     $status = $result['status']; // success or error
     $msg = urlencode($result['msg']);
+
+    if ($status == 'success') {
+        // Add start/end aliases for the mail service and templates
+        $data['start'] = $data['start_time'];
+        $data['end'] = $data['end_time'];
+
+        // Send notification to the creator
+        $creator = User::getUserById($user_id);
+        if ($creator && !empty($creator['email'])) {
+            Mail::eventReminder($creator, $data);
+        }
+
+        // Also send to all invited members
+        if (!empty($data['members'])) {
+            foreach ($data['members'] as $memberId) {
+                // If member is not the creator, send them a separate email
+                if ($memberId != $user_id) {
+                    $member = User::getUserById($memberId);
+                    if ($member && !empty($member['email'])) {
+                        Mail::eventReminder($member, $data);
+                    }
+                }
+            }
+        }
+    }
 
     header("Location: ../users/index.php?status=$status&msg=$msg");
     exit;
