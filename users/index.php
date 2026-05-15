@@ -371,11 +371,11 @@ include $path_prefix . 'components/sidebar.php';
                             <label class="form-label fw-semibold text-dark fs-7">Reminder</label>
                             <select class="form-select border rounded-3 shadow-sm mb-3" id="eventReminder" name="remainder">
                                 <option value="">None</option>
-                                <option value="5 min">5 minutes before</option>
-                                <option value="15 min" selected>15 minutes before</option>
-                                <option value="30 min">30 minutes before</option>
-                                <option value="1 hour">1 hour before</option>
-                                <option value="1 day">1 day before</option>
+                                <option value="5">5 minutes before</option>
+                                <option value="15" selected>15 minutes before</option>
+                                <option value="30">30 minutes before</option>
+                                <option value="60">1 hour before</option>
+                                <option value="1440">1 day before</option>
                             </select>
                             <div class="form-check mt-3">
                                 <input class="form-check-input bg-primary border-primary" type="checkbox" value=""

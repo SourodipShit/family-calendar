@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/../config/Database.php";
+require_once __DIR__ . "/Remainder.php";
 
 class  Event
 {
@@ -52,5 +52,77 @@ class  Event
     {
         $sql = "INSERT INTO event_members (event_id, user_id) VALUES (?, ?)";
         Database::runPrepared($sql, [$eventId, $userId]);
+        
+        // Automatically create placeholder reminders for the member
+        self::addReminder($eventId, $userId);
+    }
+
+    /**
+     * Create default reminders for a member (Mail, SMS, Call)
+     */
+    public static function addReminder($eventId, $memberId)
+    {
+        // Use Remainder class to create all 3 types
+        Remainder::create(['event_id' => $eventId, 'member_id' => $memberId, 'type' => 'mail']);
+        Remainder::create(['event_id' => $eventId, 'member_id' => $memberId, 'type' => 'sms']);
+        Remainder::create(['event_id' => $eventId, 'member_id' => $memberId, 'type' => 'call']);
+    }
+
+    /**
+     * Fetch events that are due for a reminder
+     */
+    public static function getPendingReminders()
+    {
+        $sql = "SELECT e.*, u.id as user_id, u.name as user_name, u.email as user_email, 
+                       er.id as reminder_id, er.type as reminder_type, er.status as reminder_status,
+                       f.id as f_id, f.name as f_name, f.email as f_email, f.location as f_location, 
+                       f.timezone as f_timezone, f.settings as f_settings, f.approved as f_approved
+                FROM events e
+                INNER JOIN event_reminders er ON e.id = er.event_id
+                INNER JOIN users u ON er.member_id = u.id
+                INNER JOIN families f ON e.family_id = f.id
+                WHERE e.remainder IS NOT NULL
+                  AND NOW() >= DATE_SUB(e.start_time, INTERVAL CAST(e.remainder AS UNSIGNED) MINUTE)
+                  AND e.start_time > NOW()
+                  AND er.status = 'pending'
+                  AND er.type = 'mail'";
+
+        try {
+            $results = Database::run($sql)->fetchAll(PDO::FETCH_ASSOC);
+            $events = [];
+
+            foreach ($results as $row) {
+                $eventTask = $row;
+                // Nest user data
+                $eventTask['user'] = [
+                    'id' => $row['user_id'],
+                    'name' => $row['user_name'],
+                    'email' => $row['user_email']
+                ];
+                // Nest family data
+                $eventTask['family'] = [
+                    'id' => $row['f_id'],
+                    'name' => $row['f_name'],
+                    'email' => $row['f_email'],
+                    'location' => $row['f_location'],
+                    'timezone' => $row['f_timezone'],
+                    'settings' => $row['f_settings'],
+                    'approved' => $row['f_approved']
+                ];
+                // Nest reminder data as plural as requested
+                $eventTask['remainders'] = [
+                    [
+                        'id' => $row['reminder_id'],
+                        'type' => $row['reminder_type'],
+                        'status' => $row['reminder_status']
+                    ]
+                ];
+                $events[] = $eventTask;
+            }
+
+            return $events;
+        } catch (Exception $e) {
+            return [];
+        }
     }
 }
