@@ -13,11 +13,27 @@ include_once __DIR__ . '/components/header.php';
 include_once __DIR__ . '/classes/Auth.php';
 
 if (isset($_POST['signup'])) {
+    require_once __DIR__ . '/classes/File.php';
+    $imagePath = '';
+    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+        // Temporarily change directory to 'users' so File::upload points to the right place
+        $originalDir = getcwd();
+        if (!file_exists('users')) mkdir('users'); // Safety check
+        chdir('users');
+        $upload = File::upload($_FILES['profile_image'], 'profiles');
+        chdir($originalDir);
+        
+        if ($upload['status'] === 'success') {
+            $imagePath = $upload['filePath'];
+        }
+    }
+
     $data = [
         'user' => [
             'name' => $_POST['head_name'],
             'email' => $_POST['email'],
-            'password' => $_POST['password']
+            'password' => $_POST['password'],
+            'image' => $imagePath
         ],
         'family' => [
             'name' => $_POST['family_name'],
@@ -123,7 +139,7 @@ if (isset($_POST['signup'])) {
                     <div class="dot" id="dot-2"></div>
                 </div>
 
-                <form id="signupForm" method="post" action="">
+                <form id="signupForm" method="post" action="" enctype="multipart/form-data">
                     
                     <!-- Part 1: Family Head Setup -->
                     <div class="step-content active" id="step-1">
@@ -156,6 +172,17 @@ if (isset($_POST['signup'])) {
                                 <button type="button" class="btn-toggle-password" id="togglePassword">
                                     <i class="fa-regular fa-eye" id="eyeIcon"></i>
                                 </button>
+                            </div>
+                        </div>
+
+                        <!-- Profile Image Input -->
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Profile Image <span class="text-muted small">(Optional)</span></label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div id="imagePreview" class="rounded-circle border d-flex align-items-center justify-content-center bg-light shadow-sm" style="width: 50px; height: 50px; overflow: hidden; flex-shrink: 0;">
+                                    <i class="fa-solid fa-user text-muted fs-5"></i>
+                                </div>
+                                <input type="file" class="form-control form-control-sm" id="profile_image" name="profile_image" accept="image/*" onchange="previewProfileImage(this)">
                             </div>
                         </div>
 
@@ -323,7 +350,6 @@ if (isset($_POST['signup'])) {
             dot1.classList.add('active');
         });
         
-        // Try to guess timezone
         try {
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const tzSelect = document.getElementById('timezone');
@@ -335,6 +361,19 @@ if (isset($_POST['signup'])) {
                 }
             }
         } catch(e) {}
+        
+        window.previewProfileImage = function(input) {
+            const preview = document.getElementById('imagePreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.innerHTML = '<i class="fa-solid fa-user text-muted fs-5"></i>';
+            }
+        };
         
         document.getElementById('timezone').addEventListener('change', function() {
             this.classList.remove('text-muted');

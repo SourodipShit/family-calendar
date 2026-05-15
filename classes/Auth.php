@@ -44,9 +44,10 @@ class Auth
         try {
             $user['password'] = password_hash($user['password'], PASSWORD_DEFAULT);
             $phone = isset($user['phone']) ? $user['phone'] : '';
+            $image = isset($user['image']) ? $user['image'] : '';
 
-            Database::runPrepared("INSERT INTO users (name, email, phone, role, password) VALUES (?, ?, ?, 'family-head', ?)", 
-                [$user['name'], $user['email'], $phone, $user['password']]);
+            Database::runPrepared("INSERT INTO users (name, email, phone, role, password, image) VALUES (?, ?, ?, 'family-head', ?, ?)", 
+                [$user['name'], $user['email'], $phone, $user['password'], $image]);
             $lastUserId = Database::getInstance()->lastInsertId();
 
             if($lastUserId) {
