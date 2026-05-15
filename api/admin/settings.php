@@ -56,6 +56,10 @@ switch ($action) {
         deleteTimezone($data);
         break;
 
+    case 'update_setting':
+        updateSettingAction($data);
+        break;
+
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;
@@ -157,4 +161,17 @@ function deleteTimezone($data) {
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Timezone index not found']);
     }
+}
+
+function updateSettingAction($data) {
+    $key = $data['key'] ?? null;
+    $value = $data['value'] ?? null;
+
+    if (!$key) {
+        echo json_encode(['status' => 'error', 'message' => 'Setting key missing']);
+        return;
+    }
+
+    updateOrInsertSetting($key, $value);
+    echo json_encode(['status' => 'success', 'message' => 'Setting updated successfully']);
 }

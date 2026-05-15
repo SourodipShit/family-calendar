@@ -43,6 +43,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                 <small class="text-muted" style="font-size: 0.7rem;">System name & logo</small>
                             </div>
                         </a>
+                        <a href="#config-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-equalizer-line me-3 fs-5 text-dark"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Config</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">Mail & system configuration</small>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -192,6 +199,42 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             </div>
                         </div>
                     </div>
+
+                    <!-- Config Settings -->
+                    <div class="tab-pane fade" id="config-settings">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-dark bg-opacity-10 text-dark p-2 rounded-3 me-3">
+                                    <i class="ri-equalizer-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">System Configuration</h5>
+                                    <p class="text-muted small mb-0">Manage technical configurations like email settings.</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <form id="configForm">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Mail Sending Address</label>
+                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                <span class="input-group-text bg-white border-0"><i class="ri-mail-line"></i></span>
+                                                <input type="email" class="form-control border-0 px-3 py-2 small" id="mail_from_address" name="mail_from_address" placeholder="e.g. noreply@familycalendar.com">
+                                            </div>
+                                            <p class="extra-small text-muted mt-1 mb-0">This address will be used as the 'From' address for all system emails.</p>
+                                        </div>
+                                        
+                                        <div class="mt-4 pt-3 border-top">
+                                            <button type="button" id="saveConfigBtn" class="btn btn-primary px-4">
+                                                <i class="ri-save-line me-1"></i> Save Config
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -297,6 +340,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         loadEventTypes();
         loadGroceryCategories();
         loadGeneralSettings();
+        loadConfigSettings();
 
         document.getElementById('event_type_colour').addEventListener('input', (e) => {
             document.getElementById('color-hex-label').innerText = e.target.value.toUpperCase();
@@ -515,14 +559,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
 
             if (result.status === 'success') {
                 const settings = result.data;
-                const logoSetting = settings.find(s => s.setting_key === 'site_logo');
                 
+                // Load Logo
+                const logoSetting = settings.find(s => s.setting_key === 'site_logo');
                 if (logoSetting && logoSetting.setting_value) {
                     const logoPreview = document.getElementById('logoPreview');
                     const logoPlaceholder = document.getElementById('logoPlaceholder');
                     
-                    // The path is stored as ../public/uploads/logo/...
-                    // We need to adjust it if it's already a relative path from the root
                     let logoPath = logoSetting.setting_value;
                     if (logoPath.startsWith('../')) {
                         logoPath = '<?php echo $path_prefix; ?>' + logoPath.replace('../', '');
@@ -532,10 +575,21 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     logoPreview.classList.remove('d-none');
                     logoPlaceholder.classList.add('d-none');
                 }
+
+                // Load Config Settings
+                const mailFromSetting = settings.find(s => s.setting_key === 'mail_from_address');
+                if (mailFromSetting) {
+                    document.getElementById('mail_from_address').value = mailFromSetting.setting_value || '';
+                }
             }
         } catch (error) {
             console.error('Error loading settings:', error);
         }
+    }
+
+    async function loadConfigSettings() {
+        // This is now integrated into loadGeneralSettings to reduce API calls
+        // But keeping the function call in DOMContentLoaded for clarity or future specific logic
     }
 
     function previewLogo(input) {
@@ -587,6 +641,44 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             }
         } catch (error) {
             console.error('Error updating logo:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+
+    document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+        const mailFrom = document.getElementById('mail_from_address').value;
+        
+        const btn = document.getElementById('saveConfigBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        try {
+            const response = await fetch(`${SETTINGS_API_PATH}?action=update_setting`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    key: 'mail_from_address',
+                    value: mailFrom
+                })
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                if (typeof showAlert === 'function') showAlert(result.message, 'success');
+                else alert(result.message);
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                else alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error updating config:', error);
             if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
             else alert('Network error occurred');
         } finally {
