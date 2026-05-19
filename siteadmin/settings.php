@@ -221,7 +221,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-10">
                                     <form id="configForm">
                                         <div class="mb-3">
                                             <label class="form-label fw-bold small text-muted text-uppercase ls-1">Mail Sending Address</label>
@@ -230,6 +230,45 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                 <input type="email" class="form-control border-0 px-3 py-2 small" id="mail_from_address" name="mail_from_address" placeholder="e.g. noreply@familycalendar.com">
                                             </div>
                                             <p class="extra-small text-muted mt-1 mb-0">This address will be used as the 'From' address for all system emails.</p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Base URL</label>
+                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                <span class="input-group-text bg-white border-0"><i class="ri-link"></i></span>
+                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="base_url" name="base_url" placeholder="e.g. http://localhost/family-calendar">
+                                            </div>
+                                            <p class="extra-small text-muted mt-1 mb-0">The base URL of the application, used for absolute links in emails and notifications.</p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip API Key</label>
+                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                <span class="input-group-text bg-white border-0"><i class="ri-key-2-line"></i></span>
+                                                <input type="password" class="form-control border-0 px-3 py-2 small" id="infobip_api_key" name="infobip_api_key" placeholder="Enter your Infobip API key">
+                                                <button class="btn btn-white border-0 px-3" type="button" id="toggleApiKeyBtn" onclick="toggleApiKeyVisibility()">
+                                                    <i class="ri-eye-line text-muted"></i>
+                                                </button>
+                                            </div>
+                                            <p class="extra-small text-muted mt-1 mb-0">API key used for sending SMS reminders via Infobip integration.</p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip API Base URL</label>
+                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                <span class="input-group-text bg-white border-0"><i class="ri-global-line"></i></span>
+                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="infobip_api_base_url" name="infobip_api_base_url" placeholder="e.g. https://xxxxxx.api.infobip.com">
+                                            </div>
+                                            <p class="extra-small text-muted mt-1 mb-0">Base URL used for Infobip API requests (e.g., https://[your-subdomain].api.infobip.com).</p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip Sender ID / Number</label>
+                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                <span class="input-group-text bg-white border-0"><i class="ri-phone-line"></i></span>
+                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="infobip_sender" name="infobip_sender" placeholder="e.g. 447491163443 or InfoSMS">
+                                            </div>
+                                            <p class="extra-small text-muted mt-1 mb-0">The sender number or alphanumeric sender ID whitelisted on your Infobip account.</p>
                                         </div>
                                         
                                         <div class="mt-4 pt-3 border-top">
@@ -663,9 +702,43 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (mailFromSetting) {
                     document.getElementById('mail_from_address').value = mailFromSetting.setting_value || '';
                 }
+
+                const baseUrlSetting = settings.find(s => s.setting_key === 'base_url');
+                if (baseUrlSetting) {
+                    document.getElementById('base_url').value = baseUrlSetting.setting_value || '';
+                }
+
+                const infobipApiKeySetting = settings.find(s => s.setting_key === 'infobip_api_key');
+                if (infobipApiKeySetting) {
+                    document.getElementById('infobip_api_key').value = infobipApiKeySetting.setting_value || '';
+                }
+
+                const infobipApiBaseUrlSetting = settings.find(s => s.setting_key === 'infobip_api_base_url');
+                if (infobipApiBaseUrlSetting) {
+                    document.getElementById('infobip_api_base_url').value = infobipApiBaseUrlSetting.setting_value || '';
+                }
+
+                const infobipSenderSetting = settings.find(s => s.setting_key === 'infobip_sender');
+                if (infobipSenderSetting) {
+                    document.getElementById('infobip_sender').value = infobipSenderSetting.setting_value || '';
+                }
             }
         } catch (error) {
             console.error('Error loading settings:', error);
+        }
+    }
+
+    function toggleApiKeyVisibility() {
+        const apiKeyInput = document.getElementById('infobip_api_key');
+        const toggleBtnIcon = document.querySelector('#toggleApiKeyBtn i');
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            toggleBtnIcon.classList.remove('ri-eye-line');
+            toggleBtnIcon.classList.add('ri-eye-off-line');
+        } else {
+            apiKeyInput.type = 'password';
+            toggleBtnIcon.classList.remove('ri-eye-off-line');
+            toggleBtnIcon.classList.add('ri-eye-line');
         }
     }
 
@@ -733,6 +806,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
 
     document.getElementById('saveConfigBtn').addEventListener('click', async () => {
         const mailFrom = document.getElementById('mail_from_address').value;
+        const baseUrl = document.getElementById('base_url').value;
+        const infobipApiKey = document.getElementById('infobip_api_key').value;
+        const infobipApiBaseUrl = document.getElementById('infobip_api_base_url').value;
+        const infobipSender = document.getElementById('infobip_sender').value;
         
         const btn = document.getElementById('saveConfigBtn');
         const originalText = btn.innerHTML;
@@ -746,8 +823,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    key: 'mail_from_address',
-                    value: mailFrom
+                    settings: {
+                        mail_from_address: mailFrom,
+                        base_url: baseUrl,
+                        infobip_api_key: infobipApiKey,
+                        infobip_api_base_url: infobipApiBaseUrl,
+                        infobip_sender: infobipSender
+                    }
                 })
             });
             const result = await response.json();

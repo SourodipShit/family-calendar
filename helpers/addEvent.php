@@ -6,6 +6,8 @@ require_once __DIR__ . '/../classes/Family.php';
 require_once __DIR__ . '/../services/mail/ICS.php';
 require_once __DIR__ . '/../services/mail/Mailer.php';
 require_once __DIR__ . '/../services/mail/Mail.php';
+require_once __DIR__ . '/../services/sms/SmsService.php';
+require_once __DIR__ . '/../services/sms/SmsTemplates.php';
 
 if (isset($_POST['save'])) {
     // Basic validation
@@ -73,11 +75,22 @@ if (isset($_POST['save'])) {
         // Also send to all invited members
         if (!empty($data['members'])) {
             foreach ($data['members'] as $memberId) {
-                // If member is not the creator, send them a separate email
+                // If member is not the creator, send them a separate email & SMS
                 if ($memberId != $user_id) {
                     $member = User::getUserById($memberId);
-                    if ($member && !empty($member['email'])) {
-                        Mail::eventReminder($member, $data);
+                    if ($member) {
+                        // Send Email reminder
+                        if (!empty($member['email'])) {
+                            Mail::eventReminder($member, $data);
+                        }
+                        // Send SMS reminder
+                        if (!empty($member['phone'])) {
+                            $eventTimestamp = strtotime($data['start_time']);
+                            $eventDate = date('Y-m-d', $eventTimestamp);
+                            $eventTime = date('H:i', $eventTimestamp);
+                            $smsText = SmsTemplates::eventReminder($member['name'], $data['title'], $eventDate, $eventTime);
+                            SmsService::send($member['phone'], $smsText);
+                        }
                     }
                 }
             }

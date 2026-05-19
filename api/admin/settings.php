@@ -164,6 +164,14 @@ function deleteTimezone($data) {
 }
 
 function updateSettingAction($data) {
+    if (isset($data['settings']) && is_array($data['settings'])) {
+        foreach ($data['settings'] as $key => $value) {
+            updateOrInsertSetting($key, $value);
+        }
+        echo json_encode(['status' => 'success', 'message' => 'Settings updated successfully']);
+        return;
+    }
+
     $key = $data['key'] ?? null;
     $value = $data['value'] ?? null;
 
