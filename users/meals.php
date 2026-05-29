@@ -1013,6 +1013,84 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? 1;
             }
         });
 
+        // Recipe Autocomplete Logic for Meal Name
+        const mealNameInput = document.getElementById('mealName');
+        const recipeSuggestions = document.getElementById('recipeSuggestions');
+        let debounceTimer;
+
+        mealNameInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                recipeSuggestions.style.display = 'none';
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetch(`../api/recipe.php?action=getRecipies&count=10&filter[search]=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success' && data.data && data.data.length > 0) {
+                            recipeSuggestions.innerHTML = data.data.map(recipe => {
+                                let imagePath = '';
+                                if (recipe.image_url) {
+                                    imagePath = recipe.image_url.startsWith('http') || recipe.image_url.startsWith('../') ? recipe.image_url : '../' + recipe.image_url;
+                                }
+                                const imgStr = imagePath ? imagePath : `../public/img/${document.getElementById('mealType').value || 'dinner'}.webp`;
+                                return `
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center py-2 cursor-pointer recipe-suggestion-item" 
+                                           data-name="${recipe.name.replace(/"/g, '&quot;')}" 
+                                           data-image="${imagePath}">
+                                            <img src="${imgStr}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.src='../public/img/dinner.webp'">
+                                            <div class="text-truncate flex-grow-1">${recipe.name}</div>
+                                            <small class="text-muted ms-2">${recipe.category || ''}</small>
+                                        </a>
+                                    </li>
+                                `;
+                            }).join('');
+                            recipeSuggestions.style.display = 'block';
+                        } else {
+                            recipeSuggestions.style.display = 'none';
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error fetching recipes:', err);
+                        recipeSuggestions.style.display = 'none';
+                    });
+            }, 300);
+        });
+
+        // Handle Suggestion Selection
+        document.addEventListener('click', (e) => {
+            const suggestionItem = e.target.closest('.recipe-suggestion-item');
+            if (suggestionItem) {
+                e.preventDefault();
+                const name = suggestionItem.getAttribute('data-name');
+                const image = suggestionItem.getAttribute('data-image');
+
+                document.getElementById('mealName').value = name;
+                document.getElementById('mealExistingImage').value = image || '';
+
+                if (image) {
+                    imagePreview.querySelector('img').src = image;
+                    imagePreview.classList.remove('d-none');
+                    uploadPlaceholder.classList.add('d-none');
+                } else {
+                    imagePreview.classList.add('d-none');
+                    uploadPlaceholder.classList.remove('d-none');
+                }
+
+                recipeSuggestions.style.display = 'none';
+            } else if (!e.target.closest('#mealName') && !e.target.closest('#recipeSuggestions')) {
+                // Hide suggestions when clicking outside
+                if(recipeSuggestions) {
+                   recipeSuggestions.style.display = 'none';
+                }
+            }
+        });
+
         // Add Meal Button Click
         document.getElementById('add-meal-btn').addEventListener('click', () => {
             document.getElementById('mealForm').reset();
@@ -1513,12 +1591,13 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? 1;
                     <input type="hidden" id="mealFamilyId" name="family_id" value="<?php echo $family_id; ?>">
                     <input type="hidden" id="mealExistingImage" name="image">
 
-                    <div class="mb-4">
+                    <div class="mb-4 position-relative">
                         <label for="mealName" class="form-label fw-semibold text-dark fs-7">Meal Name <span class="text-danger">*</span></label>
                         <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                             <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-utensils"></i></span>
-                            <input type="text" class="form-control border-0 px-1 py-2 text-dark fw-medium" id="mealName" name="name" placeholder="e.g. Grilled Salmon with Asparagus" required>
+                            <input type="text" class="form-control border-0 px-1 py-2 text-dark fw-medium" id="mealName" name="name" placeholder="e.g. Grilled Salmon with Asparagus" autocomplete="off" required>
                         </div>
+                        <ul id="recipeSuggestions" class="dropdown-menu w-100 shadow-sm position-absolute" style="max-height: 200px; overflow-y: auto; top: 100%; z-index: 1050; display: none;"></ul>
                     </div>
 
                     <div class="row g-3 mb-4">

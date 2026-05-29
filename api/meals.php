@@ -9,7 +9,7 @@ require_once __DIR__ . "/../config/Database.php";
 $action = $_GET['action'] ?? '';
 
 if ($action == 'add') {
-    $imagePath = '';
+    $imagePath = $_POST['image'] ?? '';
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $uploadResult = File::upload($_FILES['image'], 'meals');
         if ($uploadResult['status'] === 'success') {
