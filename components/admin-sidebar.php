@@ -49,6 +49,11 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <i class="ri-user-settings-line me-3"></i>Manage Users
             </a>
 
+            <a href="<?php echo $path_prefix; ?>siteadmin/recipes.php"
+                class="list-group-item list-group-item-action <?php echo $current_page == 'recipes.php' ? 'active' : ''; ?> rounded mb-1">
+                <i class="ri-restaurant-line me-3"></i>Manage Recipes
+            </a>
+
             <a href="<?php echo $path_prefix; ?>siteadmin/system.php"
                 class="list-group-item list-group-item-action <?php echo $current_page == 'system.php' ? 'active' : ''; ?> rounded mb-1">
                 <i class="ri-server-line me-3"></i>System Health

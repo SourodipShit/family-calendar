@@ -240,4 +240,38 @@ class Recipe
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
+
+    public static function getAllRecipesAdmin()
+    {
+        try {
+            $sql = "SELECT r.*, u.name as user_name, f.name as family_name
+                    FROM recipes r
+                    INNER JOIN users u ON u.id = r.user_id
+                    LEFT JOIN user_family uf ON u.id = uf.user_id
+                    LEFT JOIN families f ON uf.family_id = f.id
+                    ORDER BY r.created_at DESC";
+            
+            $stmt = Database::run($sql);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if (count($results) == 0) {
+                return ["status" => "success", "message" => "No recipes found.", "data" => []];
+            }
+            return ["status" => "success", "data" => $results];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    public static function updateStatus($recipeId, $status)
+    {
+        try {
+            $sql = "UPDATE recipes SET status = ? WHERE id = ?";
+            Database::runPrepared($sql, [$status, $recipeId]);
+            return ["status" => "success", "message" => "Recipe status updated to " . htmlspecialchars($status)];
+        }
+        catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
 }

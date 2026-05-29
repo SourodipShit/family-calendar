@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'difficulty' => $_POST['difficulty'],
             'visibility' => $_POST['visibility'],
             'variations_notes' => $_POST['variations_notes'],
-            'status' => 'approved' // Set to approved by default for now
+            'status' => 'pending'
         ];
 
         $ingredients = [];
