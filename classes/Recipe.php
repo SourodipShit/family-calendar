@@ -31,6 +31,55 @@ class Recipe
         }
     }
 
+    public static function update($id, $data)
+    {
+        try {
+            Database::getInstance()->beginTransaction();
+
+            $recipeData = $data['recipe'];
+            $fields = [];
+            $params = [];
+            foreach ($recipeData as $key => $value) {
+                $fields[] = "$key = ?";
+                $params[] = $value;
+            }
+            $params[] = $id;
+
+            $sql = "UPDATE recipes SET " . implode(", ", $fields) . " WHERE id = ?";
+            Database::runPrepared($sql, $params);
+
+            // Delete child data
+            Database::runPrepared("DELETE FROM recipe_ingredients WHERE recipe_id = ?", [$id]);
+            Database::runPrepared("DELETE FROM recipe_steps WHERE recipe_id = ?", [$id]);
+            Database::runPrepared("DELETE FROM recipe_nutrition WHERE recipe_id = ?", [$id]);
+            
+            // Re-insert child data
+            if (!empty($data['ingredients'])) self::addIngredients($id, $data['ingredients']);
+            if (!empty($data['steps'])) self::addSteps($id, $data['steps']);
+            if (!empty($data['stats'])) self::addStats($id, $data['stats']);
+
+            if (isset($data['images']) && count($data['images']) > 0) {
+                foreach ($data['images'] as $image) {
+                    if ($image['is_main'] == 1) {
+                        Database::runPrepared("DELETE FROM recipe_images WHERE recipe_id = ? AND is_main = 1", [$id]);
+                    }
+                    $image['recipe_id'] = $id;
+                    $imgFields = array_keys($image);
+                    $imgPlaceholders = array_fill(0, count($imgFields), '?');
+                    $imgParams = array_values($image);
+                    $sql = "INSERT INTO recipe_images (" . implode(", ", $imgFields) . ") VALUES (" . implode(", ", $imgPlaceholders) . ")";
+                    Database::runPrepared($sql, $imgParams);
+                }
+            }
+
+            Database::getInstance()->commit();
+            return true;
+        } catch (Exception $e) {
+            Database::getInstance()->rollBack();
+            throw $e;
+        }
+    }
+
     private static function addIngredients($RecipeId, $ingredients)
     {
         foreach ($ingredients as $ingredient) {
@@ -269,6 +318,28 @@ class Recipe
             $sql = "UPDATE recipes SET status = ? WHERE id = ?";
             Database::runPrepared($sql, [$status, $recipeId]);
             return ["status" => "success", "message" => "Recipe status updated to " . htmlspecialchars($status)];
+        }
+        catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    public static function deleteRecipe($recipeId)
+    {
+        try {
+            $sql = "DELETE FROM recipes WHERE id = ?";
+            Database::runPrepared($sql, [$recipeId]);
+            $sql = "DELETE FROM recipe_images WHERE recipe_id = ?";
+            Database::runPrepared($sql, [$recipeId]);
+            $sql = "DELETE FROM recipe_access_requests WHERE recipe_id = ?";
+            Database::runPrepared($sql, [$recipeId]);
+            $sql = "DELETE FROM recipe_ingredients WHERE recipe_id = ?";
+            Database::runPrepared($sql, [$recipeId]);
+            $sql = "DELETE FROM recipe_steps WHERE recipe_id = ?";
+            Database::runPrepared($sql, [$recipeId]);
+            $sql = "DELETE FROM recipe_nutrition WHERE recipe_id = ?";
+            Database::runPrepared($sql, [$recipeId]);
+            return ["status" => "success", "message" => "Recipe deleted successfully."];
         }
         catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];

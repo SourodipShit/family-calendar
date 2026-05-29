@@ -14,6 +14,7 @@ include $path_prefix . 'components/header.php';
     <div class="container-fluid p-4">
         <script>
             const userFamilyId = <?php echo $_SESSION['user']['families'][0]['family_id'] ?? 0; ?>;
+            const currentUserId = <?php echo $_SESSION['user']['id'] ?? 0; ?>;
         </script>
 
         <!-- Header & Add Button -->
@@ -158,11 +159,12 @@ include $path_prefix . 'components/header.php';
             const isApproved = recipe.request_status === 'approved';
             const isPending = recipe.request_status === 'pending';
             const isPrivate = recipe.visibility === 'private' && !isApproved;
+            const isOwner = recipe.user_id == currentUserId;
 
             const difficultyClass = `difficulty-${recipe.difficulty.toLowerCase()}`;
             const kcal = recipe.calories ? `${recipe.calories} kcal` : 'N/A';
             const image = recipe.image_url ? `../${recipe.image_url}` : 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&q=80&w=800';
-            const userImage = recipe.user_image ? (recipe.user_image.startsWith('http') ? recipe.user_image : `../${recipe.user_image.replace('../', '')}`) : '../public/img/default-user.png';
+            const userImage = recipe.user_image ? (recipe.user_image.startsWith('http') ? recipe.user_image : `../${recipe.user_image.replace('../', '')}`) : 'https://ui-avatars.com/api/?name=' + recipe.user_name.replace(' ', '+');
             const totalTime = parseInt(recipe.prep_time_min || 0) + parseInt(recipe.cook_time_min || 0);
 
             return `
@@ -200,15 +202,21 @@ include $path_prefix . 'components/header.php';
                                 <img src="${userImage}" alt="${recipe.user_name}" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
                                 <span class="small fw-medium text-dark">${recipe.user_name}</span>
                             </div>
-                            ${!isPrivate ? `
-                            <a href="recipe-details.php?id=${recipe.id}" class="btn btn-link p-0 text-primary fw-bold text-decoration-none small">View <i class="fa-solid fa-chevron-right ms-1"></i></a>
-                            ` : `
-                                ${isPending ? `
-                                <button class="btn btn-link p-0 text-muted fw-bold text-decoration-none small" disabled>Requested <i class="fa-solid fa-hourglass-half ms-1"></i></button>
+                            <div class="d-flex align-items-center gap-3">
+                                ${isOwner ? `
+                                <a href="edit-recipe.php?id=${recipe.id}" class="text-secondary" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <button onclick="deleteRecipe(${recipe.id})" class="btn btn-link p-0 text-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                                ` : ''}
+                                ${!isPrivate ? `
+                                <a href="recipe-details.php?id=${recipe.id}" class="btn btn-link p-0 text-primary fw-bold text-decoration-none small">View <i class="fa-solid fa-chevron-right ms-1"></i></a>
                                 ` : `
-                                <button onclick="requestAccess(${recipe.id})" class="btn btn-link p-0 text-warning fw-bold text-decoration-none small">Request <i class="fa-solid fa-paper-plane ms-1"></i></button>
+                                    ${isPending ? `
+                                    <button class="btn btn-link p-0 text-muted fw-bold text-decoration-none small" disabled>Requested <i class="fa-solid fa-hourglass-half ms-1"></i></button>
+                                    ` : `
+                                    <button onclick="requestAccess(${recipe.id})" class="btn btn-link p-0 text-warning fw-bold text-decoration-none small">Request <i class="fa-solid fa-paper-plane ms-1"></i></button>
+                                    `}
                                 `}
-                            `}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -243,6 +251,31 @@ include $path_prefix . 'components/header.php';
                     console.error('Error sending request:', error);
                     showAlert('Failed to send request', 'error');
                 });
+        };
+
+        window.deleteRecipe = function(recipeId) {
+            if (confirm('Are you sure you want to delete this recipe?')) {
+                const formData = new FormData();
+                formData.append('recipeId', recipeId);
+                
+                fetch(`../api/recipe.php?action=deleteRecipe`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 'success') {
+                        showAlert(response.message, 'success');
+                        fetchRecipes(true); // Refresh grid
+                    } else {
+                        showAlert(response.message || 'Failed to delete recipe', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting recipe:', error);
+                    showAlert('Failed to delete recipe', 'error');
+                });
+            }
         };
 
         // Initial load

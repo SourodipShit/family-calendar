@@ -43,6 +43,12 @@ switch ($action) {
         echo json_encode($result);
         exit;
 
+    case "deleteRecipe":
+        $recipeId = $_POST['recipeId'];
+        $result = Recipe::deleteRecipe($recipeId);
+        echo json_encode($result);
+        exit;
+
     default:
         echo json_encode(["status" => "error", "message" => "Invalid action."]);
         exit;
