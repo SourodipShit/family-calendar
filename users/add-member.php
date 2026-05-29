@@ -13,6 +13,7 @@ if (isset($_POST['submit'])) {
     $nickname = $_POST['nickname'] ?? null;
     $email = $_POST['email'];
     $phone = $_POST['phone'];
+    $role = $_POST['role'];
     $image = $_FILES['member_image'];
     $password = $_POST['password'];
 
@@ -35,7 +36,7 @@ if (isset($_POST['submit'])) {
             'nickname' => $nickname,
             'email' => $email,
             'phone' => $phone,
-            'role' => 'member',
+            'role' => $role,
             'image' => $image_path,
             'password' => $hashed_password,
             'family_id' => $_SESSION['user']['families'][0]['family_id']
@@ -112,9 +113,22 @@ if (isset($_SESSION['error_msg'])) {
                                     </div>
                                 </div>
 
+                                <!-- Role -->
+                                <div class="col-md-12">
+                                    <label for="role" class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+                                    <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                        <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-users"></i></span>
+                                        <select class="form-select border-0 py-2" id="role" name="role" required>
+                                            <option value="" disabled>Select a role</option>
+                                            <option value="family-head">Family Head</option>
+                                            <option value="member" selected>Member</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <!-- Email Address -->
-                                <div class="col-md-6">
-                                    <label for="email" class="form-label fw-semibold">Email Address (optional)</label>
+                                <div class="col-md-6 email-wrapper">
+                                    <label for="email" class="form-label fw-semibold">Email Address <span class="req-star text-danger d-none">*</span> <span class="opt-text">(optional)</span></label>
                                     <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-muted"><i class="fa-regular fa-envelope"></i></span>
                                         <input type="email" class="form-control border-0 py-2" id="email" name="email" placeholder="email@example.com">
@@ -122,8 +136,8 @@ if (isset($_SESSION['error_msg'])) {
                                 </div>
 
                                 <!-- Phone Number -->
-                                <div class="col-md-6">
-                                    <label for="phone" class="form-label fw-semibold">Phone Number (optional)</label>
+                                <div class="col-md-6 phone-wrapper">
+                                    <label for="phone" class="form-label fw-semibold">Phone Number <span class="req-star text-danger d-none">*</span> <span class="opt-text">(optional)</span></label>
                                     <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-phone-flip"></i></span>
                                         <input type="tel" class="form-control border-0 py-2" id="phone" name="phone" placeholder="+1 (555) 000-0000">
@@ -182,6 +196,37 @@ if (isset($_SESSION['error_msg'])) {
         <?php if (isset($success_msg)): ?>
             showAlert(<?php echo json_encode($success_msg); ?>, "success");
         <?php endif; ?>
+
+        const roleSelect = document.getElementById('role');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const emailOptText = document.querySelector('.email-wrapper .opt-text');
+        const emailReqStar = document.querySelector('.email-wrapper .req-star');
+        const phoneOptText = document.querySelector('.phone-wrapper .opt-text');
+        const phoneReqStar = document.querySelector('.phone-wrapper .req-star');
+
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'family-head') {
+                emailInput.required = true;
+                phoneInput.required = true;
+                if (emailOptText) emailOptText.classList.add('d-none');
+                if (emailReqStar) emailReqStar.classList.remove('d-none');
+                if (phoneOptText) phoneOptText.classList.add('d-none');
+                if (phoneReqStar) phoneReqStar.classList.remove('d-none');
+            } else {
+                emailInput.required = false;
+                phoneInput.required = false;
+                if (emailOptText) emailOptText.classList.remove('d-none');
+                if (emailReqStar) emailReqStar.classList.add('d-none');
+                if (phoneOptText) phoneOptText.classList.remove('d-none');
+                if (phoneReqStar) phoneReqStar.classList.add('d-none');
+            }
+        });
+
+        // Trigger change to set initial state if needed
+        if (roleSelect.value) {
+            roleSelect.dispatchEvent(new Event('change'));
+        }
 
         document.getElementById('member_image').addEventListener('change', function(event) {
             const file = event.target.files[0];
