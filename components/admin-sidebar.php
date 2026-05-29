@@ -2,6 +2,7 @@
 $path_prefix = isset($path_prefix) ? $path_prefix : "../";
 $current_page = basename($_SERVER['PHP_SELF']);
 require_once __DIR__ . '/../classes/GlobalSettings.php';
+require_once __DIR__ . '/../classes/Recipe.php';
 $logoData = GlobalSettings::getSetting('site_logo')['data'] ?? [];
 $globalSettingsLogo = $logoData['setting_value'] ?? null;
 
@@ -50,8 +51,15 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/recipes.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'recipes.php' ? 'active' : ''; ?> rounded mb-1">
+                class="list-group-item list-group-item-action d-flex align-items-center <?php echo $current_page == 'recipes.php' ? 'active' : ''; ?> rounded mb-1">
                 <i class="ri-restaurant-line me-3"></i>Manage Recipes
+                <?php 
+                $pendingRecipesRes = Recipe::getPendingRecipesCount();
+                $pendingRecipesCount = ($pendingRecipesRes['status'] === 'success') ? $pendingRecipesRes['data'] : 0;
+                if ($pendingRecipesCount > 0): 
+                ?>
+                    <span class="badge bg-danger rounded-circle ms-auto" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;"><?php echo $pendingRecipesCount; ?></span>
+                <?php endif; ?>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/system.php"

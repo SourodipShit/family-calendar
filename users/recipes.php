@@ -2,6 +2,7 @@
 $path_prefix = "../";
 $page_title = "Recipes";
 include $path_prefix . 'components/header.php';
+require_once $path_prefix . 'classes/Recipe.php';
 ?>
 <link rel="stylesheet" href="<?php echo $path_prefix; ?>public/css/recipes.css">
 
@@ -25,7 +26,14 @@ include $path_prefix . 'components/header.php';
             </div>
             <div class="d-flex gap-2">
                 <a href="recipe-requests.php" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">
-                    <i class="fa-solid fa-envelope-open-text me-2"></i> Access Requests
+                    <i class="fa-solid fa-envelope-open-text me-2"></i> Access Requests 
+                    <?php 
+                    $reqCountRes = Recipe::getAccessRequestCount($_SESSION['user']['id']);
+                    $pendingCount = ($reqCountRes['status'] === 'success') ? $reqCountRes['data'] : 0;
+                    if ($pendingCount > 0): 
+                    ?>
+                        <span class="badge bg-danger rounded-circle ms-2" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;" id="access-requests-count"><?php echo $pendingCount; ?></span>
+                    <?php endif; ?>
                 </a>
                 <a href="add-recipe.php" class="btn btn-primary rounded-pill px-4 py-2 fw-bold">
                     <i class="fa-solid fa-plus me-2"></i> Add Recipe

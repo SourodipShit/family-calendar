@@ -52,7 +52,7 @@ class Recipe
             Database::runPrepared("DELETE FROM recipe_ingredients WHERE recipe_id = ?", [$id]);
             Database::runPrepared("DELETE FROM recipe_steps WHERE recipe_id = ?", [$id]);
             Database::runPrepared("DELETE FROM recipe_nutrition WHERE recipe_id = ?", [$id]);
-            
+
             // Re-insert child data
             if (!empty($data['ingredients'])) self::addIngredients($id, $data['ingredients']);
             if (!empty($data['steps'])) self::addSteps($id, $data['steps']);
@@ -171,7 +171,7 @@ class Recipe
 
             $stmt = Database::runPrepared($sql, $params);
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             if (count($results) == 0) {
                 return ["status" => "success", "message" => "No recipes found."];
             }
@@ -229,8 +229,7 @@ class Recipe
             $sql = "INSERT INTO recipe_access_requests (recipe_id, requester_family_id) VALUES (?, ?)";
             Database::runPrepared($sql, [$recipeId, $userFamilyId]);
             return ["status" => "success", "message" => "Request sent successfully."];
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
@@ -241,8 +240,7 @@ class Recipe
             $sql = "UPDATE recipe_access_requests SET status = 'approved' WHERE id = ?";
             Database::runPrepared($sql, [$requestId]);
             return ["status" => "success", "message" => "Request approved successfully."];
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
@@ -253,8 +251,7 @@ class Recipe
             $sql = "UPDATE recipe_access_requests SET status = 'denied' WHERE id = ?";
             Database::runPrepared($sql, [$requestId]);
             return ["status" => "success", "message" => "Request denied successfully."];
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
@@ -266,12 +263,11 @@ class Recipe
             $stmt = Database::runPrepared($sql, [$recipeId]);
             $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return ["status" => "success", "data" => $requests];
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
-    
+
     public static function getRequestsForFamily($userId)
     {
         try {
@@ -284,8 +280,7 @@ class Recipe
             $stmt = Database::runPrepared($sql, [$userId]);
             $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return ["status" => "success", "data" => $requests];
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
@@ -299,10 +294,10 @@ class Recipe
                     LEFT JOIN user_family uf ON u.id = uf.user_id
                     LEFT JOIN families f ON uf.family_id = f.id
                     ORDER BY r.created_at DESC";
-            
+
             $stmt = Database::run($sql);
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             if (count($results) == 0) {
                 return ["status" => "success", "message" => "No recipes found.", "data" => []];
             }
@@ -318,8 +313,7 @@ class Recipe
             $sql = "UPDATE recipes SET status = ? WHERE id = ?";
             Database::runPrepared($sql, [$status, $recipeId]);
             return ["status" => "success", "message" => "Recipe status updated to " . htmlspecialchars($status)];
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
@@ -340,8 +334,35 @@ class Recipe
             $sql = "DELETE FROM recipe_nutrition WHERE recipe_id = ?";
             Database::runPrepared($sql, [$recipeId]);
             return ["status" => "success", "message" => "Recipe deleted successfully."];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
         }
-        catch (Exception $e) {
+    }
+
+    public static function getAccessRequestCount($userId)
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count 
+                    FROM recipe_access_requests rar
+                    INNER JOIN recipes r ON r.id = rar.recipe_id
+                    WHERE r.user_id = ?
+                    AND rar.status = 'pending'";
+            $stmt = Database::runPrepared($sql, [$userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return ["status" => "success", "data" => $result['count']];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    public static function getPendingRecipesCount()
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count FROM recipes WHERE status = 'pending'";
+            $stmt = Database::run($sql);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return ["status" => "success", "data" => $result['count']];
+        } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
