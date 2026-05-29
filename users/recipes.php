@@ -199,10 +199,12 @@ require_once $path_prefix . 'classes/Recipe.php';
                         <div class="recipe-meta d-flex gap-3 small text-muted mb-3">
                             <span><i class="fa-regular fa-clock me-1"></i> ${totalTime} mins</span>
                             <span><i class="fa-solid fa-fire me-1"></i> ${kcal}</span>
+                            <span class="ms-auto fw-bold">#${recipe.id}</span>
                         </div>
                         ` : `
-                        <div class="recipe-meta mb-3">
+                        <div class="recipe-meta d-flex justify-content-between mb-3">
                             <span class="extra-small text-muted"><i class="fa-solid fa-circle-info me-1"></i> Request access to see full recipe</span>
+                            <span class="small text-muted fw-bold">#${recipe.id}</span>
                         </div>
                         `}
                         <div class="recipe-footer d-flex justify-content-between align-items-center mt-auto pt-3 border-top">

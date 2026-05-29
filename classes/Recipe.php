@@ -162,8 +162,16 @@ class Recipe
 
 
             if (!empty($filter['search'])) {
-                $sql .= " AND r.name LIKE ?";
-                $params[] = "%" . $filter['search'] . "%";
+                $searchTerm = $filter['search'];
+                $cleanSearch = ltrim($searchTerm, '#');
+                if (is_numeric($cleanSearch)) {
+                    $sql .= " AND (r.name LIKE ? OR r.id = ?)";
+                    $params[] = "%" . $searchTerm . "%";
+                    $params[] = (int)$cleanSearch;
+                } else {
+                    $sql .= " AND r.name LIKE ?";
+                    $params[] = "%" . $searchTerm . "%";
+                }
             }
 
             // Add limit and offset safely
