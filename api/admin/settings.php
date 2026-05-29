@@ -41,7 +41,15 @@ switch ($action) {
         break;
 
     case 'update_logo':
-        updateLogo();
+        updateImage('logo', 'site_logo');
+        break;
+
+    case 'update_login_image':
+        updateImage('login_image', 'login_page_image');
+        break;
+
+    case 'update_signup_image':
+        updateImage('signup_image', 'sign_up_page_image');
         break;
 
     case 'add_timezone':
@@ -70,35 +78,35 @@ function fetchAllSettings() {
     echo json_encode($settings);
 }
 
-function updateLogo() {
-    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-        // Fetch the old logo path to delete it later
-        $oldLogoPath = getSettingValue('site_logo');
+function updateImage($fileKey, $settingKey) {
+    if (isset($_FILES[$fileKey]) && $_FILES[$fileKey]['error'] === UPLOAD_ERR_OK) {
+        // Fetch the old image path to delete it later
+        $oldImagePath = getSettingValue($settingKey);
 
         // Change working directory to siteadmin so File::upload's "../public/uploads" 
         // points to the correct root-level directory, consistent with other modules.
         $originalDir = getcwd();
         chdir(__DIR__ . '/../../siteadmin');
         
-        // Delete old logo if it exists
-        if ($oldLogoPath && !empty($oldLogoPath)) {
-            File::deleteFile($oldLogoPath);
+        // Delete old image if it exists
+        if ($oldImagePath && !empty($oldImagePath)) {
+            File::deleteFile($oldImagePath);
         }
 
-        $upload = File::upload($_FILES['logo'], 'logo');
+        $upload = File::upload($_FILES[$fileKey], $fileKey);
         
         // Change back to original directory
         chdir($originalDir);
 
         if ($upload['status'] === 'success') {
             $imagePath = $upload['filePath'];
-            updateOrInsertSetting('site_logo', $imagePath);
-            echo json_encode(['status' => 'success', 'message' => 'Logo updated successfully', 'path' => $imagePath]);
+            updateOrInsertSetting($settingKey, $imagePath);
+            echo json_encode(['status' => 'success', 'message' => 'Image updated successfully', 'path' => $imagePath]);
         } else {
             echo json_encode($upload);
         }
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'No logo file uploaded or upload error.']);
+        echo json_encode(['status' => 'error', 'message' => 'No image file uploaded or upload error.']);
     }
 }
 

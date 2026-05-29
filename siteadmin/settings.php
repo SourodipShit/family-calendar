@@ -175,7 +175,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
 
                             <div class="row">
                                 <div class="col-md-6">
-                                    <form id="logoForm" enctype="multipart/form-data">
+                                    <form id="logoForm" enctype="multipart/form-data" class="mb-4">
                                         <div class="mb-4">
                                             <label class="form-label fw-bold small text-muted text-uppercase ls-1">System Logo</label>
                                             <div class="d-flex align-items-center gap-4 mt-2">
@@ -187,7 +187,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                     <img id="logoPreview" src="" class="w-100 h-100 d-none" style="object-fit: contain;">
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <input type="file" name="logo" id="logoInput" class="d-none" accept="image/*" onchange="previewLogo(this)">
+                                                    <input type="file" name="logo" id="logoInput" class="d-none" accept="image/*" onchange="previewImage(this, 'logoPreview', 'logoPlaceholder', 'logoPreviewContainer')">
                                                     <button type="button" class="btn btn-outline-primary btn-sm mb-2 px-3" onclick="document.getElementById('logoInput').click();">
                                                         <i class="ri-upload-2-line me-1"></i> Choose New Logo
                                                     </button>
@@ -199,6 +199,64 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                         <div class="mt-4 pt-3 border-top">
                                             <button type="button" id="saveLogoBtn" class="btn btn-primary px-4">
                                                 <i class="ri-save-line me-1"></i> Save Changes
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <form id="loginImageForm" enctype="multipart/form-data">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Login Page Image</label>
+                                            <div class="d-flex align-items-center gap-4 mt-2">
+                                                <div id="loginPreviewContainer" class="bg-light rounded-3 d-flex align-items-center justify-content-center border-dashed border-2 overflow-hidden" style="width: 120px; height: 120px; border: 2px dashed #dee2e6; cursor: pointer;" onclick="document.getElementById('loginInput').click();">
+                                                    <div id="loginPlaceholder" class="text-center">
+                                                        <i class="ri-image-add-line fs-1 text-muted"></i>
+                                                        <p class="extra-small text-muted mb-0">Upload Image</p>
+                                                    </div>
+                                                    <img id="loginPreview" src="" class="w-100 h-100 d-none" style="object-fit: cover;">
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <input type="file" name="login_image" id="loginInput" class="d-none" accept="image/*" onchange="previewImage(this, 'loginPreview', 'loginPlaceholder', 'loginPreviewContainer')">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm mb-2 px-3" onclick="document.getElementById('loginInput').click();">
+                                                        <i class="ri-upload-2-line me-1"></i> Choose New Image
+                                                    </button>
+                                                    <p class="extra-small text-muted mb-0">Recommended: High quality image.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-4 pt-3 border-top">
+                                            <button type="button" id="saveLoginImageBtn" class="btn btn-primary px-4">
+                                                <i class="ri-save-line me-1"></i> Save Image
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <form id="signupImageForm" enctype="multipart/form-data">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Sign Up Page Image</label>
+                                            <div class="d-flex align-items-center gap-4 mt-2">
+                                                <div id="signupPreviewContainer" class="bg-light rounded-3 d-flex align-items-center justify-content-center border-dashed border-2 overflow-hidden" style="width: 120px; height: 120px; border: 2px dashed #dee2e6; cursor: pointer;" onclick="document.getElementById('signupInput').click();">
+                                                    <div id="signupPlaceholder" class="text-center">
+                                                        <i class="ri-image-add-line fs-1 text-muted"></i>
+                                                        <p class="extra-small text-muted mb-0">Upload Image</p>
+                                                    </div>
+                                                    <img id="signupPreview" src="" class="w-100 h-100 d-none" style="object-fit: cover;">
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <input type="file" name="signup_image" id="signupInput" class="d-none" accept="image/*" onchange="previewImage(this, 'signupPreview', 'signupPlaceholder', 'signupPreviewContainer')">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm mb-2 px-3" onclick="document.getElementById('signupInput').click();">
+                                                        <i class="ri-upload-2-line me-1"></i> Choose New Image
+                                                    </button>
+                                                    <p class="extra-small text-muted mb-0">Recommended: High quality image.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-4 pt-3 border-top">
+                                            <button type="button" id="saveSignupImageBtn" class="btn btn-primary px-4">
+                                                <i class="ri-save-line me-1"></i> Save Image
                                             </button>
                                         </div>
                                     </form>
@@ -697,6 +755,38 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     logoPlaceholder.classList.add('d-none');
                 }
 
+                // Load Login Image
+                const loginSetting = settings.find(s => s.setting_key === 'login_page_image');
+                if (loginSetting && loginSetting.setting_value) {
+                    const loginPreview = document.getElementById('loginPreview');
+                    const loginPlaceholder = document.getElementById('loginPlaceholder');
+                    
+                    let loginPath = loginSetting.setting_value;
+                    if (loginPath.startsWith('../')) {
+                        loginPath = '<?php echo $path_prefix; ?>' + loginPath.replace('../', '');
+                    }
+
+                    loginPreview.src = loginPath;
+                    loginPreview.classList.remove('d-none');
+                    loginPlaceholder.classList.add('d-none');
+                }
+
+                // Load Signup Image
+                const signupSetting = settings.find(s => s.setting_key === 'sign_up_page_image');
+                if (signupSetting && signupSetting.setting_value) {
+                    const signupPreview = document.getElementById('signupPreview');
+                    const signupPlaceholder = document.getElementById('signupPlaceholder');
+                    
+                    let signupPath = signupSetting.setting_value;
+                    if (signupPath.startsWith('../')) {
+                        signupPath = '<?php echo $path_prefix; ?>' + signupPath.replace('../', '');
+                    }
+
+                    signupPreview.src = signupPath;
+                    signupPreview.classList.remove('d-none');
+                    signupPlaceholder.classList.add('d-none');
+                }
+
                 // Load Config Settings
                 const mailFromSetting = settings.find(s => s.setting_key === 'mail_from_address');
                 if (mailFromSetting) {
@@ -747,40 +837,40 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         // But keeping the function call in DOMContentLoaded for clarity or future specific logic
     }
 
-    function previewLogo(input) {
+    function previewImage(input, previewId, placeholderId, containerId) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const logoPreview = document.getElementById('logoPreview');
-                const logoPlaceholder = document.getElementById('logoPlaceholder');
+                const preview = document.getElementById(previewId);
+                const placeholder = document.getElementById(placeholderId);
                 
-                logoPreview.src = e.target.result;
-                logoPreview.classList.remove('d-none');
-                logoPlaceholder.classList.add('d-none');
-                document.getElementById('logoPreviewContainer').style.border = 'none';
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                placeholder.classList.add('d-none');
+                document.getElementById(containerId).style.border = 'none';
             }
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    document.getElementById('saveLogoBtn').addEventListener('click', async () => {
-        const fileInput = document.getElementById('logoInput');
+    async function handleImageUpload(btnId, fileInputId, actionName, formDataKey) {
+        const fileInput = document.getElementById(fileInputId);
         if (!fileInput.files || fileInput.files.length === 0) {
-            if (typeof showAlert === 'function') showAlert('Please select a logo to upload', 'warning');
-            else alert('Please select a logo to upload');
+            if (typeof showAlert === 'function') showAlert('Please select an image to upload', 'warning');
+            else alert('Please select an image to upload');
             return;
         }
 
         const formData = new FormData();
-        formData.append('logo', fileInput.files[0]);
+        formData.append(formDataKey, fileInput.files[0]);
 
-        const btn = document.getElementById('saveLogoBtn');
+        const btn = document.getElementById(btnId);
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
 
         try {
-            const response = await fetch(`${SETTINGS_API_PATH}?action=update_logo`, {
+            const response = await fetch(`${SETTINGS_API_PATH}?action=${actionName}`, {
                 method: 'POST',
                 body: formData
             });
@@ -795,13 +885,25 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 else alert(result.message);
             }
         } catch (error) {
-            console.error('Error updating logo:', error);
+            console.error(`Error updating image (${actionName}):`, error);
             if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
             else alert('Network error occurred');
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
+    }
+
+    document.getElementById('saveLogoBtn').addEventListener('click', () => {
+        handleImageUpload('saveLogoBtn', 'logoInput', 'update_logo', 'logo');
+    });
+
+    document.getElementById('saveLoginImageBtn').addEventListener('click', () => {
+        handleImageUpload('saveLoginImageBtn', 'loginInput', 'update_login_image', 'login_image');
+    });
+
+    document.getElementById('saveSignupImageBtn').addEventListener('click', () => {
+        handleImageUpload('saveSignupImageBtn', 'signupInput', 'update_signup_image', 'signup_image');
     });
 
     document.getElementById('saveConfigBtn').addEventListener('click', async () => {

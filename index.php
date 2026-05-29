@@ -8,9 +8,15 @@ if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
 }
 $path_prefix = "";
 $page_title = "Sign Up - Family Calendar";
+$page_image = "";
 $is_public_page = true;
 include_once __DIR__ . '/components/header.php';
 include_once __DIR__ . '/classes/Auth.php';
+
+include_once __DIR__ . '/classes/GlobalSettings.php';
+
+$setting = GlobalSettings::getSetting("sign_up_page_image");
+$page_image = ($setting['status'] === 'success' && !empty($setting['data']['setting_value'])) ? $setting['data']['setting_value'] : "";
 
 if (isset($_POST['signup'])) {
     require_once __DIR__ . '/classes/File.php';
@@ -105,8 +111,9 @@ if (isset($_POST['signup'])) {
                 <p class="lead mb-5 text-secondary">Set up your family calendar in minutes and start organizing your life together.</p>
 
                 <div class="illustration-container mt-4 mb-5">
-                    <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=800"
-                        alt="Family Calendar Illustration" class="img-fluid illustration-img" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+                    <?php $img_src = !empty($page_image) ? str_replace('../', $path_prefix, $page_image) : 'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=800'; ?>
+                    <img src="<?php echo htmlspecialchars($img_src); ?>"
+                        alt="Family Calendar Illustration" class="img-fluid illustration-img" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; height: 100%; object-fit: cover;">
                 </div>
 
                 <div class="privacy-badge mt-auto">
