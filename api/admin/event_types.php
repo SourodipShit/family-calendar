@@ -39,8 +39,14 @@ switch ($action) {
         break;
 
     case 'update':
-        $data['family_id'] = null;
-        $data['is_default'] = 1;
+        $existing = EventTypes::getEventTypeById(['id' => $data['id']]);
+        if ($existing) {
+            $data['family_id'] = $existing['family_id'];
+            $data['is_default'] = $existing['is_default'];
+        } else {
+            $data['family_id'] = null;
+            $data['is_default'] = 1;
+        }
         echo EventTypes::updateEventType($data);
         break;
 

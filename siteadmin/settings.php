@@ -440,6 +440,12 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             <span class="small text-muted" id="color-hex-label">#0D6EFD</span>
                         </div>
                     </div>
+                    <div class="mb-2 mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="allow_multiple_day" name="allow_multiple_day" value="1">
+                            <label class="form-check-label fw-semibold text-dark small" for="allow_multiple_day">Allow Multi-Day Events</label>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
@@ -641,6 +647,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 document.getElementById('event_type_name').value = result.data.name;
                 document.getElementById('event_type_colour').value = result.data.colour;
                 document.getElementById('color-hex-label').innerText = result.data.colour.toUpperCase();
+                document.getElementById('allow_multiple_day').checked = result.data.allow_multiple_day == 1;
 
                 const modal = new bootstrap.Modal(document.getElementById('eventTypeModal'));
                 modal.show();

@@ -253,11 +253,47 @@ document.addEventListener('DOMContentLoaded', () => {
                         const option = document.createElement('option');
                         option.value = type.id;
                         option.textContent = type.name;
+                        option.dataset.allowMultipleDay = type.allow_multiple_day || 0;
                         eventTypeSelect.appendChild(option);
                     });
+                    
+                    // Trigger change to set initial state
+                    eventTypeSelect.dispatchEvent(new Event('change'));
                 }
             })
             .catch(err => console.error('Error loading event types:', err));
+
+        // Event listener for event type change
+        eventTypeSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const endDateField = document.getElementById('eventEndDate');
+            const inputGroup = document.getElementById('endDateInputGroup');
+            const endDateContainer = document.getElementById('endDateContainer');
+            
+            if (endDateField && selectedOption) {
+                if (selectedOption.dataset.allowMultipleDay == "1") {
+                    endDateField.disabled = false;
+                    if (inputGroup) {
+                        inputGroup.classList.remove('bg-light', 'opacity-50');
+                        inputGroup.classList.add('bg-white');
+                    }
+                    if (endDateContainer) {
+                        endDateContainer.classList.remove('opacity-50');
+                    }
+                } else {
+                    endDateField.disabled = true;
+                    endDateField.value = '';
+                    if (inputGroup) {
+                        inputGroup.classList.remove('bg-white');
+                        inputGroup.classList.add('bg-light');
+                        inputGroup.classList.remove('opacity-50'); // remove from here if it was previously added
+                    }
+                    if (endDateContainer) {
+                        endDateContainer.classList.add('opacity-50');
+                    }
+                }
+            }
+        });
     }
 
     // Fix Bootstrap Tabs (manual fallback if Bootstrap JS fails)

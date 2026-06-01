@@ -12,11 +12,13 @@ class EventTypes
     static function createEventType($data)
     {
         try {
-            $result = Database::runPrepared("INSERT INTO event_types (name, is_default, colour, family_id) VALUES (?, ?, ?, ?)", [
+            $allow_multiple_day = !empty($data['allow_multiple_day']) ? 1 : 0;
+            $result = Database::runPrepared("INSERT INTO event_types (name, is_default, colour, family_id, allow_multiple_day) VALUES (?, ?, ?, ?, ?)", [
                 $data['name'],
                 $data['is_default'],
                 $data['colour'],
-                $data['family_id']
+                $data['family_id'],
+                $allow_multiple_day
             ]);
             if ($result) {
                 return json_encode([
@@ -35,11 +37,13 @@ class EventTypes
     static function updateEventType($data)
     {
         try {
-            $result = Database::runPrepared("UPDATE event_types SET name = ?, is_default = ?, colour = ?, family_id = ? WHERE id = ?", [
+            $allow_multiple_day = !empty($data['allow_multiple_day']) ? 1 : 0;
+            $result = Database::runPrepared("UPDATE event_types SET name = ?, is_default = ?, colour = ?, family_id = ?, allow_multiple_day = ? WHERE id = ?", [
                 $data['name'],
                 $data['is_default'],
                 $data['colour'],
                 $data['family_id'],
+                $allow_multiple_day,
                 $data['id']
             ]);
             if ($result) {

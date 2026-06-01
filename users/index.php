@@ -262,7 +262,7 @@ include $path_prefix . 'components/sidebar.php';
                 <input type="hidden" name="member_id" id="selectedMemberId">
                 <div class="row g-4 mb-4">
                         <!-- Title -->
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label fw-semibold text-dark fs-7">Title <span
                                     class="text-danger">*</span></label>
                             <div class="input-group border rounded-3 overflow-hidden shadow-sm">
@@ -283,6 +283,18 @@ include $path_prefix . 'components/sidebar.php';
                                         class="fa-regular fa-calendar"></i></span>
                                 <input type="date" class="form-control border-0 bg-white text-dark fw-medium px-0"
                                     id="eventDate" name="date" required>
+                            </div>
+                        </div>
+
+                        <!-- End Date -->
+                        <div class="col-md-6" id="endDateContainer">
+                            <label class="form-label fw-semibold text-dark fs-7">End Date</label>
+                            <div
+                                class="input-group border rounded-3 overflow-hidden cursor-pointer bg-white shadow-sm" id="endDateInputGroup">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i
+                                        class="fa-regular fa-calendar"></i></span>
+                                <input type="date" class="form-control border-0 bg-transparent text-dark fw-medium px-0"
+                                    id="eventEndDate" name="end_date" disabled>
                             </div>
                         </div>
 

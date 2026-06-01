@@ -25,17 +25,18 @@ if (isset($_POST['save'])) {
     }
 
     $date = $_POST['date'];
+    $end_date = !empty($_POST['end_date']) ? $_POST['end_date'] : $date;
     $is_all_day = (isset($_POST['is_all_day']) && $_POST['is_all_day'] == '1') ? 1 : 0;
 
     // Construct datetime strings for SQL
     if ($is_all_day) {
         $start_time = $date . " 00:00:00";
-        $end_time = $date . " 23:59:59";
+        $end_time = $end_date . " 23:59:59";
     } else {
         $st = !empty($_POST['start_time']) ? $_POST['start_time'] : "00:00";
         $et = !empty($_POST['end_time']) ? $_POST['end_time'] : "23:59";
         $start_time = $date . " " . $st . ":00";
-        $end_time = $date . " " . $et . ":00";
+        $end_time = $end_date . " " . $et . ":00";
     }
 
     // Map form fields to Event class expected array
