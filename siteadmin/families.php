@@ -52,10 +52,10 @@ require_once $path_prefix . 'classes/Family.php';
                                 $members_count = $family['member_count'];
                             ?>
                             <tr id="family-row-<?php echo $family['id']; ?>">
-                                <td class="ps-4 fw-bold"><?php echo htmlspecialchars($family['name']); ?></td>
-                                <td class="small text-muted"><?php echo htmlspecialchars($family['email']); ?></td>
-                                <td class="small"><?php echo htmlspecialchars($family['location'] ?? 'N/A'); ?></td>
-                                <td class="small text-muted"><?php echo htmlspecialchars($family['timezone'] ?? 'N/A'); ?></td>
+                                <td class="ps-4 fw-bold"><?php echo htmlspecialchars(!empty($family['name']) ? $family['name'] : 'N/A'); ?></td>
+                                <td class="small text-muted"><?php echo htmlspecialchars(!empty($family['email']) ? $family['email'] : 'N/A'); ?></td>
+                                <td class="small"><?php echo htmlspecialchars(!empty($family['location']) ? $family['location'] : 'N/A'); ?></td>
+                                <td class="small text-muted"><?php echo htmlspecialchars(!empty($family['timezone']) ? $family['timezone'] : 'N/A'); ?></td>
                                 <td>
                                     <div class="avatar-group d-flex">
                                         <?php for($i=0; $i<min($members_count, 3); $i++): ?>
@@ -89,7 +89,7 @@ require_once $path_prefix . 'classes/Family.php';
                                                 </a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-danger" href="../helpers/admin/deleteFamily.php?id=<?php echo $family['id']; ?>" onclick="return confirm('Are you sure you want to delete the family \'<?php echo htmlspecialchars($family['name']); ?>\'? This will also remove all associated members.')"><i class="ri-delete-bin-line me-2"></i>Delete</a></li>
+                                            <li><a class="dropdown-item text-danger" href="../helpers/admin/deleteFamily.php?id=<?php echo $family['id']; ?>" onclick="return confirm('Are you sure you want to delete the family \'<?php echo htmlspecialchars(!empty($family['name']) ? $family['name'] : 'N/A'); ?>\'? This will also remove all associated members.')"><i class="ri-delete-bin-line me-2"></i>Delete</a></li>
                                         </ul>
                                     </div>
                                 </td>

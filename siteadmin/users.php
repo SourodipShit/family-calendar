@@ -57,7 +57,7 @@ require_once $path_prefix . 'classes/User.php';
 
                             foreach ($users as $user):
                                 // Generate initials
-                                $words = explode(" ", $user['name']);
+                                $words = explode(" ", !empty($user['name']) ? $user['name'] : 'Unknown');
                                 $initials = "";
                                 foreach ($words as $w) {
                                     $initials .= mb_substr($w, 0, 1);
@@ -86,14 +86,14 @@ require_once $path_prefix . 'classes/User.php';
                                                 </div>
                                             <?php endif; ?>
                                             <div>
-                                                <span class="fw-bold d-block"><?php echo htmlspecialchars($user['name']); ?></span>
-                                                <small class="text-muted"><?php echo htmlspecialchars($user['email']); ?></small>
+                                                <span class="fw-bold d-block"><?php echo htmlspecialchars(!empty($user['name']) ? $user['name'] : 'N/A'); ?></span>
+                                                <small class="text-muted"><?php echo htmlspecialchars(!empty($user['email']) ? $user['email'] : 'No email'); ?></small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td><span class="text-muted small"><?php echo htmlspecialchars($user['phone']); ?></span></td>
-                                    <td><?php echo htmlspecialchars($user['family_name'] ?? 'No Family'); ?></td>
-                                    <td><span class="badge bg-light text-dark border"><?php echo ucfirst(htmlspecialchars($user['role'])); ?></span></td>
+                                    <td><span class="text-muted small"><?php echo htmlspecialchars(!empty($user['phone']) ? $user['phone'] : 'N/A'); ?></span></td>
+                                    <td><?php echo htmlspecialchars(!empty($user['family_name']) ? $user['family_name'] : 'No Family'); ?></td>
+                                    <td><span class="badge bg-light text-dark border"><?php echo ucfirst(htmlspecialchars(!empty($user['role']) ? $user['role'] : 'Unknown')); ?></span></td>
                                     <td class="text-end pe-4">
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
@@ -102,7 +102,7 @@ require_once $path_prefix . 'classes/User.php';
                                                 <li><a class="dropdown-item" href="#"><i class="ri-key-2-line me-2"></i>Reset Password</a></li>
                                                 <li><a class="dropdown-item" href="#"><i class="ri-shield-user-line me-2"></i>Change Role</a></li>
                                                 <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item text-danger" href="../helpers/admin/deleteUser.php?id=<?php echo $user['id']; ?>" onclick="return confirm('Are you sure you want to delete <?php echo htmlspecialchars($user['name']); ?>?')"><i class="ri-delete-bin-line me-2"></i>Delete User</a></li>
+                                                <li><a class="dropdown-item text-danger" href="../helpers/admin/deleteUser.php?id=<?php echo $user['id']; ?>" onclick="return confirm('Are you sure you want to delete <?php echo htmlspecialchars(!empty($user['name']) ? $user['name'] : 'N/A'); ?>?')"><i class="ri-delete-bin-line me-2"></i>Delete User</a></li>
                                             </ul>
                                         </div>
                                     </td>
