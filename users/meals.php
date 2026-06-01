@@ -5,9 +5,19 @@ include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 
 $family_id = $_SESSION['user']['families'][0]['family_id'] ?? 1;
+
+$use_recipes_in_meal = false;
+if (isset($_SESSION['user']['families'][0]['settings'])) {
+    $settings_json = $_SESSION['user']['families'][0]['settings'];
+    $settings = is_string($settings_json) ? json_decode($settings_json, true) : $settings_json;
+    if (is_array($settings) && !empty($settings['use_recipes_in_meal'])) {
+        $use_recipes_in_meal = filter_var($settings['use_recipes_in_meal'], FILTER_VALIDATE_BOOLEAN);
+    }
+}
 ?>
 <script>
     const FAMILY_ID = <?php echo $family_id; ?>;
+    const USE_RECIPES_IN_MEAL = <?php echo $use_recipes_in_meal ? 'true' : 'false'; ?>;
 </script>
 
 <style>
@@ -1019,6 +1029,8 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? 1;
         let debounceTimer;
 
         mealNameInput.addEventListener('input', function() {
+            if (!USE_RECIPES_IN_MEAL) return;
+
             clearTimeout(debounceTimer);
             const query = this.value.trim();
 

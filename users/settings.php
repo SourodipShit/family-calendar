@@ -179,6 +179,17 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1 small">Use recipes in meal</h6>
+                                            <p class="text-muted extra-small mb-0">Enable using existing recipes when adding meals.</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="use_recipes_in_meal_toggle" style="width: 40px; height: 20px;">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -412,6 +423,7 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
                     try {
                         familySettings = typeof family.settings === 'string' ? JSON.parse(family.settings) : family.settings;
                         document.getElementById('show_nicknames_toggle').checked = familySettings.show_nicknames || false;
+                        document.getElementById('use_recipes_in_meal_toggle').checked = familySettings.use_recipes_in_meal || false;
                     } catch (e) {
                         console.error('Error parsing settings:', e);
                         familySettings = {};
@@ -487,6 +499,38 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
             showAlert('Network error occurred', 'error');
             // Revert local state and UI
             familySettings.show_nicknames = !isChecked;
+            e.target.checked = !isChecked;
+        }
+    });
+
+    document.getElementById('use_recipes_in_meal_toggle').addEventListener('change', async (e) => {
+        const isChecked = e.target.checked;
+        
+        // Update local state
+        familySettings.use_recipes_in_meal = isChecked;
+        
+        try {
+            const response = await fetch(`${API_PATH}family.php?action=updateSettings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    settings: familySettings
+                })
+            });
+            const result = await response.json();
+            if (result.status !== 'success') {
+                showAlert(result.message, 'error');
+                // Revert local state and UI
+                familySettings.use_recipes_in_meal = !isChecked;
+                e.target.checked = !isChecked;
+            }
+        } catch (error) {
+            console.error('Error updating settings:', error);
+            showAlert('Network error occurred', 'error');
+            // Revert local state and UI
+            familySettings.use_recipes_in_meal = !isChecked;
             e.target.checked = !isChecked;
         }
     });
