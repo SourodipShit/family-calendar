@@ -537,11 +537,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Helper Functions
     function formatTime(decimalHour) {
         let h = Math.floor(decimalHour);
-        let m = (decimalHour - h) * 60;
+        let m = Math.round((decimalHour - h) * 60);
         let suffix = h >= 12 ? 'PM' : 'AM';
         if (h > 12) h -= 12;
         if (h === 0) h = 12;
-        return `${h}:${m === 0 ? '00' : m} ${suffix}`;
+        return `${h}:${m.toString().padStart(2, '0')} ${suffix}`;
     }
 
     // Color Utility Helpers
