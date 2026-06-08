@@ -847,6 +847,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                                     <li><a class="dropdown-item py-2 edit-meal-link" href="#" data-meal='${JSON.stringify(meal).replace(/'/g, "&apos;")}'><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Edit meal</a></li>
                                     <li><a class="dropdown-item py-2 toggle-favorite-link" href="#" data-id="${meal.id}" data-favorite="1"><i class="${favIcon} me-2"></i> ${favText}</a></li>
                                     <li><a class="dropdown-item py-2 rate-meal-link" href="#" data-id="${meal.id}" data-name="${meal.name.replace(/'/g, "&apos;")}"><i class="fa-regular fa-star me-2 text-warning"></i> Rate meal</a></li>
+                                    ${meal.recipe_id ? `<li><a class="dropdown-item py-2" href="recipe-details.php?id=${meal.recipe_id}"><i class="fa-solid fa-list-ol me-2 text-info"></i> View prep steps</a></li>` : ''}
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item py-2 text-danger delete-meal-link" href="#" data-id="${meal.id}"><i class="fa-solid fa-trash-can me-2"></i> Remove</a></li>
                                 </ul>
@@ -935,6 +936,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                                         <li><a class="dropdown-item py-2 edit-meal-link" href="#" data-meal='${JSON.stringify(meal).replace(/'/g, "&apos;")}'><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Edit meal</a></li>
                                         <li><a class="dropdown-item py-2 toggle-favorite-link" href="#" data-id="${meal.id}" data-favorite="${isFavorite ? 1 : 0}"><i class="${favIcon} me-2"></i> ${favText}</a></li>
                                         <li><a class="dropdown-item py-2 rate-meal-link" href="#" data-id="${meal.id}" data-name="${meal.name.replace(/'/g, "&apos;")}"><i class="fa-regular fa-star me-2 text-warning"></i> Rate meal</a></li>
+                                        ${meal.recipe_id ? `<li><a class="dropdown-item py-2" href="recipe-details.php?id=${meal.recipe_id}"><i class="fa-solid fa-list-ol me-2 text-info"></i> View prep steps</a></li>` : ''}
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item py-2 text-danger delete-meal-link" href="#" data-id="${meal.id}"><i class="fa-solid fa-trash-can me-2"></i> Remove</a></li>
                                     </ul>
@@ -978,6 +980,9 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
 
                 document.getElementById('mealModalLabel').textContent = 'Add New Meal';
                 document.getElementById('saveMealBtn').textContent = 'Save Meal';
+                document.getElementById('mealRecipeId').value = '';
+                toggleRecipeSearch.checked = typeof USE_RECIPES_IN_MEAL !== 'undefined' ? USE_RECIPES_IN_MEAL : true;
+                toggleRecipeSearch.dispatchEvent(new Event('change'));
                 imagePreview.classList.add('d-none');
                 uploadPlaceholder.classList.remove('d-none');
 
@@ -1023,13 +1028,24 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             }
         });
 
+        // Toggle Recipe Search Logic
+        const toggleRecipeSearch = document.getElementById('toggleRecipeSearch');
+        
+        toggleRecipeSearch.addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('mealRecipeId').value = '';
+            } else {
+                document.getElementById('mealRecipeId').value = '';
+            }
+        });
+
         // Recipe Autocomplete Logic for Meal Name
         const mealNameInput = document.getElementById('mealName');
         const recipeSuggestions = document.getElementById('recipeSuggestions');
         let debounceTimer;
 
         mealNameInput.addEventListener('input', function() {
-            if (!USE_RECIPES_IN_MEAL) return;
+            if (!toggleRecipeSearch.checked) return;
 
             clearTimeout(debounceTimer);
             const query = this.value.trim();
@@ -1054,7 +1070,8 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center py-2 cursor-pointer recipe-suggestion-item" 
                                            data-name="${recipe.name.replace(/"/g, '&quot;')}" 
-                                           data-image="${imagePath}">
+                                           data-image="${imagePath}"
+                                           data-recipe-id="${recipe.id}">
                                             <img src="${imgStr}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;" onerror="this.src='../public/img/dinner.webp'">
                                             <div class="text-truncate flex-grow-1">${recipe.name}</div>
                                             <small class="text-muted ms-2">${recipe.category || ''}</small>
@@ -1081,9 +1098,11 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                 e.preventDefault();
                 const name = suggestionItem.getAttribute('data-name');
                 const image = suggestionItem.getAttribute('data-image');
+                const recipeId = suggestionItem.getAttribute('data-recipe-id');
 
                 document.getElementById('mealName').value = name;
                 document.getElementById('mealExistingImage').value = image || '';
+                document.getElementById('mealRecipeId').value = recipeId || '';
 
                 if (image) {
                     imagePreview.querySelector('img').src = image;
@@ -1109,6 +1128,9 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             document.getElementById('mealId').value = '';
             document.getElementById('mealModalLabel').textContent = 'Add New Meal';
             document.getElementById('saveMealBtn').textContent = 'Save Meal';
+            document.getElementById('mealRecipeId').value = '';
+            toggleRecipeSearch.checked = typeof USE_RECIPES_IN_MEAL !== 'undefined' ? USE_RECIPES_IN_MEAL : true;
+            toggleRecipeSearch.dispatchEvent(new Event('change'));
             imagePreview.classList.add('d-none');
             uploadPlaceholder.classList.remove('d-none');
         });
@@ -1124,6 +1146,15 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                 document.getElementById('mealType').value = meal.type;
                 document.getElementById('mealDate').value = meal.date;
                 document.getElementById('mealExistingImage').value = meal.image || '';
+                document.getElementById('mealRecipeId').value = meal.recipe_id || '';
+
+                if (meal.recipe_id) {
+                    toggleRecipeSearch.checked = true;
+                    toggleRecipeSearch.dispatchEvent(new Event('change'));
+                } else {
+                    toggleRecipeSearch.checked = false;
+                    toggleRecipeSearch.dispatchEvent(new Event('change'));
+                }
 
                 document.getElementById('mealModalLabel').textContent = 'Edit Meal';
                 document.getElementById('saveMealBtn').textContent = 'Update Meal';
@@ -1602,6 +1633,14 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                     <input type="hidden" id="mealId" name="id">
                     <input type="hidden" id="mealFamilyId" name="family_id" value="<?php echo $family_id; ?>">
                     <input type="hidden" id="mealExistingImage" name="image">
+                    <input type="hidden" id="mealRecipeId" name="recipe_id">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-semibold text-dark fs-7">Search Recipes</span>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="toggleRecipeSearch" <?php echo $use_recipes_in_meal ? 'checked' : ''; ?>>
+                        </div>
+                    </div>
 
                     <div class="mb-4 position-relative">
                         <label for="mealName" class="form-label fw-semibold text-dark fs-7">Meal Name <span class="text-danger">*</span></label>
@@ -1634,7 +1673,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                         </div>
                     </div>
 
-                    <div class="mb-0">
+                    <div class="mb-0" id="imageUploadContainer">
                         <label for="mealImage" class="form-label fw-semibold text-dark fs-7">Meal Image</label>
                         <div class="border rounded-3 p-3 text-center bg-light bg-opacity-50 border-dashed cursor-pointer" id="imageUploadArea">
                             <input type="file" id="mealImage" name="image" class="d-none" accept="image/*">

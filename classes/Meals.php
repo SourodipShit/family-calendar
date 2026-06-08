@@ -37,7 +37,8 @@ class Meals
                 return ["status" => "error", "message" => "A meal of this type already exists for this date."];
             }
 
-            Database::runPrepared("INSERT INTO meals (type, name, image, date, family_id) VALUES (?, ?, ?, ?, ?)", [$data['type'], $data['name'], $data['image'], $data['date'], $data['family_id']]);
+            $recipe_id = !empty($data['recipe_id']) ? $data['recipe_id'] : null;
+            Database::runPrepared("INSERT INTO meals (type, name, image, date, family_id, recipe_id) VALUES (?, ?, ?, ?, ?, ?)", [$data['type'], $data['name'], $data['image'], $data['date'], $data['family_id'], $recipe_id]);
             return ["status" => "success", "id" => Database::getInstance()->lastInsertId(), "message" => "Meal added successfully."];
         } catch (PDOException $e) {
             error_log("Meal Add Error: " . $e->getMessage());
@@ -54,7 +55,8 @@ class Meals
                 return ["status" => "error", "message" => "A meal of this type already exists for this date."];
             }
 
-            Database::runPrepared("UPDATE meals SET name = ?, date = ?, type = ?, image = ?, family_id = ? WHERE id = ?", [$data['name'], $data['date'], $data['type'], $data['image'], $data['family_id'], $data['id']]);
+            $recipe_id = !empty($data['recipe_id']) ? $data['recipe_id'] : null;
+            Database::runPrepared("UPDATE meals SET name = ?, date = ?, type = ?, image = ?, family_id = ?, recipe_id = ? WHERE id = ?", [$data['name'], $data['date'], $data['type'], $data['image'], $data['family_id'], $recipe_id, $data['id']]);
             return ["status" => "success", "message" => "Meal updated successfully."];
         } catch (PDOException $e) {
             error_log("Meal Update Error: " . $e->getMessage());
