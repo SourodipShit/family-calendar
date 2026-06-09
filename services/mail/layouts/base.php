@@ -1,3 +1,11 @@
+<?php
+require_once __DIR__ . '/../../../classes/GlobalSettings.php';
+$companyNameData = GlobalSettings::getSetting('company_name');
+$companyName = (!empty($companyNameData['data']) && !empty($companyNameData['data']['setting_value'])) ? $companyNameData['data']['setting_value'] : 'Family Calendar';
+
+$baseUrlData = GlobalSettings::getSetting('base_url');
+$baseUrl = (!empty($baseUrlData['data']) && !empty($baseUrlData['data']['setting_value'])) ? $baseUrlData['data']['setting_value'] : '#';
+?>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +17,9 @@
         <!-- Header / Logo Area -->
         <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="color: #4f46e5; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-                <span style="color: #ef4444;">A</span>scinate <span style="font-weight: 300; color: #64748b;">Family</span>
+                <a href="<?= htmlspecialchars($baseUrl) ?>" style="text-decoration: none; color: inherit;">
+                    <?= htmlspecialchars($companyName) ?>
+                </a>
             </h1>
         </div>
 
@@ -21,13 +31,8 @@
             <!-- Footer Divider -->
             <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; text-align: center;">
                 <p style="font-size: 13px; color: #94a3b8; margin: 0;">
-                    &copy; <?= date('Y') ?> Ascinate Technology. All rights reserved.
+                    &copy; <?= date('Y') ?> <?= htmlspecialchars($companyName) ?>. All rights reserved.
                 </p>
-                <div style="margin-top: 10px;">
-                    <a href="#" style="color: #6366f1; text-decoration: none; font-size: 13px; font-weight: 500;">Settings</a>
-                    <span style="color: #cbd5e1; margin: 0 8px;">&bull;</span>
-                    <a href="#" style="color: #6366f1; text-decoration: none; font-size: 13px; font-weight: 500;">Unsubscribe</a>
-                </div>
             </div>
 
         </div>

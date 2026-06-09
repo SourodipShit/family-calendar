@@ -31,11 +31,11 @@
                 <td style="padding: 8px 0; font-size: 14px; color: #1e293b; font-weight: 600;"><?= $event['location'] ?? 'Not specified' ?></td>
             </tr>
             <?php if (!empty($event['description'])): ?>
-            <tr>
-                <td colspan="2" style="padding: 16px 0 0 0; font-size: 14px; color: #64748b; line-height: 1.5; border-top: 1px solid #f1f5f9;">
-                    <?= $event['description'] ?>
-                </td>
-            </tr>
+                <tr>
+                    <td colspan="2" style="padding: 16px 0 0 0; font-size: 14px; color: #64748b; line-height: 1.5; border-top: 1px solid #f1f5f9;">
+                        <?= $event['description'] ?>
+                    </td>
+                </tr>
             <?php endif; ?>
         </table>
     </div>
@@ -46,7 +46,7 @@
 </p>
 
 <div style="text-align: center;">
-    <a href="#" style="background-color: #4f46e5; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 16px; display: inline-block;">
+    <a href="<?= $baseUrl ?? '#' ?>" style="background-color: #4f46e5; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 16px; display: inline-block;">
         View in Calendar
     </a>
 </div>

@@ -195,7 +195,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="mt-4 pt-3 border-top">
                                             <button type="button" id="saveLogoBtn" class="btn btn-primary px-4">
                                                 <i class="ri-save-line me-1"></i> Save Changes
@@ -223,7 +223,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="mt-4 pt-3 border-top">
                                             <button type="button" id="saveLoginImageBtn" class="btn btn-primary px-4">
                                                 <i class="ri-save-line me-1"></i> Save Image
@@ -231,7 +231,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                         </div>
                                     </form>
                                 </div>
-                                
+
                                 <div class="col-md-6">
                                     <form id="signupImageForm" enctype="multipart/form-data">
                                         <div class="mb-4">
@@ -253,7 +253,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="mt-4 pt-3 border-top">
                                             <button type="button" id="saveSignupImageBtn" class="btn btn-primary px-4">
                                                 <i class="ri-save-line me-1"></i> Save Image
@@ -281,6 +281,15 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             <div class="row">
                                 <div class="col-md-10">
                                     <form id="configForm">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Company Name</label>
+                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                <span class="input-group-text bg-white border-0"><i class="ri-building-line"></i></span>
+                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="company_name" name="company_name" placeholder="e.g. Family Calendar Company">
+                                            </div>
+                                            <p class="extra-small text-muted mt-1 mb-0">The name of the company to display in system communications.</p>
+                                        </div>
+
                                         <div class="mb-3">
                                             <label class="form-label fw-bold small text-muted text-uppercase ls-1">Mail Sending Address</label>
                                             <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
@@ -328,7 +337,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                             </div>
                                             <p class="extra-small text-muted mt-1 mb-0">The sender number or alphanumeric sender ID whitelisted on your Infobip account.</p>
                                         </div>
-                                        
+
                                         <div class="mt-4 pt-3 border-top">
                                             <button type="button" id="saveConfigBtn" class="btn btn-primary px-4">
                                                 <i class="ri-save-line me-1"></i> Save Config
@@ -574,9 +583,9 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 badge = `<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill extra-small">Family</span>`;
             }
 
-            let familyContent = type.family_name 
-                ? `<span class="small fw-semibold text-dark">${type.family_name}</span>`
-                : `<span class="badge bg-light text-muted px-2 py-1 rounded-pill extra-small border">N/A</span>`;
+            let familyContent = type.family_name ?
+                `<span class="small fw-semibold text-dark">${type.family_name}</span>` :
+                `<span class="badge bg-light text-muted px-2 py-1 rounded-pill extra-small border">N/A</span>`;
 
             tr.innerHTML = `
                 <td class="px-3 py-2 fw-bold text-dark small">${type.name}</td>
@@ -612,9 +621,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     "previous": '<i class="ri-arrow-left-s-line"></i>'
                 }
             },
-            "columnDefs": [
-                { "orderable": false, "targets": 4 }
-            ]
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 4
+            }]
         });
 
         // Custom search
@@ -745,13 +755,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
 
             if (result.status === 'success') {
                 const settings = result.data;
-                
+
                 // Load Logo
                 const logoSetting = settings.find(s => s.setting_key === 'site_logo');
                 if (logoSetting && logoSetting.setting_value) {
                     const logoPreview = document.getElementById('logoPreview');
                     const logoPlaceholder = document.getElementById('logoPlaceholder');
-                    
+
                     let logoPath = logoSetting.setting_value;
                     if (logoPath.startsWith('../')) {
                         logoPath = '<?php echo $path_prefix; ?>' + logoPath.replace('../', '');
@@ -767,7 +777,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (loginSetting && loginSetting.setting_value) {
                     const loginPreview = document.getElementById('loginPreview');
                     const loginPlaceholder = document.getElementById('loginPlaceholder');
-                    
+
                     let loginPath = loginSetting.setting_value;
                     if (loginPath.startsWith('../')) {
                         loginPath = '<?php echo $path_prefix; ?>' + loginPath.replace('../', '');
@@ -783,7 +793,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (signupSetting && signupSetting.setting_value) {
                     const signupPreview = document.getElementById('signupPreview');
                     const signupPlaceholder = document.getElementById('signupPlaceholder');
-                    
+
                     let signupPath = signupSetting.setting_value;
                     if (signupPath.startsWith('../')) {
                         signupPath = '<?php echo $path_prefix; ?>' + signupPath.replace('../', '');
@@ -795,6 +805,11 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 }
 
                 // Load Config Settings
+                const companyNameSetting = settings.find(s => s.setting_key === 'company_name');
+                if (companyNameSetting) {
+                    document.getElementById('company_name').value = companyNameSetting.setting_value || '';
+                }
+
                 const mailFromSetting = settings.find(s => s.setting_key === 'mail_from_address');
                 if (mailFromSetting) {
                     document.getElementById('mail_from_address').value = mailFromSetting.setting_value || '';
@@ -850,7 +865,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             reader.onload = function(e) {
                 const preview = document.getElementById(previewId);
                 const placeholder = document.getElementById(placeholderId);
-                
+
                 preview.src = e.target.result;
                 preview.classList.remove('d-none');
                 placeholder.classList.add('d-none');
@@ -914,12 +929,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
     });
 
     document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+        const companyName = document.getElementById('company_name').value;
         const mailFrom = document.getElementById('mail_from_address').value;
         const baseUrl = document.getElementById('base_url').value;
         const infobipApiKey = document.getElementById('infobip_api_key').value;
         const infobipApiBaseUrl = document.getElementById('infobip_api_base_url').value;
         const infobipSender = document.getElementById('infobip_sender').value;
-        
+
         const btn = document.getElementById('saveConfigBtn');
         const originalText = btn.innerHTML;
         btn.disabled = true;
@@ -933,6 +949,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 },
                 body: JSON.stringify({
                     settings: {
+                        company_name: companyName,
                         mail_from_address: mailFrom,
                         base_url: baseUrl,
                         infobip_api_key: infobipApiKey,
@@ -997,14 +1014,14 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         categories.forEach(category => {
             const tr = document.createElement('tr');
             tr.className = 'border-bottom';
-            
-            let badge = category.is_default == 1 && category.family_id == null
-                ? `<span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill extra-small">Global</span>`
-                : `<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill extra-small">Family</span>`;
 
-            let familyContent = category.family_name 
-                ? `<span class="small fw-semibold text-dark">${category.family_name}</span>`
-                : `<span class="badge bg-light text-muted px-2 py-1 rounded-pill extra-small border">N/A</span>`;
+            let badge = category.is_default == 1 && category.family_id == null ?
+                `<span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill extra-small">Global</span>` :
+                `<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill extra-small">Family</span>`;
+
+            let familyContent = category.family_name ?
+                `<span class="small fw-semibold text-dark">${category.family_name}</span>` :
+                `<span class="badge bg-light text-muted px-2 py-1 rounded-pill extra-small border">N/A</span>`;
 
             tr.innerHTML = `
                 <td class="px-3 py-2 fw-bold text-dark small">${category.name}</td>
@@ -1032,9 +1049,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     "previous": '<i class="ri-arrow-left-s-line"></i>'
                 }
             },
-            "columnDefs": [
-                { "orderable": false, "targets": 3 }
-            ]
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 3
+            }]
         });
 
         document.getElementById('groceryCategorySearch').addEventListener('keyup', function() {
@@ -1129,11 +1147,11 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             if (result.status === 'success' || result.status === true) {
                 if (typeof showAlert === 'function') showAlert(result.message || 'Category saved successfully', 'success');
                 else alert(result.message || 'Category saved successfully');
-                
+
                 const modalEl = document.getElementById('groceryCategoryModal');
                 const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                 modal.hide();
-                
+
                 loadGroceryCategories();
             } else {
                 if (typeof showAlert === 'function') showAlert(result.message || 'Failed to save category', 'error');
@@ -1213,9 +1231,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     "previous": '<i class="ri-arrow-left-s-line"></i>'
                 }
             },
-            "columnDefs": [
-                { "orderable": false, "targets": 2 }
-            ]
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 2
+            }]
         });
     }
 
