@@ -2,6 +2,12 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Multi-session sync hook
+if (isset($_SESSION['active_account_id']) && isset($_SESSION['accounts'][$_SESSION['active_account_id']])) {
+    $_SESSION['user'] = $_SESSION['accounts'][$_SESSION['active_account_id']];
+}
+
 $path_prefix = isset($path_prefix) ? $path_prefix : "";
 $current_page = basename($_SERVER['PHP_SELF']);
 

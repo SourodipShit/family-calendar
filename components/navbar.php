@@ -125,10 +125,42 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <li>
                     <hr class="dropdown-divider opacity-50">
                 </li>
+                <li><h6 class="dropdown-header px-3">Switch Account</h6></li>
+                <?php if (isset($_SESSION['accounts'])): ?>
+                    <?php foreach ($_SESSION['accounts'] as $acc_id => $acc): ?>
+                        <li>
+                            <form method="POST" action="<?php echo $path_prefix; ?>helpers/switch-account.php" class="m-0">
+                                <input type="hidden" name="target_user_id" value="<?php echo $acc_id; ?>">
+                                <button type="submit" class="dropdown-item d-flex align-items-center py-2 rounded-2 <?php echo ($acc_id == $_SESSION['active_account_id']) ? 'bg-light' : ''; ?>">
+                                    <img src="<?php echo $acc['image'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($acc['name']) . '&background=random'; ?>" class="rounded-circle me-2" width="20" height="20">
+                                    <span class="fw-medium"><?php echo htmlspecialchars($acc['name']); ?></span>
+                                    <?php if ($acc_id == $_SESSION['active_account_id']): ?>
+                                        <i class="fa-solid fa-check ms-auto text-success"></i>
+                                    <?php endif; ?>
+                                </button>
+                            </form>
+                        </li>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center py-2 rounded-2" href="<?php echo $path_prefix; ?>login.php?add_account=1">
+                        <i class="fa-solid fa-plus me-3 text-primary fs-5"></i>
+                        <span class="fw-medium">Add Account</span>
+                    </a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider opacity-50">
+                </li>
                 <li>
                     <a class="dropdown-item d-flex align-items-center py-2 rounded-2 text-danger" href="<?php echo $path_prefix; ?>logout.php">
                         <i class="fa-solid fa-arrow-right-from-bracket me-3 fs-5"></i>
                         <span class="fw-medium">Logout</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center py-2 rounded-2 text-danger" href="<?php echo $path_prefix; ?>logout.php?all=1">
+                        <i class="fa-solid fa-power-off me-3 fs-5"></i>
+                        <span class="fw-medium">Logout All</span>
                     </a>
                 </li>
             </ul>

@@ -3,8 +3,14 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
-    header("Location: users/index.php");
-    exit;
+    if (!isset($_GET['add_account'])) {
+        if($_SESSION['user']['role'] == 'siteadmin'){
+            header("Location: siteadmin/index.php");
+        }else{
+            header("Location: users/index.php");
+        }
+        exit;
+    }
 }
 $path_prefix = "";
 $page_title = "Login - Family Calendar";
@@ -36,6 +42,8 @@ if (isset($_POST['login'])) {
         if (!$is_siteadmin && !$family_approved) {
             $error = "Family not approved!";
         } else {
+            $_SESSION['accounts'][$user['id']] = $user;
+            $_SESSION['active_account_id'] = $user['id'];
             $_SESSION['user'] = $user;
             $success = "Logged in successfully! Redirecting...";
         }

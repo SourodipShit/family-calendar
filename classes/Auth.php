@@ -20,9 +20,23 @@ class Auth
         }
     }
 
-    static function logout()
+    static function logout($logout_all = false)
     {
-        session_destroy();
+        if ($logout_all || !isset($_SESSION['accounts'])) {
+            session_destroy();
+        } else {
+            $active_id = $_SESSION['active_account_id'] ?? null;
+            if ($active_id && isset($_SESSION['accounts'][$active_id])) {
+                unset($_SESSION['accounts'][$active_id]);
+                if (!empty($_SESSION['accounts'])) {
+                    // Set active to the first available account
+                    $_SESSION['active_account_id'] = array_key_first($_SESSION['accounts']);
+                    $_SESSION['user'] = $_SESSION['accounts'][$_SESSION['active_account_id']];
+                    return ["status" => "switched", "message" => "Logged out of current account."];
+                }
+            }
+            session_destroy();
+        }
         return ["status" => "success", "message" => "Logged out successfully."];
     }
 

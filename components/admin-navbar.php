@@ -6,11 +6,11 @@ $path_prefix = isset($path_prefix) ? $path_prefix : "../";
         <button class="btn btn-light d-lg-none me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar-wrapper">
             <i class="ri-menu-2-line"></i>
         </button>
-        
+
         <div class="d-none d-md-flex align-items-center">
             <h5 class="mb-0 fw-bold"><?php echo isset($page_title) ? $page_title : "Dashboard"; ?></h5>
         </div>
-        
+
         <div class="ms-auto d-flex align-items-center">
             <div class="dropdown me-3">
                 <button class="btn btn-light position-relative" type="button" data-bs-toggle="dropdown">
@@ -37,7 +37,7 @@ $path_prefix = isset($path_prefix) ? $path_prefix : "../";
                     <a class="dropdown-item py-2 text-center text-primary small" href="#">View all notifications</a>
                 </div>
             </div>
-            
+
             <div class="dropdown">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark nav-link-profile" data-bs-toggle="dropdown">
                     <div class="bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-weight: 600;">
@@ -51,8 +51,35 @@ $path_prefix = isset($path_prefix) ? $path_prefix : "../";
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                     <li><a class="dropdown-item" href="#"><i class="ri-user-line me-2"></i>Profile</a></li>
                     <li><a class="dropdown-item" href="#"><i class="ri-settings-line me-2"></i>Settings</a></li>
-                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <h6 class="dropdown-header">Switch Account</h6>
+                    </li>
+                    <?php if (isset($_SESSION['accounts'])): ?>
+                        <?php foreach ($_SESSION['accounts'] as $acc_id => $acc): ?>
+                            <li>
+                                <form method="POST" action="<?php echo $path_prefix; ?>helpers/switch-account.php" class="m-0">
+                                    <input type="hidden" name="target_user_id" value="<?php echo $acc_id; ?>">
+                                    <button type="submit" class="dropdown-item <?php echo ($acc_id == $_SESSION['active_account_id']) ? 'bg-light' : ''; ?>">
+                                        <img src="<?php echo $acc['image'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($acc['name']) . '&background=random'; ?>" class="rounded-circle me-2" width="20" height="20"><?php echo htmlspecialchars($acc['name']); ?>
+                                        <?php if ($acc_id == $_SESSION['active_account_id']): ?>
+                                            <i class="ri-check-line ms-auto text-success float-end"></i>
+                                        <?php endif; ?>
+                                    </button>
+                                </form>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    <li><a class="dropdown-item" href="<?php echo $path_prefix; ?>login.php?add_account=1"><i class="ri-user-add-line me-2"></i>Add Account</a></li>
+
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
                     <li><a class="dropdown-item text-danger" href="<?php echo $path_prefix; ?>logout.php"><i class="ri-logout-box-r-line me-2"></i>Logout</a></li>
+                    <li><a class="dropdown-item text-danger" href="<?php echo $path_prefix; ?>logout.php?all=1"><i class="ri-shut-down-line me-2"></i>Logout All</a></li>
                 </ul>
             </div>
         </div>

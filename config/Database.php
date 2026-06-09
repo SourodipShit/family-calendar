@@ -1,4 +1,11 @@
 <?php
+// Multi-session sync hook for API endpoints and classes
+if (session_status() !== PHP_SESSION_NONE) {
+    if (isset($_SESSION['active_account_id']) && isset($_SESSION['accounts'][$_SESSION['active_account_id']])) {
+        $_SESSION['user'] = $_SESSION['accounts'][$_SESSION['active_account_id']];
+    }
+}
+
 class Database
 {
     private static $instance = null;
