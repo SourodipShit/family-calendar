@@ -14,8 +14,8 @@ class ICS
         $description = self::escapeString($event['description'] ?? '');
         $location = self::escapeString($event['location'] ?? '');
         
-        $start = gmdate('Ymd\THis\Z', strtotime($event['start']));
-        $end = gmdate('Ymd\THis\Z', strtotime($event['end']));
+        $start = date('Ymd\THis', strtotime($event['start']));
+        $end = date('Ymd\THis', strtotime($event['end']));
         $dtstamp = gmdate('Ymd\THis\Z');
         $uid = uniqid() . '@familycalendar.com';
 
