@@ -608,9 +608,11 @@ document.addEventListener('DOMContentLoaded', () => {
         weekEnd.setHours(23, 59, 59, 999);
 
         const currentWeekEvents = events.filter(e => {
-            const eDate = new Date(e.startStr.split('T')[0]);
-            eDate.setHours(0, 0, 0, 0);
-            return eDate >= weekStart && eDate <= weekEnd;
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            endD.setHours(23, 59, 59, 999);
+            return startD <= weekEnd && endD >= weekStart;
         });
 
         // Sort events chronologically
@@ -621,9 +623,16 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 7; i++) {
             const dayDate = new Date(week.start);
             dayDate.setDate(dayDate.getDate() + i);
+            dayDate.setHours(0, 0, 0, 0);
             const isToday = dayDate.toDateString() === new Date().toDateString();
 
-            const dayEvents = currentWeekEvents.filter(e => e.day === i);
+            const dayEvents = currentWeekEvents.filter(e => {
+                const startD = new Date(e.startStr.split('T')[0]);
+                startD.setHours(0, 0, 0, 0);
+                const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+                endD.setHours(0, 0, 0, 0);
+                return dayDate >= startD && dayDate <= endD;
+            });
 
             const row = document.createElement('div');
             row.className = 'd-flex border-bottom pb-3 pt-2';
@@ -692,9 +701,11 @@ document.addEventListener('DOMContentLoaded', () => {
         weekEnd.setHours(23, 59, 59, 999);
 
         const currentWeekAllDayEvents = allDayEvents.filter(e => {
-            const eDate = new Date(e.startStr.split('T')[0]);
-            eDate.setHours(0, 0, 0, 0);
-            return eDate >= weekStart && eDate <= weekEnd;
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            endD.setHours(23, 59, 59, 999);
+            return startD <= weekEnd && endD >= weekStart;
         });
 
         currentWeekAllDayEvents.forEach(evt => {
@@ -803,8 +814,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 2. All Day Events for this day
-        const dateStr = date.toISOString().split('T')[0];
-        const dayAllDayEvents = allDayEvents.filter(e => e.startStr.startsWith(dateStr));
+        const targetDate = new Date(date);
+        targetDate.setHours(0, 0, 0, 0);
+
+        const dayAllDayEvents = allDayEvents.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            endD.setHours(0, 0, 0, 0);
+            return targetDate >= startD && targetDate <= endD;
+        });
         dayAllDayEvents.forEach(evt => {
             const allDayRow = document.createElement('div');
             allDayRow.className = 'day-view-row d-flex align-items-center p-3 border-bottom bg-light bg-opacity-25';
@@ -831,7 +850,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 3. Time-based Events for this day
-        const dayEvents = events.filter(e => e.startStr.startsWith(dateStr));
+        const dayEvents = events.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            endD.setHours(0, 0, 0, 0);
+            return targetDate >= startD && targetDate <= endD;
+        });
         dayEvents.sort((a, b) => a.startHour - b.startHour);
 
         if (dayEvents.length === 0) {
