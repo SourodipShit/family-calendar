@@ -57,41 +57,41 @@ require_once $path_prefix . 'classes/Recipe.php';
                                     $statusBadgeClass = 'warning';
                                 }
                             ?>
-                            <tr id="recipe-row-<?php echo $recipe['id']; ?>">
-                                <td class="ps-4 fw-bold"><?php echo htmlspecialchars($recipe['name']); ?></td>
-                                <td class="small">
-                                    <?php echo htmlspecialchars($recipe['user_name'] ?? 'Unknown'); ?><br>
-                                    <span class="text-muted" style="font-size: 0.8em;"><?php echo htmlspecialchars($recipe['family_name'] ?? ''); ?></span>
-                                </td>
-                                <td class="small"><?php echo htmlspecialchars($recipe['category']); ?></td>
-                                <td class="small text-muted"><?php echo htmlspecialchars(ucfirst($recipe['difficulty'])); ?></td>
-                                <td class="small text-muted"><?php echo htmlspecialchars(ucfirst($recipe['visibility'])); ?></td>
-                                <td>
-                                    <span class="badge bg-<?php echo $statusBadgeClass; ?>"><?php echo htmlspecialchars(ucfirst($recipe['status'])); ?></span>
-                                </td>
-                                <td class="text-end pe-4">
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                            <li><a class="dropdown-item" href="#" onclick="viewRecipeModal(<?php echo $recipe['id']; ?>); return false;"><i class="ri-eye-line me-2"></i>View Recipe</a></li>
-                                            <?php if ($recipe['status'] !== 'approved'): ?>
-                                            <li>
-                                                <a class="dropdown-item text-success" href="#" onclick="updateRecipeStatus(<?php echo $recipe['id']; ?>, 'approve'); return false;">
-                                                    <i class="ri-check-line me-2"></i>Approve
-                                                </a>
-                                            </li>
-                                            <?php endif; ?>
-                                            <?php if ($recipe['status'] !== 'rejected'): ?>
-                                            <li>
-                                                <a class="dropdown-item text-danger" href="#" onclick="updateRecipeStatus(<?php echo $recipe['id']; ?>, 'reject'); return false;">
-                                                    <i class="ri-close-line me-2"></i>Reject
-                                                </a>
-                                            </li>
-                                            <?php endif; ?>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr id="recipe-row-<?php echo $recipe['id']; ?>">
+                                    <td class="ps-4 fw-bold"><?php echo htmlspecialchars($recipe['name']); ?></td>
+                                    <td class="small">
+                                        <?php echo htmlspecialchars($recipe['user_name'] ?? 'Unknown'); ?><br>
+                                        <span class="text-muted" style="font-size: 0.8em;"><?php echo htmlspecialchars($recipe['family_name'] ?? ''); ?></span>
+                                    </td>
+                                    <td class="small"><?php echo htmlspecialchars($recipe['category']); ?></td>
+                                    <td class="small text-muted"><?php echo htmlspecialchars(ucfirst($recipe['difficulty'])); ?></td>
+                                    <td class="small text-muted"><?php echo htmlspecialchars(ucfirst($recipe['visibility'])); ?></td>
+                                    <td>
+                                        <span class="badge bg-<?php echo $statusBadgeClass; ?>"><?php echo htmlspecialchars(ucfirst($recipe['status'])); ?></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                                <li><a class="dropdown-item" href="#" onclick="viewRecipeModal(<?php echo $recipe['id']; ?>); return false;"><i class="ri-eye-line me-2"></i>View Recipe</a></li>
+                                                <?php if ($recipe['status'] !== 'approved'): ?>
+                                                    <li>
+                                                        <a class="dropdown-item text-success" href="#" onclick="updateRecipeStatus(<?php echo $recipe['id']; ?>, 'approve'); return false;">
+                                                            <i class="ri-check-line me-2"></i>Approve
+                                                        </a>
+                                                    </li>
+                                                <?php endif; ?>
+                                                <?php if ($recipe['status'] !== 'rejected'): ?>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" onclick="updateRecipeStatus(<?php echo $recipe['id']; ?>, 'reject'); return false;">
+                                                            <i class="ri-close-line me-2"></i>Reject
+                                                        </a>
+                                                    </li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -103,104 +103,110 @@ require_once $path_prefix . 'classes/Recipe.php';
 
 <!-- Recipe Modal -->
 <div class="modal fade" id="recipeModal" tabindex="-1" aria-labelledby="recipeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold" id="recipeModalLabel">Recipe Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="recipeModalBody">
-        <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="recipeModalLabel">Recipe Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="recipeModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
     </div>
-  </div>
 </div>
 
 <?php require_once $path_prefix . 'components/admin-footer.php'; ?>
 
 <script>
-$(document).ready(function() {
-    const table = $('#recipesTable').DataTable({
-        "dom": '<"d-none"f>rt<"d-flex justify-content-between align-items-center p-3"ip>',
-        "pageLength": 10,
-        "language": {
-            "search": "",
-            "paginate": {
-                "next": '<i class="ri-arrow-right-s-line"></i>',
-                "previous": '<i class="ri-arrow-left-s-line"></i>'
-            }
-        },
-        "columnDefs": [
-            { "orderable": false, "targets": 6 } // Disable ordering on Actions column
-        ],
-        "order": [[ 5, "desc" ]] // Optional: adjust default ordering
-    });
-
-    // Custom search logic
-    $('#recipeSearch').on('keyup', function() {
-        table.search(this.value).draw();
-    });
-});
-
-function updateRecipeStatus(id, action) {
-    let actionText = action === 'approve' ? 'approve' : 'reject';
-    if(confirm(`Are you sure you want to ${actionText} this recipe?`)) {
-        fetch(`../api/admin/recipe.php?action=${action}&id=${id}`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === 'success') {
-                if(typeof showAlert === 'function') {
-                    showAlert(data.message, 'success');
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    alert(data.message);
-                    window.location.reload();
+    $(document).ready(function() {
+        const table = $('#recipesTable').DataTable({
+            "dom": '<"d-none"f>rt<"d-flex justify-content-between align-items-center p-3"ip>',
+            "pageLength": 10,
+            "language": {
+                "search": "",
+                "paginate": {
+                    "next": '<i class="ri-arrow-right-s-line"></i>',
+                    "previous": '<i class="ri-arrow-left-s-line"></i>'
                 }
-            } else {
-                if(typeof showAlert === 'function') {
-                    showAlert(data.message, 'error');
-                } else {
-                    alert(data.message);
-                }
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert(`An error occurred while trying to ${actionText} the recipe.`);
+            },
+            "columnDefs": [{
+                    "orderable": false,
+                    "targets": 6
+                } // Disable ordering on Actions column
+            ],
+            "order": [
+                [5, "desc"]
+            ] // Optional: adjust default ordering
         });
-    }
-}
 
-function viewRecipeModal(id) {
-    const modalBody = document.getElementById('recipeModalBody');
-    modalBody.innerHTML = `
+        // Custom search logic
+        $('#recipeSearch').on('keyup', function() {
+            table.search(this.value).draw();
+        });
+    });
+
+    function updateRecipeStatus(id, action) {
+        let actionText = action === 'approve' ? 'approve' : 'reject';
+        if (confirm(`Are you sure you want to ${actionText} this recipe?`)) {
+            fetch(`../api/admin/recipe.php?action=${action}&id=${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (typeof showAlert === 'function') {
+                            showAlert(data.message, 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            alert(data.message);
+                            window.location.reload();
+                        }
+                    } else {
+                        if (typeof showAlert === 'function') {
+                            showAlert(data.message, 'error');
+                        } else {
+                            alert(data.message);
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(`An error occurred while trying to ${actionText} the recipe.`);
+                });
+        }
+    }
+
+    function viewRecipeModal(id) {
+        const modalBody = document.getElementById('recipeModalBody');
+        modalBody.innerHTML = `
         <div class="text-center py-4">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
         </div>
     `;
-    
-    const myModal = new bootstrap.Modal(document.getElementById('recipeModal'));
-    myModal.show();
 
-    fetch(`../api/admin/recipe.php?action=get&id=${id}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success' && data.data) {
-                const recipe = data.data;
-                
-                // Construct HTML based on retrieved data
-                let html = `
+        const myModal = new bootstrap.Modal(document.getElementById('recipeModal'));
+        myModal.show();
+
+        fetch(`../api/admin/recipe.php?action=get&id=${id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.data) {
+                    const recipe = data.data;
+
+                    let mainImageHtml = recipe.image_url ? `<div class="col-md-5 mb-3 mb-md-0"><img src="${'../' + recipe.image_url.replace('../', '')}" class="img-fluid rounded shadow-sm w-100" style="object-fit: cover; max-height: 250px;" alt="Recipe Image"></div>` : '';
+
+                    // Construct HTML based on retrieved data
+                    let html = `
                     <div class="row mb-3">
-                        ${recipe.image_url ? `<div class="col-md-5 mb-3 mb-md-0"><img src="${'../' + recipe.image_url.replace('../', '')}" class="img-fluid rounded shadow-sm w-100" style="object-fit: cover; max-height: 250px;" alt="Recipe Image"></div>` : ''}
+                        ${mainImageHtml}
                         <div class="col-md-${recipe.image_url ? '7' : '12'}">
                             <h3 class="fw-bold text-primary mb-2">${recipe.name}</h3>
                             <p class="mb-2"><i class="ri-user-line me-1 text-muted"></i> <strong>Author:</strong> ${recipe.user_name || 'Unknown'}</p>
@@ -242,24 +248,49 @@ function viewRecipeModal(id) {
                         </div>
                     </div>
                 `;
-                
-                if (recipe.variations_notes) {
-                    html += `
+
+                    if (recipe.variations_notes) {
+                        html += `
                         <div class="mt-2 bg-light p-3 rounded border">
                             <h6 class="fw-bold text-secondary mb-2"><i class="ri-sticky-note-line me-1"></i> Notes & Variations</h6>
                             <p class="mb-0 small">${recipe.variations_notes.replace(/\n/g, '<br>')}</p>
                         </div>
                     `;
+                    }
+
+                    // Append other images if they exist
+                    if (recipe.images && recipe.images.length > 0) {
+                        let otherImagesHtml = '';
+                        recipe.images.forEach(img => {
+                            if (img.is_main == 0) {
+                                otherImagesHtml += `
+                                    <div class="col-md-3 col-sm-4 col-6 mb-3">
+                                        <img src="${'../' + img.image_path.replace('../', '')}" class="img-fluid rounded shadow-sm w-100" style="object-fit: cover; height: 150px;" alt="Recipe Image">
+                                    </div>
+                                `;
+                            }
+                        });
+
+                        if (otherImagesHtml) {
+                            html += `
+                                <div class="mt-4">
+                                    <h5 class="fw-bold mb-3 border-bottom pb-2">Other Images</h5>
+                                    <div class="row">
+                                        ${otherImagesHtml}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    modalBody.innerHTML = html;
+                } else {
+                    modalBody.innerHTML = `<div class="alert alert-danger">${data.message || 'Failed to load recipe details.'}</div>`;
                 }
-                
-                modalBody.innerHTML = html;
-            } else {
-                modalBody.innerHTML = `<div class="alert alert-danger">${data.message || 'Failed to load recipe details.'}</div>`;
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            modalBody.innerHTML = `<div class="alert alert-danger">An error occurred while loading the recipe.</div>`;
-        });
-}
+            })
+            .catch(err => {
+                console.error(err);
+                modalBody.innerHTML = `<div class="alert alert-danger">An error occurred while loading the recipe.</div>`;
+            });
+    }
 </script>
