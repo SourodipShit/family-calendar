@@ -48,6 +48,7 @@ if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
                 echo json_encode($settings ?: new stdClass());
             }
         ?>;
+        window.CURRENT_USER_ID = <?php echo json_encode($_SESSION['user']['id'] ?? null); ?>;
     </script>
 </head>
 

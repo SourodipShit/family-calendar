@@ -188,8 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function populateModalMembers() {
-        const modalMembersContainer = document.getElementById('modal-members-container');
+    function populateModalMembers(containerElement, inputId) {
+        const modalMembersContainer = containerElement || document.getElementById('modal-members-container');
         if (!modalMembersContainer) return;
 
         modalMembersContainer.innerHTML = '';
@@ -197,6 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `text-center position-relative cursor-pointer avatar-selector ${index === 0 ? 'selected opacity-100' : 'opacity-75 hover-opacity-100'}`;
             div.setAttribute('data-member-id', member.id);
+            div.setAttribute('data-id', member.id);
+            div.classList.add('avatar-wrapper');
 
             const avatarUrl = member.avatar;
             const borderClass = index === 0 ? 'border-primary' : 'border-transparent';
@@ -204,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nameWeight = index === 0 ? 'fw-medium' : '';
 
             div.innerHTML = `
-                <img src="${avatarUrl}" class="rounded-circle border ${borderClass} border-2 p-1 avatar-img" width="44" height="44">
+                <img src="${avatarUrl}" class="rounded-circle border ${borderClass} border-2 p-1 avatar-img" width="44" height="44" alt="${member.name}">
                 <i class="fa-solid fa-circle-check text-primary position-absolute bg-white rounded-circle check-icon ${checkIconClass}" style="top: -2px; right: -2px; font-size: 14px;"></i>
                 <div class="fs-8 mt-1 text-dark avatar-name ${nameWeight}" style="font-size: 0.7rem;">${getDisplayName(member)}</div>
             `;
@@ -227,12 +229,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.querySelector('.avatar-name').classList.add('fw-medium');
 
                 // Set hidden input for form submission
-                const hiddenInput = document.getElementById('selectedMemberId');
+                const hiddenInput = document.getElementById(inputId || 'selectedMemberId');
                 if (hiddenInput) hiddenInput.value = member.id;
             });
 
             if (index === 0) {
-                const hiddenInput = document.getElementById('selectedMemberId');
+                const hiddenInput = document.getElementById(inputId || 'selectedMemberId');
                 if (hiddenInput) hiddenInput.value = member.id;
             }
 
@@ -481,6 +483,120 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. UI RENDERING FUNCTIONS
     // ---------------------------------------------------------
+    function openEventModal(evt) {
+        document.getElementById('viewEventTitle').textContent = evt.title;
+        document.getElementById('viewEventLocation').textContent = evt.location || 'No location specified';
+        document.getElementById('viewEventMember').textContent = getDisplayName({name: evt.member, nickname: evt.member_nickname});
+        
+        let dateStr = '';
+        let timeStr = 'All Day';
+        const dateOpts = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+
+        if (evt.startStr) {
+            const sd = new Date(evt.startStr.split('T')[0]);
+            dateStr = sd.toLocaleDateString('en-US', dateOpts);
+            
+            if (evt.endStr && evt.endStr.split('T')[0] !== evt.startStr.split('T')[0]) {
+                const ed = new Date(evt.endStr.split('T')[0]);
+                dateStr += ' - ' + ed.toLocaleDateString('en-US', dateOpts);
+            }
+        }
+        const dateEl = document.getElementById('viewEventDate');
+        if (dateEl) dateEl.textContent = dateStr;
+
+        if (!evt.is_all_day && !evt.isAllDay && evt.startHour !== undefined) {
+            timeStr = formatTime(evt.startHour);
+            if (evt.duration) {
+                timeStr += ' - ' + formatTime(evt.startHour + evt.duration);
+            }
+        }
+        document.getElementById('viewEventTime').textContent = timeStr;
+        
+        const editContainer = document.getElementById('viewEventEditContainer');
+        const btnEdit = document.getElementById('btnEditEvent');
+        const btnDelete = document.getElementById('btnDeleteEvent');
+        if (evt.created_by == window.CURRENT_USER_ID) {
+            editContainer.style.setProperty('display', 'flex', 'important');
+            
+            // Set up Edit button
+            btnEdit.onclick = function(e) {
+                e.preventDefault();
+                // Close view modal
+                const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewEventModal'));
+                if (viewModal) viewModal.hide();
+                
+                // Populate edit modal
+                document.getElementById('editEventId').value = evt.id;
+                document.getElementById('editEventTitle').value = evt.title;
+                document.getElementById('editEventLocation').value = evt.location || '';
+                
+                if (evt.startStr) {
+                    document.getElementById('editEventDate').value = evt.startStr.split('T')[0];
+                }
+                if (evt.endStr) {
+                    document.getElementById('editEventEndDate').value = evt.endStr.split('T')[0];
+                }
+                
+                if (!evt.is_all_day && !evt.isAllDay && evt.startHour !== undefined) {
+                    document.getElementById('editEventAllDay').checked = false;
+                    let mStr = Math.round((evt.startHour - Math.floor(evt.startHour)) * 60).toString().padStart(2, '0');
+                    let hStr = Math.floor(evt.startHour).toString().padStart(2, '0');
+                    document.getElementById('editEventStartTime').value = hStr + ':' + mStr;
+                    
+                    if (evt.duration) {
+                        let eH = evt.startHour + evt.duration;
+                        let emStr = Math.round((eH - Math.floor(eH)) * 60).toString().padStart(2, '0');
+                        let ehStr = Math.floor(eH).toString().padStart(2, '0');
+                        document.getElementById('editEventEndTime').value = ehStr + ':' + emStr;
+                    }
+                } else {
+                    document.getElementById('editEventAllDay').checked = true;
+                }
+                
+                // Populate event types if not already done
+                const typeSelect = document.getElementById('editEventType');
+                if (typeSelect && typeSelect.options.length <= 1) {
+                    typeSelect.innerHTML = document.getElementById('eventType').innerHTML;
+                }
+                
+                // Populate members using the same function but different container
+                populateModalMembers(document.getElementById('edit-modal-members-container'), 'editSelectedMemberId');
+                
+                // Set the correct selected member visually
+                setTimeout(() => {
+                    document.getElementById('editSelectedMemberId').value = '';
+                    const memberAvatars = document.getElementById('edit-modal-members-container').querySelectorAll('.avatar-wrapper');
+                    memberAvatars.forEach(av => {
+                        av.classList.remove('selected');
+                        if (av.querySelector('img').getAttribute('alt').toLowerCase() === evt.member.toLowerCase()) {
+                            av.classList.add('selected');
+                            document.getElementById('editSelectedMemberId').value = av.getAttribute('data-id');
+                        }
+                    });
+                }, 100);
+                
+                // Show edit modal
+                const editModal = new bootstrap.Modal(document.getElementById('editEventModal'));
+                editModal.show();
+            };
+
+            // Set up Delete button
+            if (btnDelete) {
+                btnDelete.onclick = function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+                        window.location.href = `../helpers/deleteEvent.php?id=${evt.id}`;
+                    }
+                };
+            }
+        } else {
+            editContainer.style.setProperty('display', 'none', 'important');
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('viewEventModal'));
+        modal.show();
+    }
+
     function refreshCalendarUI() {
         updateWeekHeaders();
         updateMealsData();
@@ -675,6 +791,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${getDisplayName({name: evt.member, nickname: evt.member_nickname}).charAt(0).toUpperCase()}
                         </div>
                     `;
+                    block.style.cursor = 'pointer';
+                    block.addEventListener('click', () => openEventModal(evt));
                     rightCol.appendChild(block);
                 });
             } else {
@@ -719,6 +837,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             div.innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${evt.title}`;
             div.setAttribute('data-member', evt.member);
+            div.style.cursor = 'pointer';
+            div.addEventListener('click', () => openEventModal(evt));
             allDayContainer.appendChild(div);
         });
     }
@@ -846,6 +966,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa-solid fa-user me-1"></i> ${getDisplayName({name: evt.member, nickname: evt.member_nickname})}
                 </div>
             `;
+            const eventDiv = allDayRow.querySelector('.all-day-event');
+            if (eventDiv) {
+                eventDiv.style.cursor = 'pointer';
+                eventDiv.addEventListener('click', () => openEventModal(evt));
+            }
             container.appendChild(allDayRow);
         });
 
@@ -890,6 +1015,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
+                const eventBlock = row.querySelector('.event-block');
+                if (eventBlock) {
+                    eventBlock.style.cursor = 'pointer';
+                    eventBlock.addEventListener('click', () => openEventModal(evt));
+                }
                 container.appendChild(row);
             });
         }
@@ -918,10 +1048,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     end: e.endStr,
                     className: `fc-event-dynamic`,
                     extendedProps: {
+                        id: e.id,
+                        created_by: e.created_by,
                         member: e.member,
+                        member_nickname: e.member_nickname,
                         colorCode: e.colorCode,
                         startHour: e.startHour,
-                        location: e.location
+                        duration: e.duration,
+                        location: e.location,
+                        isAllDay: false
                     }
                 }));
 
@@ -931,8 +1066,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     allDay: true,
                     className: `fc-event-dynamic`,
                     extendedProps: {
+                        id: e.id,
+                        created_by: e.created_by,
                         member: e.member,
+                        member_nickname: e.member_nickname,
                         colorCode: e.colorCode,
+                        location: e.location,
                         isAllDay: true
                     }
                 }));
@@ -940,6 +1079,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const combined = [...timed, ...allDay];
                 const filtered = combined.filter(e => activeMemberFilter === 'all' || e.extendedProps.member === activeMemberFilter);
                 successCallback(filtered);
+            },
+            eventClick: function(info) {
+                const props = info.event.extendedProps;
+                openEventModal({
+                    title: info.event.title,
+                    location: props.location,
+                    member: props.member,
+                    member_nickname: props.member_nickname,
+                    startHour: props.startHour,
+                    duration: props.duration,
+                    isAllDay: props.isAllDay,
+                    created_by: props.created_by,
+                    id: props.id,
+                    startStr: info.event.startStr,
+                    endStr: info.event.endStr
+                });
             },
             eventContent: function (info) {
                 const props = info.event.extendedProps;

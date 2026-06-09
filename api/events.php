@@ -30,6 +30,7 @@ function getEventsByDateRange()
                 'colorCode' => $event['color'],
                 'id' => $event['id'],
                 'user_id' => $event['user_id'],
+                'created_by' => $event['created_by'],
                 'member' => $event['member'],
                 'member_nickname' => $event['member_nickname'],
                 'location' => $event['location'] ?? '',

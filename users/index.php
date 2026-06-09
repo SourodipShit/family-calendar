@@ -410,4 +410,213 @@ include $path_prefix . 'components/sidebar.php';
     </div>
 </div>
 
+<!-- Edit Event Modal -->
+<div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <form action="../helpers/editEvent.php" method="POST" id="editEventForm">
+                <input type="hidden" name="event_id" id="editEventId">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold" id="editEventModalLabel">Edit Event</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Type Tabs -->
+                <div class="d-flex border rounded-3 mb-4 overflow-hidden shadow-sm">
+                    <div
+                        class="flex-fill text-center py-3 border-end bg-primary bg-opacity-10 text-primary fw-bold cursor-pointer border-primary border-bottom border-2">
+                        <i class="fa-regular fa-calendar me-2"></i> Event
+                    </div>
+                </div>
+
+                <!-- Form Grid -->
+                <input type="hidden" name="member_id" id="editSelectedMemberId">
+                <div class="row g-4 mb-4">
+                        <!-- Title -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold text-dark fs-7">Title <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                <input type="text" class="form-control border-0 px-3 py-2 text-muted"
+                                    id="editEventTitle" name="title" placeholder="Enter event title" required>
+                                <span class="input-group-text bg-white border-0 text-muted"><i
+                                        class="fa-regular fa-calendar"></i></span>
+                            </div>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">Date <span
+                                    class="text-danger">*</span></label>
+                            <div
+                                class="input-group border rounded-3 overflow-hidden cursor-pointer bg-white shadow-sm">
+                                <span class="input-group-text bg-white border-0 text-muted"><i
+                                        class="fa-regular fa-calendar"></i></span>
+                                <input type="date" class="form-control border-0 bg-white text-dark fw-medium px-0"
+                                    id="editEventDate" name="date" required>
+                            </div>
+                        </div>
+
+                        <!-- End Date -->
+                        <div class="col-md-6" id="editEndDateContainer">
+                            <label class="form-label fw-semibold text-dark fs-7">End Date</label>
+                            <div
+                                class="input-group border rounded-3 overflow-hidden cursor-pointer bg-white shadow-sm" id="editEndDateInputGroup">
+                                <span class="input-group-text bg-transparent border-0 text-muted"><i
+                                        class="fa-regular fa-calendar"></i></span>
+                                <input type="date" class="form-control border-0 bg-transparent text-dark fw-medium px-0"
+                                    id="editEventEndDate" name="end_date">
+                            </div>
+                        </div>
+
+                        <!-- Start Time -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">Start Time <span
+                                    class="text-danger">*</span></label>
+                            <div
+                                class="input-group border rounded-3 overflow-hidden cursor-pointer bg-white shadow-sm">
+                                <span class="input-group-text bg-white border-0 text-muted"><i
+                                        class="fa-regular fa-clock"></i></span>
+                                <input type="time" class="form-control border-0 bg-white text-dark fw-medium px-0"
+                                    id="editEventStartTime" name="start_time" value="10:00">
+                            </div>
+                        </div>
+
+                        <!-- End Time -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">End Time</label>
+                            <div
+                                class="input-group border rounded-3 overflow-hidden cursor-pointer bg-white mb-2 shadow-sm">
+                                <span class="input-group-text bg-white border-0 text-muted"><i
+                                        class="fa-regular fa-clock"></i></span>
+                                <input type="time" class="form-control border-0 bg-white text-dark fw-medium px-0"
+                                    id="editEventEndTime" name="end_time" value="11:00">
+                            </div>
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="editEventAllDay" name="is_all_day" value="1">
+                                <label class="form-check-label text-muted fs-7 fw-medium" for="editEventAllDay">
+                                    All day event
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Add to Calendar (Event Type) -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">Event Type</label>
+                            <select class="form-select border rounded-3 shadow-sm" id="editEventType" name="type_id">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+
+                        <!-- Who is this for? -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">Who is this for?</label>
+                            <div class="d-flex flex-wrap align-items-center gap-3 mt-1" id="edit-modal-members-container">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">Location</label>
+                            <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                <span class="input-group-text bg-white border-0 text-muted"><i
+                                        class="fa-solid fa-location-dot"></i></span>
+                                <input type="text" class="form-control border-0 px-1 py-2 text-muted"
+                                    id="editEventLocation" name="location" placeholder="Enter location">
+                            </div>
+                        </div>
+
+                        <!-- Repeat -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">Repeat</label>
+                            <select class="form-select border rounded-3 shadow-sm" id="editEventRepeat" name="event_repeat">
+                                <option value="">Does not repeat</option>
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Yearly">Yearly</option>
+                            </select>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold text-dark fs-7">Notes</label>
+                            <div class="position-relative shadow-sm rounded-3">
+                                <textarea class="form-control border rounded-3 p-3 text-muted fs-7"
+                                    id="editEventNotes" name="description" style="background-color: #fafafa;" rows="3"
+                                    placeholder="Add notes, agenda or any important details..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Reminder -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7">Reminder</label>
+                            <select class="form-select border rounded-3 shadow-sm mb-3" id="editEventReminder" name="remainder">
+                                <option value="">None</option>
+                                <option value="5">5 minutes before</option>
+                                <option value="15" selected>15 minutes before</option>
+                                <option value="30">30 minutes before</option>
+                                <option value="60">1 hour before</option>
+                                <option value="1440">1 day before</option>
+                            </select>
+                            <div class="form-check mt-3">
+                                <input class="form-check-input bg-primary border-primary" type="checkbox" value=""
+                                    id="editNotificationCheck" checked>
+                                <label class="form-check-label text-dark fs-7 fw-medium" for="editNotificationCheck">
+                                    Send notification to all selected
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 d-flex justify-content-between px-4 pb-4">
+                    <button type="button" class="btn btn-white border px-4 py-2 fw-medium rounded-3 text-dark shadow-sm"
+                        data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="save" class="btn btn-primary px-4 py-2 fw-medium rounded-3 shadow-sm" id="updateEventBtn">Update Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Event Modal -->
+<div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold" id="viewEventTitle">Event Details</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-regular fa-calendar text-muted me-3 fs-5" style="width: 20px;"></i>
+                    <span id="viewEventDate" class="fw-medium text-dark"></span>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-regular fa-clock text-muted me-3 fs-5" style="width: 20px;"></i>
+                    <span id="viewEventTime" class="fw-medium text-dark"></span>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-solid fa-location-dot text-muted me-3 fs-5" style="width: 20px;"></i>
+                    <span id="viewEventLocation" class="fw-medium text-dark"></span>
+                </div>
+                <div class="d-flex align-items-center mb-4">
+                    <i class="fa-solid fa-user text-muted me-3 fs-5" style="width: 20px;"></i>
+                    <span id="viewEventMember" class="fw-medium text-dark"></span>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2" id="viewEventEditContainer" style="display: none !important;">
+                    <a href="#" id="btnEditEvent" class="btn btn-primary px-3 py-2 rounded-3 shadow-sm" title="Edit">
+                        <i class="fa-solid fa-pen"></i>
+                    </a>
+                    <a href="#" id="btnDeleteEvent" class="btn btn-danger px-3 py-2 rounded-3 shadow-sm" title="Delete">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php include $path_prefix . 'components/footer.php'; ?>

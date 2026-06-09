@@ -6,7 +6,7 @@ class  Event
 {
     public static function getEventsByDateRange($startDate, $endDate, $familyId)
     {
-        $sql = "SELECT e.*, et.name AS type, et.colour AS color, em.user_id, u.name as member, u.nickname as member_nickname
+        $sql = "SELECT e.*, e.created_by, et.name AS type, et.colour AS color, em.user_id, u.name as member, u.nickname as member_nickname
                 FROM events AS e 
                 INNER JOIN event_types AS et ON e.type_id = et.id 
                 INNER JOIN event_members AS em ON e.id = em.event_id 
@@ -55,6 +55,60 @@ class  Event
         
         // Automatically create placeholder reminders for the member
         self::addReminder($eventId, $userId);
+    }
+
+    public static function update($id, $data, $userId)
+    {
+        try {
+            $check = Database::runPrepared("SELECT created_by FROM events WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
+            if (!$check || $check['created_by'] != $userId) {
+                return ["msg" => "Unauthorized", "status" => "error"];
+            }
+
+            $sql = "UPDATE events SET title = ?, description = ?, type_id = ?, start_time = ?, end_time = ?, location = ?, is_all_day = ?, event_repeat = ?, remainder = ? WHERE id = ?";
+            Database::runPrepared($sql, [
+                $data['title'],
+                $data['description'] ?? null,
+                $data['type_id'],
+                $data['start_time'],
+                $data['end_time'] ?? null,
+                $data['location'] ?? null,
+                $data['is_all_day'] ?? 0,
+                $data['event_repeat'] ?? null,
+                $data['remainder'] ?? null,
+                $id
+            ]);
+
+            if (isset($data['members'])) {
+                Database::runPrepared("DELETE FROM event_members WHERE event_id = ?", [$id]);
+                Database::runPrepared("DELETE FROM event_reminders WHERE event_id = ?", [$id]);
+                foreach ($data['members'] as $memberId) {
+                    Event::addMember($id, $memberId);
+                }
+            }
+
+            return ["msg" => "Event updated successfully", "status" => "success"];
+        } catch (Exception $e) {
+            return ["msg" => $e->getMessage(), "status" => "error"];
+        }
+    }
+
+    public static function delete($id, $userId)
+    {
+        try {
+            $check = Database::runPrepared("SELECT created_by FROM events WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
+            if (!$check || $check['created_by'] != $userId) {
+                return ["msg" => "Unauthorized", "status" => "error"];
+            }
+
+            Database::runPrepared("DELETE FROM event_reminders WHERE event_id = ?", [$id]);
+            Database::runPrepared("DELETE FROM event_members WHERE event_id = ?", [$id]);
+            Database::runPrepared("DELETE FROM events WHERE id = ?", [$id]);
+
+            return ["msg" => "Event deleted successfully", "status" => "success"];
+        } catch (Exception $e) {
+            return ["msg" => $e->getMessage(), "status" => "error"];
+        }
     }
 
     /**
