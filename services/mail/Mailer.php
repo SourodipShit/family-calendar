@@ -58,6 +58,10 @@ class Mailer
 
     public static function render($template, $data = [])
     {
+        require_once __DIR__ . '/../../classes/GlobalSettings.php';
+        $baseUrlData = GlobalSettings::getSetting('base_url');
+        $data['baseUrl'] = (!empty($baseUrlData['data']) && !empty($baseUrlData['data']['setting_value'])) ? rtrim($baseUrlData['data']['setting_value'], '/') : '#';
+
         extract($data);
 
         ob_start();
