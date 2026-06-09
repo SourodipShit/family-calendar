@@ -84,7 +84,12 @@ class EventReminderJob
                     if ($now < $reminderThreshold) {
                         echo "  Wait: Too early for this reminder.\n";
                     } else {
-                        echo "  Skip: Event already started or passed.\n";
+                        echo "  Skip: Event already started or passed. Marking as expired.\n";
+                        if (!empty($task['remainders'])) {
+                            foreach ($task['remainders'] as $r) {
+                                Remainder::update($r['id'], ['status' => 'expired']);
+                            }
+                        }
                     }
                 }
                 echo "\n";
