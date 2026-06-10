@@ -2,6 +2,61 @@
 
 class File
 {
+    private static function compressImageGD($source, $destination, $quality = 75)
+    {
+        $info = @getimagesize($source);
+
+        if ($info === false) {
+            return false;
+        }
+
+        $width = $info[0];
+        $height = $info[1];
+
+        if ($info['mime'] == 'image/jpeg') {
+            $image = @imagecreatefromjpeg($source);
+        } elseif ($info['mime'] == 'image/gif') {
+            $image = @imagecreatefromgif($source);
+        } elseif ($info['mime'] == 'image/png') {
+            $image = @imagecreatefrompng($source);
+            @imagepalettetotruecolor($image);
+        } else {
+            return false;
+        }
+
+        if (!$image) {
+            return false;
+        }
+
+        // Set maximum dimensions to ensure file size drops significantly
+        $maxWidth = 1200;
+        $maxHeight = 1200;
+
+        // Resize if the image is larger than the maximum dimensions
+        if ($width > $maxWidth || $height > $maxHeight) {
+            $ratio = min($maxWidth / $width, $maxHeight / $height);
+            $newWidth = round($width * $ratio);
+            $newHeight = round($height * $ratio);
+
+            $newImage = imagecreatetruecolor($newWidth, $newHeight);
+            
+            // Fill with white background for transparent PNGs/GIFs
+            $white = imagecolorallocate($newImage, 255, 255, 255);
+            imagefill($newImage, 0, 0, $white);
+
+            imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            @imagedestroy($image);
+            $image = $newImage;
+        }
+
+        // Save image with compression as JPEG
+        $success = @imagejpeg($image, $destination, $quality);
+
+        // Free up memory
+        @imagedestroy($image);
+
+        return $success;
+    }
     public static function upload($file, $uploadDir = null, $fileName = null)
     {
         $default_dir = "../public/uploads";
@@ -27,6 +82,22 @@ class File
         $filePath = $uploadDir . '/' . $fileName;
 
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // Check if the uploaded file is an image and compress it
+            $info = @getimagesize($filePath);
+            if ($info !== false && in_array($info['mime'], ['image/jpeg', 'image/gif', 'image/png'])) {
+                // Determine new filename with .jpg extension since compressImageGD saves as JPEG
+                $newFilePath = preg_replace('/\.[^.]+$/', '.jpg', $filePath);
+
+                // Compress the image
+                if (self::compressImageGD($filePath, $newFilePath, 75)) {
+                    // Remove the original file if the extension changed
+                    if ($filePath !== $newFilePath && file_exists($filePath)) {
+                        @unlink($filePath);
+                    }
+                    $filePath = $newFilePath;
+                }
+            }
+
             return [
                 "status" => "success",
                 "message" => "File uploaded successfully.",
