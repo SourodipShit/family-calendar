@@ -46,6 +46,30 @@ if (isset($_POST['submit'])) {
 
         if ($add_result['status'] === 'success') {
             $_SESSION['success_msg'] = $add_result['message'];
+
+            // Send Emails
+            require_once __DIR__ . '/../services/mail/Mail.php';
+            require_once __DIR__ . '/../classes/GlobalSettings.php';
+            
+            // 1. Notify Family Heads
+            $family_id = $_SESSION['user']['families'][0]['family_id'];
+            $stmt = Database::runPrepared("SELECT u.name, u.email FROM users u JOIN user_family uf ON u.id = uf.user_id WHERE uf.family_id = ? AND u.role = 'family-head'", [$family_id]);
+            $heads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if ($heads) {
+                foreach ($heads as $head) {
+                    if (!empty($head['email']) && $head['email'] !== $email) {
+                        Mail::sendMemberAddedNotification($head['email'], $head['name'], $name);
+                    }
+                }
+            }
+            
+            // 2. Send Invitation to New Member
+            if (!empty($email)) {
+                $baseUrlData = GlobalSettings::getSetting('base_url');
+                $baseUrl = (!empty($baseUrlData['data']) && !empty($baseUrlData['data']['setting_value'])) ? rtrim($baseUrlData['data']['setting_value'], '/') : 'http://' . $_SERVER['HTTP_HOST'];
+                $invitationLink = $baseUrl . '/login.php';
+                Mail::sendMemberInvitation($email, $name, $invitationLink);
+            }
         } else {
             $error_msg = $add_result['message'];
         }

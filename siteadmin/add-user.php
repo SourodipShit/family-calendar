@@ -36,6 +36,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $message = $result['message'];
 
     if ($status == 'success') {
+        require_once $path_prefix . 'services/mail/Mail.php';
+        require_once $path_prefix . 'classes/GlobalSettings.php';
+        
+        $role = $_POST['role'];
+        $family_id = $_POST['family_id'];
+        $email = $_POST['email'];
+        $name = $_POST['name'];
+        
+        // Notify Family Heads if the new user is a member
+        if (($role === 'member' || $role === 'user') && !empty($family_id)) {
+            $stmt = Database::runPrepared("SELECT u.name, u.email FROM users u JOIN user_family uf ON u.id = uf.user_id WHERE uf.family_id = ? AND u.role = 'family-head'", [$family_id]);
+            $heads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if ($heads) {
+                foreach ($heads as $head) {
+                    if (!empty($head['email']) && $head['email'] !== $email) {
+                        Mail::sendMemberAddedNotification($head['email'], $head['name'], $name);
+                    }
+                }
+            }
+        }
+        
+        // Send Invitation to the newly added user (if email is provided)
+        if (!empty($email)) {
+            $baseUrlData = GlobalSettings::getSetting('base_url');
+            $baseUrl = (!empty($baseUrlData['data']) && !empty($baseUrlData['data']['setting_value'])) ? rtrim($baseUrlData['data']['setting_value'], '/') : 'http://' . $_SERVER['HTTP_HOST'];
+            $invitationLink = $baseUrl . '/login.php';
+            Mail::sendMemberInvitation($email, $name, $invitationLink);
+        }
+
         echo "<script>window.location.href='users.php?status=success&msg=" . urlencode($message) . "';</script>";
         exit;
     }

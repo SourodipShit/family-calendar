@@ -98,6 +98,7 @@ class User
         }
 
         try {
+            Database::runPrepared("DELETE FROM user_family WHERE user_id = ?", [$user_id]);
             $result = Database::runPrepared("DELETE FROM users WHERE id = ?", [$user_id]);
             if ($result) {
                 return ['status' => 'success', 'message' => 'User deleted successfully'];

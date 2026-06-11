@@ -60,4 +60,43 @@ class Mail
             'html' => $html
         ]);
     }
+
+    public static function sendAccountApproved($email, $name)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        $html = Mailer::render('account_approved', ['name' => $name]);
+        return Mailer::send([
+            'to' => $email,
+            'subject' => 'Your Family Account has been Approved',
+            'html' => $html
+        ]);
+    }
+
+    public static function sendMemberAddedNotification($headEmail, $headName, $newMemberName)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        $html = Mailer::render('member_added_notification', [
+            'headName' => $headName,
+            'newMemberName' => $newMemberName
+        ]);
+        return Mailer::send([
+            'to' => $headEmail,
+            'subject' => 'A new member has been added to your Family',
+            'html' => $html
+        ]);
+    }
+
+    public static function sendMemberInvitation($email, $name, $invitationLink)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        $html = Mailer::render('member_invitation', [
+            'name' => $name,
+            'invitationLink' => $invitationLink
+        ]);
+        return Mailer::send([
+            'to' => $email,
+            'subject' => 'You are invited to join Family Calendar',
+            'html' => $html
+        ]);
+    }
 }

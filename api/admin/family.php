@@ -21,6 +21,19 @@ if ($action === 'approve') {
     try {
         // Ensure the approved column exists in the families table
         Database::runPrepared("UPDATE families SET approved = 1 WHERE id = ?", [$family_id]);
+        
+        // Fetch family head details to send email
+        $stmt = Database::runPrepared("SELECT u.name, u.email FROM users u JOIN user_family uf ON u.id = uf.user_id WHERE uf.family_id = ? AND u.role = 'family-head'", [$family_id]);
+        $heads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($heads) {
+            require_once __DIR__ . '/../../services/mail/Mail.php';
+            foreach ($heads as $head) {
+                if (!empty($head['email'])) {
+                    Mail::sendAccountApproved($head['email'], $head['name']);
+                }
+            }
+        }
+
         echo json_encode(["status" => "success", "message" => "Family approved successfully."]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "Failed to approve family: " . $e->getMessage()]);
