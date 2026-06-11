@@ -75,6 +75,9 @@ require_once $path_prefix . 'classes/Family.php';
                                 </td>
                                 <td>
                                     <span class="badge bg-<?php echo $family['approved'] ? 'success' : 'danger'; ?>"><?php echo htmlspecialchars($family['approved'] ? 'Approved' : 'Pending'); ?></span>
+                                    <?php if (!empty($family['is_locked'])): ?>
+                                        <span class="badge bg-warning text-dark mt-1"><i class="ri-lock-line"></i> Locked</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
@@ -88,6 +91,19 @@ require_once $path_prefix . 'classes/Family.php';
                                                     <?php echo !empty($family['approved']) ? 'Approved' : 'Approve'; ?>
                                                 </a>
                                             </li>
+                                            <?php if (empty($family['is_locked'])): ?>
+                                            <li>
+                                                <a class="dropdown-item text-warning" href="#" onclick="lockFamily(<?php echo $family['id']; ?>); return false;">
+                                                    <i class="ri-lock-line me-2"></i> Lock Family
+                                                </a>
+                                            </li>
+                                            <?php else: ?>
+                                            <li>
+                                                <a class="dropdown-item text-success" href="#" onclick="unlockFamily(<?php echo $family['id']; ?>); return false;">
+                                                    <i class="ri-lock-unlock-line me-2"></i> Unlock Family
+                                                </a>
+                                            </li>
+                                            <?php endif; ?>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-danger" href="../helpers/admin/deleteFamily.php?id=<?php echo $family['id']; ?>" onclick="return confirm('Are you sure you want to delete the family \'<?php echo htmlspecialchars(!empty($family['name']) ? $family['name'] : 'N/A'); ?>\'? This will also remove all associated members.')"><i class="ri-delete-bin-line me-2"></i>Delete</a></li>
                                         </ul>
@@ -153,6 +169,62 @@ function approveFamily(id) {
         .catch(err => {
             console.error(err);
             alert('An error occurred while approving the family.');
+        });
+    }
+}
+
+function lockFamily(id) {
+    if(confirm('Are you sure you want to lock this family? They will not be able to log in.')) {
+        fetch(`../api/admin/family.php?action=lock&id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                if(typeof showAlert === 'function') {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    alert(data.message);
+                    window.location.reload();
+                }
+            } else {
+                if(typeof showAlert === 'function') {
+                    showAlert(data.message, 'error');
+                } else {
+                    alert(data.message);
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('An error occurred while locking the family.');
+        });
+    }
+}
+
+function unlockFamily(id) {
+    if(confirm('Are you sure you want to unlock this family?')) {
+        fetch(`../api/admin/family.php?action=unlock&id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                if(typeof showAlert === 'function') {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    alert(data.message);
+                    window.location.reload();
+                }
+            } else {
+                if(typeof showAlert === 'function') {
+                    showAlert(data.message, 'error');
+                } else {
+                    alert(data.message);
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('An error occurred while unlocking the family.');
         });
     }
 }

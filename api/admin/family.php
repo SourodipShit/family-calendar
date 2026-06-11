@@ -25,6 +25,32 @@ if ($action === 'approve') {
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "Failed to approve family: " . $e->getMessage()]);
     }
+} elseif ($action === 'lock') {
+    $family_id = $_GET['id'] ?? $_POST['id'] ?? null;
+    if (!$family_id) {
+        echo json_encode(["status" => "error", "message" => "Family ID is required."]);
+        exit;
+    }
+
+    try {
+        Database::runPrepared("UPDATE families SET is_locked = 1 WHERE id = ?", [$family_id]);
+        echo json_encode(["status" => "success", "message" => "Family locked successfully."]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => "Failed to lock family: " . $e->getMessage()]);
+    }
+} elseif ($action === 'unlock') {
+    $family_id = $_GET['id'] ?? $_POST['id'] ?? null;
+    if (!$family_id) {
+        echo json_encode(["status" => "error", "message" => "Family ID is required."]);
+        exit;
+    }
+
+    try {
+        Database::runPrepared("UPDATE families SET is_locked = 0 WHERE id = ?", [$family_id]);
+        echo json_encode(["status" => "success", "message" => "Family unlocked successfully."]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => "Failed to unlock family: " . $e->getMessage()]);
+    }
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action."]);
 }

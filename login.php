@@ -34,13 +34,17 @@ if (isset($_POST['login'])) {
         $is_siteadmin = ($user['role'] === 'siteadmin');
 
         $family_approved = true;
+        $family_locked = false;
         if (!$is_siteadmin && !empty($user['families'])) {
             // Assuming we check the primary family (first one)
             $family_approved = !empty($user['families'][0]['approved']);
+            $family_locked = !empty($user['families'][0]['is_locked']);
         }
 
         if (!$is_siteadmin && !$family_approved) {
             $error = "Family not approved!";
+        } else if (!$is_siteadmin && $family_locked) {
+            $error = "Family is locked!";
         } else {
             $_SESSION['accounts'][$user['id']] = $user;
             $_SESSION['active_account_id'] = $user['id'];
@@ -175,10 +179,10 @@ if (isset($_POST['login'])) {
                         <p class="text-secondary mb-1">Don't have an account? <a href="#" class="fw-semibold">Contact
                                 your admin</a></p>
                         <p class="text-secondary mb-4">Want to set up a new family? <a href="index.php" class="fw-semibold">Register here</a></p>
-                        
+
                         <div class="mt-4 pt-3 border-top text-secondary small">
-                            <a href="agreement.php?type=terms_of_service" class="text-secondary text-decoration-none mx-1 hover-primary">Terms of Service</a> &bull; 
-                            <a href="agreement.php?type=privacy_policy" class="text-secondary text-decoration-none mx-1 hover-primary">Privacy Policy</a> &bull; 
+                            <a href="agreement.php?type=terms_of_service" class="text-secondary text-decoration-none mx-1 hover-primary">Terms of Service</a> &bull;
+                            <a href="agreement.php?type=privacy_policy" class="text-secondary text-decoration-none mx-1 hover-primary">Privacy Policy</a> &bull;
                             <a href="agreement.php?type=opt_in_agreement" class="text-secondary text-decoration-none mx-1 hover-primary">Opt-In/Out</a>
                         </div>
                     </div>
