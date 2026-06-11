@@ -71,6 +71,11 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <small class="text-uppercase text-muted fw-bold" style="font-size: 10px;">Configuration</small>
             </div>
 
+            <a href="<?php echo $path_prefix; ?>siteadmin/agreements.php"
+                class="list-group-item list-group-item-action <?php echo $current_page == 'agreements.php' ? 'active' : ''; ?> rounded mb-1">
+                <i class="ri-file-paper-2-line me-3"></i>Legal Agreements
+            </a>
+
             <a href="<?php echo $path_prefix; ?>siteadmin/settings.php"
                 class="list-group-item list-group-item-action <?php echo $current_page == 'settings.php' ? 'active' : ''; ?> rounded mb-1">
                 <i class="ri-settings-4-line me-3"></i>Global Settings

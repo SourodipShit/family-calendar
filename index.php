@@ -272,7 +272,14 @@ if (isset($_POST['signup'])) {
 
                     <!-- Footer Link -->
                     <div class="text-center">
-                        <p class="text-secondary">Already have an account? <a href="login.php" class="fw-semibold">Sign in here</a></p>
+                        <p class="text-secondary mb-4">Already have an account? <a href="login.php" class="fw-semibold">Sign in here</a></p>
+                        
+                        <div class="mt-4 pt-3 border-top text-secondary small">
+                            <span class="d-block mb-2">By signing up, you agree to our</span>
+                            <a href="agreement.php?type=terms_of_service" class="text-secondary text-decoration-none mx-1 hover-primary">Terms of Service</a> &bull; 
+                            <a href="agreement.php?type=privacy_policy" class="text-secondary text-decoration-none mx-1 hover-primary">Privacy Policy</a> &bull; 
+                            <a href="agreement.php?type=opt_in_agreement" class="text-secondary text-decoration-none mx-1 hover-primary">Opt-In/Out</a>
+                        </div>
                     </div>
                 </form>
             </div>
