@@ -4,9 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
     if (!isset($_GET['add_account'])) {
-        if($_SESSION['user']['role'] == 'siteadmin'){
+        if ($_SESSION['user']['role'] == 'siteadmin') {
             header("Location: siteadmin/index.php");
-        }else{
+        } else {
             header("Location: users/index.php");
         }
         exit;
@@ -28,11 +28,11 @@ $user_display_html = '
 <div class="user-profile-widget text-center mb-4 p-3 rounded" style="background-color: rgba(0,0,0,0.02); border: 1px solid #eaeaea;">
     ';
 if (isset($_SESSION['reset_user']) && !empty($_SESSION['reset_user'])) {
-    $img = !empty($_SESSION['reset_user']['profile_image']) ? $_SESSION['reset_user']['profile_image'] : 'public/images/default_user.png';
+    $img = 'https://ui-avatars.com/api/?name=' . urlencode($_SESSION['reset_user']['name']) . '&background=random';
     $name = htmlspecialchars($_SESSION['reset_user']['name']);
     $email = htmlspecialchars($_SESSION['reset_user']['email']);
     $user_display_html .= '
-    <img src="' . $img . '" class="rounded-circle mb-2" width="64" height="64" alt="User" style="object-fit: cover; border: 2px solid var(--bs-primary);">
+    <img src="' . $img . '" class="rounded-circle mb-2" width="64" height="64" alt="User" style="object-fit: cover;">
     <h5 class="fw-bold mb-0">' . $name . '</h5>
     <p class="text-muted small mb-0">' . $email . '</p>
     ';
@@ -106,6 +106,7 @@ $user_display_html .= '</div>';
                     </div>
 
                     <form id="otpForm" method="post" action="?type=set-new-password">
+                        <input type="hidden" name="user_id" value="<?php echo $_SESSION['reset_user']['id'] ?? ''; ?>">
                         <div class="mb-4">
                             <label class="form-label fw-medium w-100 mb-2">Enter 6-digit OTP</label>
                             <div class="d-flex justify-content-between gap-2 mb-2">
@@ -132,6 +133,7 @@ $user_display_html .= '</div>';
                     </div>
 
                     <form id="newPasswordForm" method="post" action="login.php">
+                        <input type="hidden" name="user_id" value="<?php echo $_SESSION['reset_user']['id'] ?? ''; ?>">
                         <div class="mb-3">
                             <label for="password" class="form-label fw-medium">New Password</label>
                             <div class="input-group-custom">
@@ -142,7 +144,7 @@ $user_display_html .= '</div>';
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="confirm_password" class="form-label fw-medium">Confirm New Password</label>
                             <div class="input-group-custom">
@@ -207,7 +209,7 @@ $user_display_html .= '</div>';
                 }
             });
         }
-        
+
         const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
         if (toggleConfirmPassword) {
             toggleConfirmPassword.addEventListener('click', function() {
@@ -228,7 +230,7 @@ $user_display_html .= '</div>';
 
         const otpInputs = document.querySelectorAll('.otp-input');
         const otpHidden = document.getElementById('otp-hidden');
-        
+
         if (otpInputs.length > 0) {
             otpInputs.forEach((input, index) => {
                 input.addEventListener('input', (e) => {
@@ -240,7 +242,7 @@ $user_display_html .= '</div>';
                     }
                     updateHiddenOtp();
                 });
-                
+
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
                         otpInputs[index - 1].focus();
@@ -267,6 +269,123 @@ $user_display_html .= '</div>';
                 });
                 otpHidden.value = otpValue;
             }
+        }
+
+        const findAccountForm = document.getElementById('findAccountForm');
+        if (findAccountForm) {
+            findAccountForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+                btn.disabled = true;
+
+                const formData = new FormData(this);
+                try {
+                    const res = await fetch('api/otp.php?action=find_user', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (data.status === 'success') {
+                        const otpFormData = new FormData();
+                        otpFormData.append('user_id', data.data.id);
+                        const otpRes = await fetch('api/otp.php?action=set_otp', {
+                            method: 'POST',
+                            body: otpFormData
+                        });
+                        const otpData = await otpRes.json();
+
+                        if (otpData.status === 'success') {
+                            window.location.href = '?type=enter-otp';
+                        } else {
+                            if (typeof showAlert === 'function') showAlert(otpData.message || 'Failed to send OTP', 'error');
+                            else alert(otpData.message || 'Failed to send OTP');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    } else {
+                        if (typeof showAlert === 'function') showAlert(data.message || 'User not found', 'error');
+                        else alert(data.message || 'User not found');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    if (typeof showAlert === 'function') showAlert('An error occurred', 'error');
+                    else alert('An error occurred');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        const otpForm = document.getElementById('otpForm');
+        if (otpForm) {
+            otpForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
+                btn.disabled = true;
+
+                const formData = new FormData(this);
+                try {
+                    const res = await fetch('api/otp.php?action=verify_otp', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        window.location.href = '?type=set-new-password';
+                    } else {
+                        if (typeof showAlert === 'function') showAlert(data.message || 'Invalid OTP', 'error');
+                        else alert(data.message || 'Invalid OTP');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    if (typeof showAlert === 'function') showAlert('An error occurred', 'error');
+                    else alert('An error occurred');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        const newPasswordForm = document.getElementById('newPasswordForm');
+        if (newPasswordForm) {
+            newPasswordForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+                btn.disabled = true;
+
+                const formData = new FormData(this);
+                try {
+                    const res = await fetch('api/otp.php?action=reset_password', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        if (typeof showAlert === 'function') showAlert('Password reset successfully! Redirecting...', 'success');
+                        else alert('Password reset successfully!');
+                        setTimeout(() => window.location.href = 'login.php', 2000);
+                    } else {
+                        if (typeof showAlert === 'function') showAlert(data.message || 'Failed to reset password', 'error');
+                        else alert(data.message || 'Failed to reset password');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    if (typeof showAlert === 'function') showAlert('An error occurred', 'error');
+                    else alert('An error occurred');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
         }
     });
 </script>

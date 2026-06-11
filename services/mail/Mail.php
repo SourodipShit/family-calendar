@@ -34,4 +34,30 @@ class Mail
             ]
         ]);
     }
+
+    /**
+     * Send a password reset email with an OTP
+     * 
+     * @param array $user User data (name, email)
+     * @param string $otp The 6-digit OTP code
+     * @return bool
+     */
+    public static function passwordReset($user, $otp)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        
+        $html = Mailer::render(
+            'password_reset',
+            [
+                'user' => $user,
+                'otp' => $otp
+            ]
+        );
+
+        return Mailer::send([
+            'to' => $user['email'],
+            'subject' => 'Password Reset Request',
+            'html' => $html
+        ]);
+    }
 }

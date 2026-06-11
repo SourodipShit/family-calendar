@@ -4,9 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
     if (!isset($_GET['add_account'])) {
-        if($_SESSION['user']['role'] == 'siteadmin'){
+        if ($_SESSION['user']['role'] == 'siteadmin') {
             header("Location: siteadmin/index.php");
-        }else{
+        } else {
             header("Location: users/index.php");
         }
         exit;
@@ -32,7 +32,7 @@ if (isset($_POST['login'])) {
     if ($result['status'] == 'success') {
         $user = $result['data'];
         $is_siteadmin = ($user['role'] === 'siteadmin');
-        
+
         $family_approved = true;
         if (!$is_siteadmin && !empty($user['families'])) {
             // Assuming we check the primary family (first one)
@@ -139,7 +139,7 @@ if (isset($_POST['login'])) {
                                 Remember me
                             </label>
                         </div>
-                        <a href="#" class="forgot-password">Forgot password?</a>
+                        <a href="forgot-password.php" class="forgot-password">Forgot password?</a>
                     </div>
 
                     <!-- Sign In Button -->

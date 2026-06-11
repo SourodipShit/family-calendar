@@ -116,4 +116,10 @@ class User
             $family_id
         ]);
     }
+
+    public static function findByEmail($email)
+    {
+        $stmt = Database::runPrepared("SELECT * FROM users WHERE email = ?", [$email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
