@@ -14,7 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         'name' => $_POST['family_name'],
         'email' => $_POST['family_email'],
         'location' => $_POST['location'],
-        'timezone' => $_POST['timezone']
+        'timezone' => $_POST['timezone'],
+        'storage_allocated' => $_POST['storage_allocated']
     ];
 
     // 1. Add Family
@@ -122,6 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             }
                                             ?>
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Storage Allocated (MB)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="ri-hard-drive-2-line"></i></span>
+                                        <input type="number" name="storage_allocated" class="form-control bg-light border-0" value="500" min="1" required>
                                     </div>
                                 </div>
 

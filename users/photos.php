@@ -72,10 +72,10 @@ include $path_prefix . 'components/sidebar.php';
                 <div class="mb-4 p-3 bg-light rounded-4 border">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-dark fw-bold fs-7"><i class="fa-solid fa-hard-drive me-2 text-primary"></i>Storage Used</span>
-                        <span class="text-muted fs-7 fw-medium">200 MB / <span class="text-dark">500 MB</span></span>
+                        <span class="text-muted fs-7 fw-medium"><span id="storageUsedMB">0.00</span> MB / <span class="text-dark"><?php echo $_SESSION['user']['families'][0]['storage_allocated'] ?? 500; ?> MB</span></span>
                     </div>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-primary rounded-pill" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar bg-primary rounded-pill" id="storageProgressBar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
                 <p class="text-muted mb-3 fs-7">The following photos require your approval before they are visible to the rest of the family.</p>
@@ -108,8 +108,9 @@ include $path_prefix . 'components/sidebar.php';
             <span id="lightboxCaption" class="lightbox-caption-text"></span>
         </div>
         <div class="lightbox-actions">
+            <button class="lightbox-btn" title="Download" id="lightboxDownload"><i class="fa-solid fa-download"></i></button>
             <button class="lightbox-btn" title="Share"><i class="fa-solid fa-share-nodes"></i></button>
-            <button class="lightbox-btn" title="Info"><i class="fa-solid fa-circle-info"></i></button>
+            <button class="lightbox-btn" title="Info" id="lightboxInfoBtn"><i class="fa-solid fa-circle-info"></i></button>
             <button class="lightbox-btn" title="More options"><i class="fa-solid fa-ellipsis-vertical"></i></button>
         </div>
     </div>
@@ -128,6 +129,34 @@ include $path_prefix . 'components/sidebar.php';
         </div>
 
         <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Info Panel (Off-canvas) -->
+    <div id="lightboxInfoPanel" class="lightbox-info-panel">
+        <div class="info-panel-header">
+            <h5 class="m-0">Info</h5>
+            <button class="btn-close btn-close-white" id="infoPanelClose"></button>
+        </div>
+        <div class="info-panel-body">
+            <h6 class="text-white-50 mb-1">Details</h6>
+            <div class="d-flex align-items-center mb-4">
+                <i class="fa-solid fa-image me-3 text-white-50 fs-4"></i>
+                <div>
+                    <div id="infoOriginalName" class="text-white fw-medium text-break">filename.jpg</div>
+                    <div id="infoResolution" class="text-white-50 small">1920 × 1080</div>
+                    <div id="infoSize" class="text-white-50 small">1.2 MB</div>
+                </div>
+            </div>
+            
+            <h6 class="text-white-50 mb-1 mt-4">Uploaded By</h6>
+            <div class="d-flex align-items-center mb-3">
+                <i class="fa-solid fa-user-circle me-3 text-white-50 fs-3"></i>
+                <div>
+                    <div id="infoUploader" class="text-white fw-medium">User Name</div>
+                    <div id="infoUploadDate" class="text-white-50 small">Oct 24, 2023</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -200,6 +229,66 @@ include $path_prefix . 'components/sidebar.php';
     .lightbox-container.active {
         opacity: 1;
         visibility: visible;
+    }
+
+    /* Lightbox Info Panel */
+    .lightbox-info-panel {
+        position: absolute;
+        top: 0;
+        right: -350px;
+        width: 350px;
+        height: 100%;
+        background-color: #212121;
+        z-index: 10002;
+        transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #444;
+    }
+
+    .lightbox-container.info-open .lightbox-info-panel {
+        right: 0;
+    }
+
+    .info-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #444;
+        color: white;
+    }
+
+    .info-panel-body {
+        padding: 20px;
+        color: white;
+        overflow-y: auto;
+    }
+
+    /* Shift content area when info is open */
+    .lightbox-content-area {
+        transition: margin-right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .lightbox-container.info-open .lightbox-content-area {
+        margin-right: 350px;
+    }
+
+    .lightbox-container.info-open .lightbox-toolbar {
+        padding-right: 366px; /* 350 + 16 */
+    }
+
+    @media (max-width: 768px) {
+        .lightbox-info-panel {
+            width: 100%;
+            right: -100%;
+        }
+        .lightbox-container.info-open .lightbox-content-area {
+            margin-right: 0;
+        }
+        .lightbox-container.info-open .lightbox-toolbar {
+            padding-right: 16px;
+        }
     }
 
     /* Toolbar */
@@ -407,9 +496,36 @@ include $path_prefix . 'components/sidebar.php';
                 const result = await res.json();
                 if (result.status === 'success') {
                     renderPhotosFeed(result.data);
+                    updateStorageUI(result.data);
                 }
             } catch (err) {
                 console.error(err);
+            }
+        }
+
+        function updateStorageUI(approvedPhotos) {
+            let totalBytes = 0;
+            approvedPhotos.forEach(p => {
+                totalBytes += parseInt(p.file_size) || 0;
+            });
+            const usedMB = (totalBytes / (1024 * 1024)).toFixed(2);
+            const allocatedMB = <?php echo $_SESSION['user']['families'][0]['storage_allocated'] ?? 500; ?>;
+            
+            document.getElementById('storageUsedMB').textContent = usedMB;
+            
+            let percentage = (usedMB / allocatedMB) * 100;
+            if (percentage > 100) percentage = 100;
+            
+            const progressBar = document.getElementById('storageProgressBar');
+            progressBar.style.width = percentage + '%';
+            progressBar.setAttribute('aria-valuenow', percentage);
+            
+            if (percentage > 90) {
+                progressBar.classList.remove('bg-primary');
+                progressBar.classList.add('bg-danger');
+            } else {
+                progressBar.classList.remove('bg-danger');
+                progressBar.classList.add('bg-primary');
             }
         }
 
@@ -445,11 +561,23 @@ include $path_prefix . 'components/sidebar.php';
                 groups[dateText].forEach((photo, i) => {
                     // Populate Lightbox array
                     const itemIndex = globalIndex++;
+                    
+                    let meta = {};
+                    try {
+                        if (photo.metadata) meta = JSON.parse(photo.metadata);
+                    } catch(e) {}
+
                     photosData.push({
                         src: photo.photo,
                         alt: 'Photo by ' + (photo.user ? photo.user.name : 'Unknown'),
                         caption: 'Uploaded by ' + (photo.user ? photo.user.name : 'Unknown'),
-                        date: dateText
+                        date: dateText,
+                        originalName: meta.original_name || photo.photo.split('/').pop(),
+                        width: meta.width || 'Unknown',
+                        height: meta.height || 'Unknown',
+                        sizeBytes: photo.file_size || 0,
+                        uploader: photo.user ? photo.user.name : 'Unknown',
+                        fullDate: new Date(photo.created_at).toLocaleString()
                     });
 
                     const item = document.createElement('div');
@@ -677,9 +805,29 @@ include $path_prefix . 'components/sidebar.php';
             loadImage(currentIndex);
         }
 
+        btnPrev.addEventListener('click', prevPhoto);
+        btnNext.addEventListener('click', nextPhoto);
+        btnClose.addEventListener('click', closeLightbox);
+
+        // Info panel toggle
+        const infoPanel = document.getElementById('lightboxInfoPanel');
+        const infoPanelClose = document.getElementById('infoPanelClose');
+        const infoBtn = document.getElementById('lightboxInfoBtn');
+
+        infoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            lightbox.classList.toggle('info-open');
+        });
+
+        infoPanelClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            lightbox.classList.remove('info-open');
+        });
+
         function closeLightbox() {
             lightbox.classList.remove('active');
             lightbox.setAttribute('aria-hidden', 'true');
+            lightbox.classList.remove('info-open');
             document.body.style.overflow = '';
             clearTimeout(idleTimer);
 
@@ -688,7 +836,6 @@ include $path_prefix . 'components/sidebar.php';
                 lightboxImg.classList.remove('loaded');
             }, 300);
         }
-
         function loadImage(index) {
             const data = photosData[index];
             if (!data) return;
@@ -698,6 +845,25 @@ include $path_prefix . 'components/sidebar.php';
 
             lightboxCaption.textContent = data.caption;
             lightboxDate.textContent = data.date;
+
+            // Update Info Panel
+            document.getElementById('infoOriginalName').textContent = data.originalName || 'Unknown file';
+            document.getElementById('infoResolution').textContent = (data.width !== 'Unknown' && data.height !== 'Unknown') ? `${data.width} × ${data.height}` : 'Unknown resolution';
+            document.getElementById('infoSize').textContent = data.sizeBytes > 0 ? (data.sizeBytes / (1024 * 1024)).toFixed(2) + ' MB' : 'Unknown size';
+            document.getElementById('infoUploader').textContent = data.uploader || 'Unknown';
+            document.getElementById('infoUploadDate').textContent = data.fullDate || 'Unknown Date';
+
+            // Update Download Button
+            const downloadBtn = document.getElementById('lightboxDownload');
+            downloadBtn.onclick = (e) => {
+                e.stopPropagation();
+                const a = document.createElement('a');
+                a.href = data.src;
+                a.download = data.originalName || 'photo.jpg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
 
             btnPrev.style.visibility = index > 0 ? 'visible' : 'hidden';
             btnNext.style.visibility = index < photosData.length - 1 ? 'visible' : 'hidden';

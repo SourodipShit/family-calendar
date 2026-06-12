@@ -58,11 +58,12 @@ class Family
         }
 
         try {
-            $result = Database::runPrepared("INSERT INTO families(name, email, location, timezone) VALUES(?, ?, ?, ?)", [
+            $result = Database::runPrepared("INSERT INTO families(name, email, location, timezone, storage_allocated) VALUES(?, ?, ?, ?, ?)", [
                 $data['name'],
                 $data['email'],
                 $data['location'],
-                $data['timezone']
+                $data['timezone'],
+                $data['storage_allocated'] ?? 500
             ]);
 
             return ['status' => 'success', 'message' => 'Family added successfully', 'id' => Database::getInstance()->lastInsertId()];
@@ -99,13 +100,24 @@ class Family
         }
 
         try {
-            $result = Database::runPrepared("UPDATE families SET name = ?, email = ?, location = ?, timezone = ? WHERE id = ?", [
-                $data['name'],
-                $data['email'],
-                $data['location'],
-                $data['timezone'],
-                $data['id']
-            ]);
+            if (isset($data['storage_allocated'])) {
+                $result = Database::runPrepared("UPDATE families SET name = ?, email = ?, location = ?, timezone = ?, storage_allocated = ? WHERE id = ?", [
+                    $data['name'],
+                    $data['email'],
+                    $data['location'],
+                    $data['timezone'],
+                    $data['storage_allocated'],
+                    $data['id']
+                ]);
+            } else {
+                $result = Database::runPrepared("UPDATE families SET name = ?, email = ?, location = ?, timezone = ? WHERE id = ?", [
+                    $data['name'],
+                    $data['email'],
+                    $data['location'],
+                    $data['timezone'],
+                    $data['id']
+                ]);
+            }
 
             return ['status' => 'success', 'message' => 'Family updated successfully'];
         } catch (PDOException $e) {

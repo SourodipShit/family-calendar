@@ -27,7 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         'name' => $_POST['name'],
         'email' => $_POST['email'],
         'location' => $_POST['location'],
-        'timezone' => $_POST['timezone']
+        'timezone' => $_POST['timezone'],
+        'storage_allocated' => $_POST['storage_allocated']
     ];
 
     $result = Family::update($data);
@@ -84,30 +85,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <input type="text" name="location" class="form-control bg-light border-0" value="<?php echo htmlspecialchars($family['location'] ?? ''); ?>">
                                     </div>
                                 </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-medium">Timezone</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light border-0"><i class="ri-time-line"></i></span>
-                                            <select name="timezone" class="form-select bg-light border-0">
-                                                <?php
-                                                require_once $path_prefix . 'classes/GlobalSettings.php';
-                                                $timezone_setting = GlobalSettings::getSetting('timezone');
-                                                $timezones = [];
-                                                if ($timezone_setting['status'] === 'success' && !empty($timezone_setting['data'])) {
-                                                    $timezones = json_decode($timezone_setting['data']['setting_value'], true);
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Timezone</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="ri-time-line"></i></span>
+                                        <select name="timezone" class="form-select bg-light border-0">
+                                            <?php
+                                            require_once $path_prefix . 'classes/GlobalSettings.php';
+                                            $timezone_setting = GlobalSettings::getSetting('timezone');
+                                            $timezones = [];
+                                            if ($timezone_setting['status'] === 'success' && !empty($timezone_setting['data'])) {
+                                                $timezones = json_decode($timezone_setting['data']['setting_value'], true);
+                                            }
+                                            if (is_array($timezones)) {
+                                                foreach ($timezones as $tz) {
+                                                    $val = htmlspecialchars($tz['timezone']);
+                                                    $lbl = htmlspecialchars($tz['lable']);
+                                                    $selected = ($family['timezone'] == $tz['timezone']) ? 'selected' : '';
+                                                    echo "<option value=\"$val\" $selected>$lbl</option>";
                                                 }
-                                                if (is_array($timezones)) {
-                                                    foreach ($timezones as $tz) {
-                                                        $val = htmlspecialchars($tz['timezone']);
-                                                        $lbl = htmlspecialchars($tz['lable']);
-                                                        $selected = ($family['timezone'] == $tz['timezone']) ? 'selected' : '';
-                                                        echo "<option value=\"$val\" $selected>$lbl</option>";
-                                                    }
-                                                }
-                                                ?>
-                                            </select>
-                                        </div>
+                                            }
+                                            ?>
+                                        </select>
                                     </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Storage Allocated (MB)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="ri-hard-drive-2-line"></i></span>
+                                        <input type="number" name="storage_allocated" class="form-control bg-light border-0" value="<?php echo htmlspecialchars($family['storage_allocated'] ?? 500); ?>" min="1" required>
+                                    </div>
+                                </div>
 
                                 <div class="col-12 mt-5">
                                     <hr class="opacity-50 mb-4">
