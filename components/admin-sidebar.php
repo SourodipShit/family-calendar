@@ -81,9 +81,9 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <i class="ri-settings-4-line me-3"></i>Global Settings
             </a>
 
-            <a href="<?php echo $path_prefix; ?>siteadmin/logs.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'logs.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-history-line me-3"></i>Audit Logs
+            <a href="<?php echo $path_prefix; ?>siteadmin/loginlogs.php"
+                class="list-group-item list-group-item-action <?php echo $current_page == 'loginlogs.php' ? 'active' : ''; ?> rounded mb-1">
+                <i class="ri-history-line me-3"></i>Login Logs
             </a>
         </div>
 

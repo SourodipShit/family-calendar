@@ -17,7 +17,7 @@ $page_title = "Login - Family Calendar";
 $page_image = "";
 include_once __DIR__ . '/components/header.php';
 include_once __DIR__ . '/classes/Auth.php';
-
+include_once __DIR__ . '/classes/LoginLogs.php';
 include_once __DIR__ . '/classes/GlobalSettings.php';
 
 $setting = GlobalSettings::getSetting("login_page_image");
@@ -39,6 +39,7 @@ if (isset($_POST['login'])) {
             // Assuming we check the primary family (first one)
             $family_approved = !empty($user['families'][0]['approved']);
             $family_locked = !empty($user['families'][0]['is_locked']);
+            LoginLogs::track($user['id']);
         }
 
         if (!$is_siteadmin && !$family_approved) {

@@ -173,7 +173,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         <div class="progress mb-4" style="height: 6px;">
                             <div class="progress-bar bg-success" style="width: 90%;"></div>
                         </div>
-                        
+
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="small">Database Load</span>
                             <span class="badge bg-warning">42%</span>
