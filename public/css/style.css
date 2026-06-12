@@ -252,7 +252,7 @@ tr[data-member] {
 }
 
 .meal-card .options-btn {
-    color: #ccc;
+    color: #8e8c8c;
     cursor: pointer;
     padding: 2px 5px;
     border-radius: 4px;
@@ -1396,7 +1396,6 @@ tr[data-member] {
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 58%;
 }
 
 .yelows {

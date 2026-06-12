@@ -111,89 +111,89 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
         display: block;
     }
 
-        .sidebar-grocery-item {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-        }
+    .sidebar-grocery-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    }
 
-        .sidebar-grocery-item:last-child {
-            border-bottom: none;
-        }
+    .sidebar-grocery-item:last-child {
+        border-bottom: none;
+    }
 
-        .sidebar-grocery-item .form-check-input {
-            width: 1.2rem;
-            height: 1.2rem;
-            margin-top: 0;
-            cursor: pointer;
-        }
+    .sidebar-grocery-item .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-top: 0;
+        cursor: pointer;
+    }
 
-        .sidebar-grocery-item .item-name {
-            font-size: 0.95rem;
-            font-weight: 500;
-            margin-left: 0.75rem;
-            color: #333;
-            cursor: pointer;
-        }
+    .sidebar-grocery-item .item-name {
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-left: 0.75rem;
+        color: #333;
+        cursor: pointer;
+    }
 
-        .sidebar-grocery-item .form-check-input:checked + .item-name {
-            text-decoration: line-through;
-            opacity: 0.6;
-        }
+    .sidebar-grocery-item .form-check-input:checked+.item-name {
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
 
-        /* Main Grocery List Item Size */
-        .grocery-item-label {
-            font-size: 1rem;
-            font-weight: 500;
-            line-height: 1.2;
-        }
+    /* Main Grocery List Item Size */
+    .grocery-item-label {
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.2;
+    }
 
-        .grocery-qty-text {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
+    .grocery-qty-text {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
 
-        .grocery-unit-text {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
+    .grocery-unit-text {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
 
-        /* Rating Styles */
-        .rating-badge {
-            position: absolute;
-            bottom: 0.5rem;
-            left: 0.5rem;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 5;
-        }
+    /* Rating Styles */
+    .rating-badge {
+        position: absolute;
+        bottom: 0.5rem;
+        left: 0.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 5;
+    }
 
-        .star-rating {
-            color: #ffc107;
-        }
+    .star-rating {
+        color: #ffc107;
+    }
 
-        .favorite-btn-active {
-            color: #ff4757 !important;
-        }
+    .favorite-btn-active {
+        color: #ff4757 !important;
+    }
 
-        .rating-stars-input i {
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #ddd;
-            transition: color 0.2s;
-        }
+    .rating-stars-input i {
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #ddd;
+        transition: color 0.2s;
+    }
 
-        .rating-stars-input i.active {
-            color: #ffc107;
-        }
+    .rating-stars-input i.active {
+        color: #ffc107;
+    }
 </style>
 
 <!-- Page Content -->
@@ -618,7 +618,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             document.getElementById('no-grocery-message').classList.add('d-none');
 
             document.getElementById('display-list-title').textContent = list.title;
-            
+
             // Set up Edit button
             const editBtn = document.getElementById('edit-list-btn');
             editBtn.onclick = () => editGroceryList(list);
@@ -700,7 +700,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             if (!sidebarContainer) return;
 
             sidebarContainer.innerHTML = '';
-            
+
             const totalItems = list.items.length;
             const completedItems = list.items.filter(i => i.is_complete).length;
             const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
@@ -714,7 +714,9 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             viewFullListLink.onclick = (e) => {
                 e.preventDefault();
                 document.getElementById('groceries-tab').click();
-                document.getElementById('grocery-list-page').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('grocery-list-page').scrollIntoView({
+                    behavior: 'smooth'
+                });
             };
 
             // Group by category for sidebar (limit to first few categories or items if needed, but here we show all)
@@ -781,8 +783,8 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             const itemsContainer = document.getElementById('edit-grocery-items-container');
             const itemRow = document.createElement('div');
             itemRow.className = 'grocery-item-row';
-            
-            let categoryOptions = groceryCategories.map(cat => 
+
+            let categoryOptions = groceryCategories.map(cat =>
                 `<option value="${cat.id}">${cat.name}</option>`
             ).join('');
 
@@ -806,71 +808,116 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        renderFavorites(data.favorites);
+                        renderFavorites(data.favorites, data.recipes);
                     } else {
                         console.error('Error fetching favorites:', data.message);
-                        renderFavorites([]); // Show 'No Favorites' message if it's an API error
+                        renderFavorites([], []); // Show 'No Favorites' message if it's an API error
                     }
                 })
                 .catch(err => {
                     console.error('Error fetching favorites:', err);
-                    renderFavorites([]); // Show 'No Favorites' message if it's a fetch error
+                    renderFavorites([], []); // Show 'No Favorites' message if it's a fetch error
                 });
         };
 
-        const renderFavorites = (favorites) => {
+        const renderFavorites = (favorites, recipes = []) => {
             const container = document.getElementById('favorites-container');
             const noFavs = document.getElementById('no-favorites-message');
 
-            if (!favorites || favorites.length === 0) {
+            if ((!favorites || favorites.length === 0) && (!recipes || recipes.length === 0)) {
                 container.innerHTML = '';
                 noFavs.classList.remove('d-none');
                 return;
             }
 
             noFavs.classList.add('d-none');
-            container.innerHTML = favorites.map(meal => {
-                const type = meal.type;
-                const fallbackImage = `../public/img/${type}.webp`;
-                let imageUrl = meal.image || fallbackImage;
-                
-                const isFavorite = true; // They are in favorites list
-                const favIcon = 'fa-solid fa-heart text-danger';
-                const favText = 'Remove from favorites';
+            let html = '';
 
-                return `
-                    <div class="col-md-4 col-lg-3">
-                        <div class="meal-card position-relative bg-light rounded-4 overflow-hidden border shadow-sm h-100">
-                            <div class="dropdown position-absolute" style="top: 0.5rem; right: 0.5rem; z-index: 10;">
-                                <i class="fa-solid fa-ellipsis options-btn bg-white rounded-circle p-2 shadow-sm" data-bs-toggle="dropdown" aria-expanded="false" style="opacity: 1;"></i>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 0.8rem;">
-                                    <li><a class="dropdown-item py-2 edit-meal-link" href="#" data-meal='${JSON.stringify(meal).replace(/'/g, "&apos;")}'><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Edit meal</a></li>
-                                    <li><a class="dropdown-item py-2 toggle-favorite-link" href="#" data-id="${meal.id}" data-favorite="1"><i class="${favIcon} me-2"></i> ${favText}</a></li>
-                                    <li><a class="dropdown-item py-2 rate-meal-link" href="#" data-id="${meal.id}" data-name="${meal.name.replace(/'/g, "&apos;")}"><i class="fa-regular fa-star me-2 text-warning"></i> Rate meal</a></li>
-                                    ${meal.recipe_id ? `<li><a class="dropdown-item py-2" href="recipe-details.php?id=${meal.recipe_id}"><i class="fa-solid fa-list-ol me-2 text-info"></i> View prep steps</a></li>` : ''}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item py-2 text-danger delete-meal-link" href="#" data-id="${meal.id}"><i class="fa-solid fa-trash-can me-2"></i> Remove</a></li>
-                                </ul>
-                            </div>
+            if (favorites && favorites.length > 0) {
+                html += '<h5 class="w-100 mb-2 mt-3 fw-bold"><i class="fa-solid fa-heart text-danger me-2"></i> Favorite Meals</h5>';
+                html += favorites.map(meal => {
+                    const type = meal.type;
+                    const fallbackImage = `../public/img/${type}.webp`;
+                    let imageUrl = meal.image || fallbackImage;
 
-                            <div class="p-3 bg-white" style="position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
-                                <div class="meal-name text-white fw-bold mb-1">${meal.name}</div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-primary text-capitalize fs-9">${meal.type}</span>
-                                    ${meal.average_rating > 0 ? `
-                                        <div class="d-flex align-items-center text-white fs-8">
-                                            <i class="fa-solid fa-star star-rating me-1"></i>
-                                            <span>${meal.average_rating}</span>
-                                        </div>
-                                    ` : ''}
+                    const isFavorite = true; // They are in favorites list
+                    const favIcon = 'fa-solid fa-heart text-danger';
+                    const favText = 'Remove from favorites';
+
+                    return `
+                        <div class="col-md-4 col-lg-3">
+                            <div class="meal-card position-relative bg-light rounded-4 overflow-hidden border shadow-sm h-100">
+                                <div class="dropdown position-absolute" style="top: 0.5rem; right: 0.5rem; z-index: 10;">
+                                    <i class="fa-solid fa-ellipsis options-btn bg-white rounded-circle p-2 shadow-sm" data-bs-toggle="dropdown" aria-expanded="false" style="opacity: 1;"></i>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 0.8rem;">
+                                        <li><a class="dropdown-item py-2 edit-meal-link" href="#" data-meal='${JSON.stringify(meal).replace(/'/g, "&apos;")}'><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Edit meal</a></li>
+                                        <li><a class="dropdown-item py-2 toggle-favorite-link" href="#" data-id="${meal.id}" data-favorite="1"><i class="${favIcon} me-2"></i> ${favText}</a></li>
+                                        <li><a class="dropdown-item py-2 rate-meal-link" href="#" data-id="${meal.id}" data-name="${meal.name.replace(/'/g, "&apos;")}"><i class="fa-regular fa-star me-2 text-warning"></i> Rate meal</a></li>
+                                        ${meal.recipe_id ? `<li><a class="dropdown-item py-2" href="recipe-details.php?id=${meal.recipe_id}"><i class="fa-solid fa-list-ol me-2 text-info"></i> View prep steps</a></li>` : ''}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 text-danger delete-meal-link" href="#" data-id="${meal.id}"><i class="fa-solid fa-trash-can me-2"></i> Remove</a></li>
+                                    </ul>
                                 </div>
+
+                                <div class="p-3 bg-white" style="position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                                    <div class="meal-name text-dark fw-bold mb-1">${meal.name}</div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary text-capitalize fs-9">${meal.type}</span>
+                                        ${meal.average_rating > 0 ? `
+                                            <div class="d-flex align-items-center text-white fs-8">
+                                                <i class="fa-solid fa-star star-rating me-1"></i>
+                                                <span>${meal.average_rating}</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                
+                                <img src="${imageUrl}" class="w-100 h-100" style="object-fit: cover; min-height: 200px;" alt="${meal.name}" onerror="this.src='${fallbackImage}'">
                             </div>
-                            
-                            <img src="${imageUrl}" class="w-100 h-100" style="object-fit: cover; min-height: 200px;" alt="${meal.name}" onerror="this.src='${fallbackImage}'">
                         </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+            }
+
+            if (recipes && recipes.length > 0) {
+                if (favorites && favorites.length > 0) {
+                    html += '<div class="w-100 my-4 border-top"></div>';
+                }
+                html += '<h5 class="w-100 mb-2 mt-3 fw-bold"><i class="fa-solid fa-book-open text-primary me-2"></i> Family Recipes</h5>';
+                html += recipes.map(recipe => {
+                    let imagePath = '';
+                    if (recipe.image_url) {
+                        imagePath = recipe.image_url.startsWith('http') || recipe.image_url.startsWith('../') ? recipe.image_url : '../' + recipe.image_url;
+                    }
+                    const fallbackImage = `../public/img/dinner.webp`; // Or something default
+                    const imageUrl = imagePath || fallbackImage;
+
+                    return `
+                        <div class="col-md-4 col-lg-3">
+                            <div class="meal-card position-relative bg-light rounded-4 overflow-hidden border shadow-sm h-100">
+                                <div class="dropdown position-absolute" style="top: 0.5rem; right: 0.5rem; z-index: 10;">
+                                    <i class="fa-solid fa-ellipsis options-btn bg-white rounded-circle p-2 shadow-sm" data-bs-toggle="dropdown" aria-expanded="false" style="opacity: 1;"></i>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 0.8rem;">
+                                        <li><a class="dropdown-item py-2" href="recipe-details.php?id=${recipe.id}"><i class="fa-solid fa-list-ol me-2 text-info"></i> View prep steps</a></li>
+                                    </ul>
+                                </div>
+
+                                <div class="p-3 bg-white" style="position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                                    <div class="meal-name text-dark fw-bold mb-1">${recipe.name}</div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary text-capitalize fs-9">Recipe</span>
+                                        ${recipe.calories ? `<span class="badge bg-info text-capitalize fs-9">${recipe.calories} kcal</span>` : ''}
+                                    </div>
+                                </div>
+                                
+                                <img src="${imageUrl}" class="w-100 h-100" style="object-fit: cover; min-height: 200px;" alt="${recipe.name}" onerror="this.src='${fallbackImage}'">
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            container.innerHTML = html;
         };
 
         const fetchMeals = (startDate, endDate) => {
@@ -927,7 +974,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                         const isFavorite = parseInt(meal.is_favorite) > 0;
                         const favIcon = isFavorite ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart';
                         const favText = isFavorite ? 'Remove from favorites' : 'Add to favorites';
-                        
+
                         cell.innerHTML = `
                             <div class="meal-card position-relative">
                                 <div class="dropdown position-absolute" style="top: 0.5rem; right: 0.5rem; z-index: 10;">
@@ -1030,7 +1077,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
 
         // Toggle Recipe Search Logic
         const toggleRecipeSearch = document.getElementById('toggleRecipeSearch');
-        
+
         toggleRecipeSearch.addEventListener('change', function() {
             if (this.checked) {
                 document.getElementById('mealRecipeId').value = '';
@@ -1116,8 +1163,8 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                 recipeSuggestions.style.display = 'none';
             } else if (!e.target.closest('#mealName') && !e.target.closest('#recipeSuggestions')) {
                 // Hide suggestions when clicking outside
-                if(recipeSuggestions) {
-                   recipeSuggestions.style.display = 'none';
+                if (recipeSuggestions) {
+                    recipeSuggestions.style.display = 'none';
                 }
             }
         });
@@ -1268,14 +1315,14 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             document.getElementById('listStartDate').value = startStr;
             document.getElementById('listEndDate').value = endStr;
             document.getElementById('listNotes').value = '';
-            
+
             // Reset items to one empty row
             resetGroceryItemsContainer();
         });
 
         const resetGroceryItemsContainer = () => {
             const itemsContainer = document.getElementById('grocery-items-container');
-            let categoryOptions = groceryCategories.map(cat => 
+            let categoryOptions = groceryCategories.map(cat =>
                 `<option value="${cat.id}">${cat.name}</option>`
             ).join('');
 
@@ -1501,43 +1548,43 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                 formData.append('meal_id', mealId);
 
                 fetch(`../api/favorite.php?action=${action}`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        showAlert(data.message, 'success');
-                        updateUI();
-                    } else {
-                        showAlert(data.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    console.error('Favorite error:', err);
-                    showAlert('Connection error', 'error');
-                });
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showAlert(data.message, 'success');
+                            updateUI();
+                        } else {
+                            showAlert(data.message, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Favorite error:', err);
+                        showAlert('Connection error', 'error');
+                    });
             }
         });
 
         // Rating Modal Logic
         const ratingModal = new bootstrap.Modal(document.getElementById('ratingModal'));
         const ratingStars = document.querySelectorAll('#ratingStarsContainer i');
-        
+
         document.addEventListener('click', (e) => {
             const link = e.target.closest('.rate-meal-link');
             if (link) {
                 e.preventDefault();
                 const mealId = link.getAttribute('data-id');
                 const mealName = link.getAttribute('data-name');
-                
+
                 document.getElementById('ratingMealId').value = mealId;
                 document.getElementById('ratingMealName').textContent = mealName;
                 document.getElementById('ratingValue').value = 0;
-                
+
                 // Reset stars
                 ratingStars.forEach(s => s.classList.remove('active'));
-                
+
                 ratingModal.show();
             }
         });
@@ -1546,7 +1593,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             star.addEventListener('click', function() {
                 const val = this.getAttribute('data-value');
                 document.getElementById('ratingValue').value = val;
-                
+
                 ratingStars.forEach(s => {
                     if (parseInt(s.getAttribute('data-value')) <= parseInt(val)) {
                         s.classList.add('active');
@@ -1571,23 +1618,23 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             formData.append('rating', rating);
 
             fetch(`../api/rating.php?action=save`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    ratingModal.hide();
-                    showAlert(data.message, 'success');
-                    updateUI();
-                } else {
-                    showAlert(data.message, 'error');
-                }
-            })
-            .catch(err => {
-                console.error('Rating error:', err);
-                showAlert('Connection error', 'error');
-            });
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        ratingModal.hide();
+                        showAlert(data.message, 'success');
+                        updateUI();
+                    } else {
+                        showAlert(data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Rating error:', err);
+                    showAlert('Connection error', 'error');
+                });
         });
 
         // Initialize UI

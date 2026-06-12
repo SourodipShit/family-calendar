@@ -374,4 +374,24 @@ class Recipe
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
+
+    public static function getRecipesByFamily($familyId)
+    {
+        try {
+            $sql = "SELECT r.*, u.name as user_name, u.image as user_image, ri.image_path as image_url, rn.calories
+                    FROM recipes r
+                    INNER JOIN users u ON u.id = r.user_id
+                    LEFT JOIN recipe_images ri ON ri.recipe_id = r.id AND ri.is_main = 1
+                    LEFT JOIN recipe_nutrition rn ON rn.recipe_id = r.id
+                    WHERE r.family_id = ? OR r.visibility = 'public'
+                    ORDER BY r.created_at DESC";
+            
+            $stmt = Database::runPrepared($sql, [$familyId]);
+            $recipes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            return ["status" => "success", "recipes" => $recipes];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
 }

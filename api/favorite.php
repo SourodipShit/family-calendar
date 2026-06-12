@@ -63,7 +63,18 @@ if ($action == 'check') {
 }
 
 if ($action == 'list') {
-    $result = Favorite::getUserFavorites($userId);
+    require_once __DIR__ . "/../classes/Recipe.php";
+    $familyId = $_SESSION['user']['families'][0]['family_id'] ?? 1;
+    
+    $favoritesResult = Favorite::getUserFavorites($userId);
+    $recipesResult = Recipe::getRecipesByFamily($familyId);
+    
+    $result = [
+        "status" => "success",
+        "favorites" => $favoritesResult['status'] === 'success' ? $favoritesResult['favorites'] : [],
+        "recipes" => $recipesResult['status'] === 'success' ? $recipesResult['recipes'] : []
+    ];
+    
     echo json_encode($result);
     exit;
 }
