@@ -39,7 +39,7 @@ class File
             $newHeight = round($height * $ratio);
 
             $newImage = imagecreatetruecolor($newWidth, $newHeight);
-            
+
             // Fill with white background for transparent PNGs/GIFs
             $white = imagecolorallocate($newImage, 255, 255, 255);
             imagefill($newImage, 0, 0, $white);
@@ -76,7 +76,7 @@ class File
         }
 
         if ($fileName === null) {
-            $fileName = time() . '_' . basename($file['name']);
+            $fileName = uniqid(time() . '_') . '_' . basename($file['name']);
         }
 
         $filePath = $uploadDir . '/' . $fileName;
@@ -98,10 +98,22 @@ class File
                 }
             }
 
+            $width = null;
+            $height = null;
+            $finalInfo = @getimagesize($filePath);
+            if ($finalInfo !== false) {
+                $width = $finalInfo[0];
+                $height = $finalInfo[1];
+            }
+
             return [
                 "status" => "success",
                 "message" => "File uploaded successfully.",
-                "filePath" => $filePath
+                "filePath" => $filePath,
+                "fileSize" => filesize($filePath),
+                "width" => $width,
+                "height" => $height,
+                "originalName" => basename($file['name'])
             ];
         } else {
             return ["status" => "error", "message" => "Failed to upload file."];

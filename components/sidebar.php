@@ -40,7 +40,7 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                     class="ri-bowl-line me-lg-3"></i><span class="d-none d-lg-inline">Meals</span></a>
             <a href="<?php echo $path_prefix; ?>users/recipes.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'recipes.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
                     class="ri-bread-line me-lg-3"></i><span class="d-none d-lg-inline">Recipes</span></a>
-            <a href="#" class="list-group-item list-group-item-action text-secondary rounded mb-2"><i
+            <a href="<?php echo $path_prefix; ?>users/photos.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'photos.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
                     class="ri-folder-image-line me-lg-3"></i><span class="d-none d-lg-inline">Photos</span></a>
             <a href="<?php echo $path_prefix; ?>users/coaches.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'coaches.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
                     class="ri-group-line me-lg-3"></i><span class="d-none d-lg-inline">Coaches</span></a>
