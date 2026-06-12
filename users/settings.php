@@ -25,7 +25,14 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
             <div class="col-lg-3 mb-3">
                 <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
                     <div class="list-group list-group-flush settings-nav">
-                        <a href="#family-details" class="list-group-item list-group-item-action active py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                        <a href="#personal-settings" class="list-group-item list-group-item-action active py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-user-settings-line me-3 fs-5 text-info"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Personal Settings</span>
+                                <small class="opacity-75" style="font-size: 0.7rem;">Your personal preferences</small>
+                            </div>
+                        </a>
+                        <a href="#family-details" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
                             <i class="ri-home-4-line me-3 fs-5 text-primary"></i>
                             <div>
                                 <span class="fw-bold d-block small">Family Profile</span>
@@ -84,8 +91,55 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
             <!-- Settings Content -->
             <div class="col-lg-9">
                 <div class="tab-content">
+                    <!-- Personal Settings -->
+                    <div class="tab-pane fade show active" id="personal-settings">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4 mb-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                    <i class="ri-user-settings-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Personal Settings</h5>
+                                    <p class="text-muted small mb-0">Manage your personal preferences.</p>
+                                </div>
+                            </div>
+
+                            <form id="personalSettingsForm">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
+                                            <div>
+                                                <h6 class="fw-bold mb-1 small">Default Calendar View</h6>
+                                                <p class="text-muted extra-small mb-0">Choose your preferred default view for the calendar.</p>
+                                            </div>
+                                            <div class="d-flex gap-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="default_view" id="view_month" value="month">
+                                                    <label class="form-check-label small" for="view_month">Month</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="default_view" id="view_week" value="week" checked>
+                                                    <label class="form-check-label small" for="view_week">Week</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="default_view" id="view_day" value="day">
+                                                    <label class="form-check-label small" for="view_day">Day</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="submit" id="savePersonalSettingsBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2">Save Changes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <!-- Family Profile -->
-                    <div class="tab-pane fade show active" id="family-details">
+                    <div class="tab-pane fade" id="family-details">
                         <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
                             <div class="d-flex align-items-center mb-4">
                                 <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
@@ -402,9 +456,23 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
         loadEventTypes();
         loadGroceryCategories();
 
+        // Load personal settings from local storage
+        const savedView = localStorage.getItem('default_calendar_view');
+        if (savedView) {
+            const viewRadio = document.querySelector(`input[name="default_view"][value="${savedView}"]`);
+            if (viewRadio) viewRadio.checked = true;
+        }
+
         document.getElementById('event_type_colour').addEventListener('input', (e) => {
             document.getElementById('color-hex-label').innerText = e.target.value.toUpperCase();
         });
+    });
+
+    document.getElementById('personalSettingsForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const selectedView = document.querySelector('input[name="default_view"]:checked').value;
+        localStorage.setItem('default_calendar_view', selectedView);
+        showAlert('Personal settings saved successfully', 'success');
     });
 
     async function loadFamilyProfile() {
@@ -473,10 +541,10 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
 
     document.getElementById('show_nicknames_toggle').addEventListener('change', async (e) => {
         const isChecked = e.target.checked;
-        
+
         // Update local state
         familySettings.show_nicknames = isChecked;
-        
+
         try {
             const response = await fetch(`${API_PATH}family.php?action=updateSettings`, {
                 method: 'POST',
@@ -505,10 +573,10 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
 
     document.getElementById('use_recipes_in_meal_toggle').addEventListener('change', async (e) => {
         const isChecked = e.target.checked;
-        
+
         // Update local state
         familySettings.use_recipes_in_meal = isChecked;
-        
+
         try {
             const response = await fetch(`${API_PATH}family.php?action=updateSettings`, {
                 method: 'POST',

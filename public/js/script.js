@@ -844,7 +844,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 6. View Toggling & Navigation State
-    let currentView = 'view-week';
+    let savedView = localStorage.getItem('default_calendar_view');
+    let currentView = savedView ? 'view-' + savedView : 'view-week';
     let currentDate = new Date(); // Today
 
     const toggleBtns = document.querySelectorAll('.toggle-view-btn');
@@ -1326,6 +1327,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderMealsWeek();
     renderTimedEventsWeek();
     renderAllDayEventsWeek();
-    updateActiveView('view-week');
+    updateActiveView(currentView);
 
 });
