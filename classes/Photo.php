@@ -4,7 +4,6 @@ require_once __DIR__ . "/../config/Database.php";
 require_once __DIR__ . "/User.php";
 require_once __DIR__ . "/File.php";
 
-// CREATE TABLE photos ( id INT AUTO_INCREMENT PRIMARY KEY, family_id INT NOT NULL, uploaded_by INT NULL, photo VARCHAR(255) NOT NULL, file_size INT NOT NULL, metadata JSON NULL, status ENUM( 'pending', 'approved', 'deleted' ) DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, CONSTRAINT fk_photos_family FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE, CONSTRAINT fk_photos_uploaded_by FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE );
 
 class Photo
 {
@@ -87,5 +86,40 @@ class Photo
         File::deleteFile($result['photo']);
         $result = Database::runPrepared("UPDATE photos SET status = 'deleted' WHERE id = ?", [$photoId]);
         return ["status" => "success", "message" => "Photo deleted successfully"];
+    }
+
+    public static function getPhotoStorageDetails($familyId)
+    {
+        $family = Database::runPrepared("SELECT storage_allocated FROM families WHERE id = ?", [$familyId])->fetch(PDO::FETCH_ASSOC);
+        if (!$family) {
+            return ["status" => "error", "message" => "Family not found"];
+        }
+
+        $allocatedStorage = (float)$family['storage_allocated'];
+
+        $sql = "SELECT 
+                    SUM(CASE WHEN status = 'approved' THEN file_size ELSE 0 END) as approved_bytes,
+                    SUM(CASE WHEN status = 'pending' THEN file_size ELSE 0 END) as pending_bytes
+                FROM photos 
+                WHERE family_id = ?";
+                
+        $stats = Database::runPrepared($sql, [$familyId])->fetch(PDO::FETCH_ASSOC);
+
+        $approvedBytes = $stats['approved_bytes'] ? (float)$stats['approved_bytes'] : 0;
+        $pendingBytes = $stats['pending_bytes'] ? (float)$stats['pending_bytes'] : 0;
+
+        $approvedMb = round($approvedBytes / (1024 * 1024), 2);
+        $notApprovedMb = round($pendingBytes / (1024 * 1024), 2);
+        $totalMb = round(($approvedBytes + $pendingBytes) / (1024 * 1024), 2);
+
+        return [
+            "status" => "success",
+            "data" => [
+                "allocated_storage" => $allocatedStorage,
+                "approved_storage" => $approvedMb,
+                "not_approved_storage" => $notApprovedMb,
+                "total_storage" => $totalMb
+            ]
+        ];
     }
 }

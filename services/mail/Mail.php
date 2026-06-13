@@ -99,4 +99,17 @@ class Mail
             'html' => $html
         ]);
     }
+    public static function sendStorageLimitExceeded($email, $name, $storageDetails)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        $html = Mailer::render('storage_limit_exceeded', [
+            'name' => $name,
+            'storageDetails' => $storageDetails
+        ]);
+        return Mailer::send([
+            'to' => $email,
+            'subject' => 'Storage Limit Exceeded - Action Required',
+            'html' => $html
+        ]);
+    }
 }

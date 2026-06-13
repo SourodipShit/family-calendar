@@ -72,7 +72,7 @@ include $path_prefix . 'components/sidebar.php';
                 <div class="mb-4 p-3 bg-light rounded-4 border">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-dark fw-bold fs-7"><i class="fa-solid fa-hard-drive me-2 text-primary"></i>Storage Used</span>
-                        <span class="text-muted fs-7 fw-medium"><span id="storageUsedMB">0.00</span> MB / <span class="text-dark"><?php echo $_SESSION['user']['families'][0]['storage_allocated'] ?? 500; ?> MB</span></span>
+                        <span class="text-muted fs-7 fw-medium"><span id="storageUsedMB">0.00</span> MB / <span class="text-dark" id="storageAllocatedMB">0</span> MB</span>
                     </div>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-primary rounded-pill" id="storageProgressBar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
@@ -109,7 +109,7 @@ include $path_prefix . 'components/sidebar.php';
         </div>
         <div class="lightbox-actions">
             <button class="lightbox-btn" title="Download" id="lightboxDownload"><i class="fa-solid fa-download"></i></button>
-            <button class="lightbox-btn" title="Share"><i class="fa-solid fa-share-nodes"></i></button>
+            <button class="lightbox-btn" title="Delete" id="lightboxDelete"><i class="fa-solid fa-trash"></i></button>
             <button class="lightbox-btn" title="Info" id="lightboxInfoBtn"><i class="fa-solid fa-circle-info"></i></button>
             <button class="lightbox-btn" title="More options"><i class="fa-solid fa-ellipsis-vertical"></i></button>
         </div>
@@ -147,7 +147,7 @@ include $path_prefix . 'components/sidebar.php';
                     <div id="infoSize" class="text-white-50 small">1.2 MB</div>
                 </div>
             </div>
-            
+
             <h6 class="text-white-50 mb-1 mt-4">Uploaded By</h6>
             <div class="d-flex align-items-center mb-3">
                 <i class="fa-solid fa-user-circle me-3 text-white-50 fs-3"></i>
@@ -269,13 +269,14 @@ include $path_prefix . 'components/sidebar.php';
     .lightbox-content-area {
         transition: margin-right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
-    
+
     .lightbox-container.info-open .lightbox-content-area {
         margin-right: 350px;
     }
 
     .lightbox-container.info-open .lightbox-toolbar {
-        padding-right: 366px; /* 350 + 16 */
+        padding-right: 366px;
+        /* 350 + 16 */
     }
 
     @media (max-width: 768px) {
@@ -283,9 +284,11 @@ include $path_prefix . 'components/sidebar.php';
             width: 100%;
             right: -100%;
         }
+
         .lightbox-container.info-open .lightbox-content-area {
             margin-right: 0;
         }
+
         .lightbox-container.info-open .lightbox-toolbar {
             padding-right: 16px;
         }
@@ -496,36 +499,42 @@ include $path_prefix . 'components/sidebar.php';
                 const result = await res.json();
                 if (result.status === 'success') {
                     renderPhotosFeed(result.data);
-                    updateStorageUI(result.data);
+                    updateStorageUI();
                 }
             } catch (err) {
                 console.error(err);
             }
         }
 
-        function updateStorageUI(approvedPhotos) {
-            let totalBytes = 0;
-            approvedPhotos.forEach(p => {
-                totalBytes += parseInt(p.file_size) || 0;
-            });
-            const usedMB = (totalBytes / (1024 * 1024)).toFixed(2);
-            const allocatedMB = <?php echo $_SESSION['user']['families'][0]['storage_allocated'] ?? 500; ?>;
-            
-            document.getElementById('storageUsedMB').textContent = usedMB;
-            
-            let percentage = (usedMB / allocatedMB) * 100;
-            if (percentage > 100) percentage = 100;
-            
-            const progressBar = document.getElementById('storageProgressBar');
-            progressBar.style.width = percentage + '%';
-            progressBar.setAttribute('aria-valuenow', percentage);
-            
-            if (percentage > 90) {
-                progressBar.classList.remove('bg-primary');
-                progressBar.classList.add('bg-danger');
-            } else {
-                progressBar.classList.remove('bg-danger');
-                progressBar.classList.add('bg-primary');
+        async function updateStorageUI() {
+            try {
+                const res = await fetch('../api/photos.php?action=getStorageDetails');
+                const result = await res.json();
+                if (result.status === 'success') {
+                    const usedMB = parseFloat(result.data.approved_storage).toFixed(2);
+                    const allocatedMB = parseFloat(result.data.allocated_storage);
+
+                    document.getElementById('storageUsedMB').textContent = usedMB;
+                    document.getElementById('storageAllocatedMB').textContent = allocatedMB;
+
+                    let percentage = (usedMB / allocatedMB) * 100;
+                    if (percentage > 100) percentage = 100;
+
+                    const progressBar = document.getElementById('storageProgressBar');
+                    progressBar.style.width = percentage + '%';
+                    progressBar.setAttribute('aria-valuenow', percentage);
+
+                    progressBar.classList.remove('bg-primary', 'bg-warning', 'bg-danger');
+                    if (percentage > 90) {
+                        progressBar.classList.add('bg-danger');
+                    } else if (percentage > 70) {
+                        progressBar.classList.add('bg-warning');
+                    } else {
+                        progressBar.classList.add('bg-primary');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
 
@@ -561,13 +570,14 @@ include $path_prefix . 'components/sidebar.php';
                 groups[dateText].forEach((photo, i) => {
                     // Populate Lightbox array
                     const itemIndex = globalIndex++;
-                    
+
                     let meta = {};
                     try {
                         if (photo.metadata) meta = JSON.parse(photo.metadata);
-                    } catch(e) {}
+                    } catch (e) {}
 
                     photosData.push({
+                        id: photo.id,
                         src: photo.photo,
                         alt: 'Photo by ' + (photo.user ? photo.user.name : 'Unknown'),
                         caption: 'Uploaded by ' + (photo.user ? photo.user.name : 'Unknown'),
@@ -836,6 +846,7 @@ include $path_prefix . 'components/sidebar.php';
                 lightboxImg.classList.remove('loaded');
             }, 300);
         }
+
         function loadImage(index) {
             const data = photosData[index];
             if (!data) return;
@@ -863,6 +874,23 @@ include $path_prefix . 'components/sidebar.php';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+            };
+
+            // Update Delete Button
+            const deleteBtn = document.getElementById('lightboxDelete');
+            deleteBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if(confirm('Are you sure you want to delete this photo?')) {
+                    const formData = new FormData();
+                    formData.append('id', data.id);
+                    await fetch('../api/photos.php?action=delete', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    document.getElementById('photoLightbox').classList.remove('active');
+                    loadPhotosFeed();
+                }
             };
 
             btnPrev.style.visibility = index > 0 ? 'visible' : 'hidden';
