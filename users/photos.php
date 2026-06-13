@@ -17,10 +17,12 @@ include $path_prefix . 'components/sidebar.php';
                 <p class="text-muted mb-0">Capture and share your favorite moments.</p>
             </div>
             <div class="d-flex gap-3">
+                <?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'family-head'): ?>
                 <button class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#approvePhotosModal">
                     <i class="fa-solid fa-check-to-slot me-2"></i> Approve Photos
                     <span class="badge rounded-pill bg-danger text-white ms-2" style="display: none;">0</span>
                 </button>
+                <?php endif; ?>
                 <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#uploadPhotoModal">
                     <i class="fa-solid fa-plus me-2"></i> Upload Photo
                 </button>
@@ -624,12 +626,14 @@ include $path_prefix . 'components/sidebar.php';
             pendingPhotosContainer.innerHTML = '';
             pendingCountBadge.textContent = photos.length;
             const approveBadge = document.querySelector('.btn-outline-primary .badge');
-            approveBadge.textContent = photos.length;
-
-            if (photos.length > 0) {
-                approveBadge.style.display = 'inline-block';
-            } else {
-                approveBadge.style.display = 'none';
+            
+            if (approveBadge) {
+                approveBadge.textContent = photos.length;
+                if (photos.length > 0) {
+                    approveBadge.style.display = 'inline-block';
+                } else {
+                    approveBadge.style.display = 'none';
+                }
             }
 
             if (photos.length === 0) {

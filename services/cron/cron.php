@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../services/mail/ICS.php';
 require_once __DIR__ . '/../../services/mail/Mailer.php';
 require_once __DIR__ . '/../../services/mail/Mail.php';
 require_once __DIR__ . '/jobs/EventReminderJob.php';
+require_once __DIR__ . '/jobs/FetchFamilyEmailsJob.php';
 
 
 // Set default timezone for server output
@@ -31,5 +32,9 @@ echo "----------------------------------------<br><br>";
 // Run the Event Reminder Job
 echo "Checking for pending event reminders...<br>";
 EventReminderJob::run();
+
+echo "<br>Checking for family shared emails...<br>";
+FetchFamilyEmailsJob::run();
+
 echo "<br>Cron execution finished.<br>";
 echo "========================================<br>";

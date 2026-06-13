@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/SharedEmails.php';
 
 class Family
 {
@@ -66,7 +67,12 @@ class Family
                 $data['storage_allocated'] ?? 500
             ]);
 
-            return ['status' => 'success', 'message' => 'Family added successfully', 'id' => Database::getInstance()->lastInsertId()];
+            $familyId = Database::getLastInsertId();
+            
+            // Allocate shared email if available
+            SharedEmails::allocateFamily($familyId);
+
+            return ['status' => 'success', 'message' => 'Family added successfully', 'id' => $familyId];
         } catch (PDOException $e) {
             return ['status' => 'error', 'message' => 'Failed to add family: ' . $e->getMessage()];
         }

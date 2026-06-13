@@ -281,65 +281,131 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             <div class="row">
                                 <div class="col-md-10">
                                     <form id="configForm">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Company Name</label>
-                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
-                                                <span class="input-group-text bg-white border-0"><i class="ri-building-line"></i></span>
-                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="company_name" name="company_name" placeholder="e.g. Family Calendar Company">
-                                            </div>
-                                            <p class="extra-small text-muted mt-1 mb-0">The name of the company to display in system communications.</p>
-                                        </div>
+                                        <div class="accordion" id="configAccordion">
 
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Mail Sending Address</label>
-                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
-                                                <span class="input-group-text bg-white border-0"><i class="ri-mail-line"></i></span>
-                                                <input type="email" class="form-control border-0 px-3 py-2 small" id="mail_from_address" name="mail_from_address" placeholder="e.g. noreply@familycalendar.com">
-                                            </div>
-                                            <p class="extra-small text-muted mt-1 mb-0">This address will be used as the 'From' address for all system emails.</p>
-                                        </div>
+                                            <!-- Site Configuration -->
+                                            <div class="accordion-item border-0 mb-3 rounded-3 shadow-sm overflow-hidden">
+                                                <h2 class="accordion-header" id="headingSiteConfig">
+                                                    <button class="accordion-button collapsed fw-bold bg-light text-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSiteConfig" aria-expanded="false" aria-controls="collapseSiteConfig">
+                                                        <i class="ri-settings-4-line me-2 text-primary"></i> Site Configuration
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseSiteConfig" class="accordion-collapse collapse" aria-labelledby="headingSiteConfig" data-bs-parent="#configAccordion">
+                                                    <div class="accordion-body border-top border-light bg-white">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Company Name</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-building-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="company_name" name="company_name" placeholder="e.g. Family Calendar Company">
+                                                            </div>
+                                                            <p class="extra-small text-muted mt-1 mb-0">The name of the company to display in system communications.</p>
+                                                        </div>
 
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Base URL</label>
-                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
-                                                <span class="input-group-text bg-white border-0"><i class="ri-link"></i></span>
-                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="base_url" name="base_url" placeholder="e.g. http://localhost/family-calendar">
-                                            </div>
-                                            <p class="extra-small text-muted mt-1 mb-0">The base URL of the application, used for absolute links in emails and notifications.</p>
-                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Mail Sending Address</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-mail-line"></i></span>
+                                                                <input type="email" class="form-control border-0 px-3 py-2 small" id="mail_from_address" name="mail_from_address" placeholder="e.g. noreply@familycalendar.com">
+                                                            </div>
+                                                            <p class="extra-small text-muted mt-1 mb-0">This address will be used as the 'From' address for all system emails.</p>
+                                                        </div>
 
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip API Key</label>
-                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
-                                                <span class="input-group-text bg-white border-0"><i class="ri-key-2-line"></i></span>
-                                                <input type="password" class="form-control border-0 px-3 py-2 small" id="infobip_api_key" name="infobip_api_key" placeholder="Enter your Infobip API key">
-                                                <button class="btn btn-white border-0 px-3" type="button" id="toggleApiKeyBtn" onclick="toggleApiKeyVisibility()">
-                                                    <i class="ri-eye-line text-muted"></i>
-                                                </button>
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Base URL</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-link"></i></span>
+                                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="base_url" name="base_url" placeholder="e.g. http://localhost/family-calendar">
+                                                            </div>
+                                                            <p class="extra-small text-muted mt-1 mb-0">The base URL of the application, used for absolute links in emails and notifications.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p class="extra-small text-muted mt-1 mb-0">API key used for sending SMS reminders via Infobip integration.</p>
-                                        </div>
 
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip API Base URL</label>
-                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
-                                                <span class="input-group-text bg-white border-0"><i class="ri-global-line"></i></span>
-                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="infobip_api_base_url" name="infobip_api_base_url" placeholder="e.g. https://xxxxxx.api.infobip.com">
-                                            </div>
-                                            <p class="extra-small text-muted mt-1 mb-0">Base URL used for Infobip API requests (e.g., https://[your-subdomain].api.infobip.com).</p>
-                                        </div>
+                                            <!-- Infobip Configuration -->
+                                            <div class="accordion-item border-0 mb-3 rounded-3 shadow-sm overflow-hidden">
+                                                <h2 class="accordion-header" id="headingInfobip">
+                                                    <button class="accordion-button collapsed fw-bold bg-light text-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfobip" aria-expanded="false" aria-controls="collapseInfobip">
+                                                        <i class="ri-message-3-line me-2 text-success"></i> Infobip SMS Integration
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseInfobip" class="accordion-collapse collapse" aria-labelledby="headingInfobip" data-bs-parent="#configAccordion">
+                                                    <div class="accordion-body border-top border-light bg-white">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip API Key</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-key-2-line"></i></span>
+                                                                <input type="password" class="form-control border-0 px-3 py-2 small" id="infobip_api_key" name="infobip_api_key" placeholder="Enter your Infobip API key">
+                                                                <button class="btn btn-white border-0 px-3" type="button" id="toggleApiKeyBtn" onclick="toggleApiKeyVisibility()">
+                                                                    <i class="ri-eye-line text-muted"></i>
+                                                                </button>
+                                                            </div>
+                                                            <p class="extra-small text-muted mt-1 mb-0">API key used for sending SMS reminders via Infobip integration.</p>
+                                                        </div>
 
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip Sender ID / Number</label>
-                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
-                                                <span class="input-group-text bg-white border-0"><i class="ri-phone-line"></i></span>
-                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="infobip_sender" name="infobip_sender" placeholder="e.g. 447491163443 or InfoSMS">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip API Base URL</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-global-line"></i></span>
+                                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="infobip_api_base_url" name="infobip_api_base_url" placeholder="e.g. https://xxxxxx.api.infobip.com">
+                                                            </div>
+                                                            <p class="extra-small text-muted mt-1 mb-0">Base URL used for Infobip API requests (e.g., https://[your-subdomain].api.infobip.com).</p>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Infobip Sender ID / Number</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-phone-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="infobip_sender" name="infobip_sender" placeholder="e.g. 447491163443 or InfoSMS">
+                                                            </div>
+                                                            <p class="extra-small text-muted mt-1 mb-0">The sender number or alphanumeric sender ID whitelisted on your Infobip account.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p class="extra-small text-muted mt-1 mb-0">The sender number or alphanumeric sender ID whitelisted on your Infobip account.</p>
+
+                                            <!-- IMAP Configuration -->
+                                            <div class="accordion-item border-0 mb-3 rounded-3 shadow-sm overflow-hidden">
+                                                <h2 class="accordion-header" id="headingImap">
+                                                    <button class="accordion-button collapsed fw-bold bg-light text-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImap" aria-expanded="false" aria-controls="collapseImap">
+                                                        <i class="ri-mail-download-line me-2 text-warning"></i> IMAP Settings for Shared Family Emails
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseImap" class="accordion-collapse collapse" aria-labelledby="headingImap" data-bs-parent="#configAccordion">
+                                                    <div class="accordion-body border-top border-light bg-white">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">IMAP Host</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-server-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="imap_host" name="imap_host" placeholder="e.g. imap.gmail.com">
+                                                            </div>
+                                                            <p class="extra-small text-muted mt-1 mb-0">Leave blank to dynamically extract from email domain (mail.domain.com).</p>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">IMAP Port</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-plug-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="imap_port" name="imap_port" placeholder="e.g. 993">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">IMAP Flags</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-flag-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="imap_flags" name="imap_flags" placeholder="e.g. /imap/ssl/novalidate-cert">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                         </div>
 
                                         <div class="mt-4 pt-3 border-top">
                                             <button type="button" id="saveConfigBtn" class="btn btn-primary px-4">
+
                                                 <i class="ri-save-line me-1"></i> Save Config
                                             </button>
                                         </div>
@@ -422,6 +488,11 @@ require_once $path_prefix . 'components/admin-sidebar.php';
     .hover-shadow:hover {
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
         transform: translateY(-1px);
+    }
+
+    /* Smooth accordion animation */
+    .collapsing {
+        transition: height 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     }
 </style>
 
@@ -834,6 +905,21 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (infobipSenderSetting) {
                     document.getElementById('infobip_sender').value = infobipSenderSetting.setting_value || '';
                 }
+
+                const imapHostSetting = settings.find(s => s.setting_key === 'imap_host');
+                if (imapHostSetting) {
+                    document.getElementById('imap_host').value = imapHostSetting.setting_value || '';
+                }
+
+                const imapPortSetting = settings.find(s => s.setting_key === 'imap_port');
+                if (imapPortSetting) {
+                    document.getElementById('imap_port').value = imapPortSetting.setting_value || '';
+                }
+
+                const imapFlagsSetting = settings.find(s => s.setting_key === 'imap_flags');
+                if (imapFlagsSetting) {
+                    document.getElementById('imap_flags').value = imapFlagsSetting.setting_value || '';
+                }
             }
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -936,6 +1022,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         const infobipApiBaseUrl = document.getElementById('infobip_api_base_url').value;
         const infobipSender = document.getElementById('infobip_sender').value;
 
+        const imapHost = document.getElementById('imap_host').value;
+        const imapPort = document.getElementById('imap_port').value;
+        const imapFlags = document.getElementById('imap_flags').value;
+
         const btn = document.getElementById('saveConfigBtn');
         const originalText = btn.innerHTML;
         btn.disabled = true;
@@ -954,7 +1044,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         base_url: baseUrl,
                         infobip_api_key: infobipApiKey,
                         infobip_api_base_url: infobipApiBaseUrl,
-                        infobip_sender: infobipSender
+                        infobip_sender: infobipSender,
+                        imap_host: imapHost,
+                        imap_port: imapPort,
+                        imap_flags: imapFlags
                     }
                 })
             });
