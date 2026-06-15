@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $path_prefix = "../";
 $page_title = "Add Recipe";
 

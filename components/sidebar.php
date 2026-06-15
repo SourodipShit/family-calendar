@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $path_prefix = isset($path_prefix) ? $path_prefix : "";
 require_once __DIR__ . '/../classes/GlobalSettings.php';
 $logoData = GlobalSettings::getSetting('site_logo')['data'] ?? [];

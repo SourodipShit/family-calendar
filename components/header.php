@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -13,7 +13,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
     if ($current_page !== 'login.php' && !isset($is_public_page)) {
-        header("Location: {$path_prefix}login.php");
+        echo '<script>window.location.href = "' . $path_prefix . 'login.php";</script>';
         exit;
     }
 }

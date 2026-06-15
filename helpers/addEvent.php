@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 require_once __DIR__ . '/../classes/Event.php';
 require_once __DIR__ . '/../classes/User.php';

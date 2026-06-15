@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $path_prefix = "../";
 require_once $path_prefix . 'classes/Recipe.php';
 

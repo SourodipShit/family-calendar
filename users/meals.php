@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $path_prefix = "../";
 $page_title = "Meals";
 include $path_prefix . 'components/header.php';

@@ -5,9 +5,9 @@ if (session_status() === PHP_SESSION_NONE) {
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
     if (!isset($_GET['add_account'])) {
         if ($_SESSION['user']['role'] == 'siteadmin') {
-            header("Location: siteadmin/index.php");
+            echo '<script>window.location.href = "siteadmin/index.php";</script>';
         } else {
-            header("Location: users/index.php");
+            echo '<script>window.location.href = "users/index.php";</script>';
         }
         exit;
     }
