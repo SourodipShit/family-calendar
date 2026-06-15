@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 header('Content-Type: application/json');
 
@@ -64,7 +64,7 @@ if ($action == 'check') {
 
 if ($action == 'list') {
     require_once __DIR__ . "/../classes/Recipe.php";
-    $familyId = $_SESSION['user']['families'][0]['family_id'] ?? 1;
+    $familyId = $_SESSION['user']['active_family_id'] ?? 1;
     
     $favoritesResult = Favorite::getUserFavorites($userId);
     $recipesResult = Recipe::getRecipesByFamily($familyId);
@@ -80,3 +80,4 @@ if ($action == 'list') {
 }
 
 echo json_encode(["status" => "error", "message" => "Invalid action."]);
+

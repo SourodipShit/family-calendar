@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 header('Content-Type: application/json');
 
@@ -55,7 +55,7 @@ switch ($action) {
         break;
 
     case 'list':
-        $family_id = $_GET['family_id'] ?? $data['family_id'] ?? $_SESSION['user']['families'][0]['family_id'] ?? null;
+        $family_id = $_GET['family_id'] ?? $data['family_id'] ?? $_SESSION['user']['active_family_id'] ?? null;
         if (!$family_id) {
             echo json_encode(["status" => "error", "message" => "Family ID is required"]);
             break;
@@ -65,7 +65,7 @@ switch ($action) {
         break;
 
     case 'getByDate':
-        $family_id = $_GET['family_id'] ?? $data['family_id'] ?? $_SESSION['user']['families'][0]['family_id'] ?? null;
+        $family_id = $_GET['family_id'] ?? $data['family_id'] ?? $_SESSION['user']['active_family_id'] ?? null;
         $start = $_GET['startDate'] ?? $data['startDate'] ?? null;
         $end = $_GET['endDate'] ?? $data['endDate'] ?? null;
         if (!$family_id || !$start || !$end) {
@@ -117,3 +117,4 @@ switch ($action) {
         echo json_encode(["status" => "error", "message" => "Invalid action"]);
         break;
 }
+

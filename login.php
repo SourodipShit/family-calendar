@@ -33,27 +33,73 @@ if (isset($_POST['login'])) {
         $user = $result['data'];
         $is_siteadmin = ($user['role'] === 'siteadmin');
 
-        $family_approved = true;
-        $family_locked = false;
-        if (!$is_siteadmin && !empty($user['families'])) {
-            // Assuming we check the primary family (first one)
-            $family_approved = !empty($user['families'][0]['approved']);
-            $family_locked = !empty($user['families'][0]['is_locked']);
-            LoginLogs::track($user['id']);
-        }
-
-        if (!$is_siteadmin && !$family_approved) {
-            $error = "Family not approved!";
-        } else if (!$is_siteadmin && $family_locked) {
-            $error = "Family is locked!";
-        } else {
+        if ($is_siteadmin) {
             $_SESSION['accounts'][$user['id']] = $user;
             $_SESSION['active_account_id'] = $user['id'];
             $_SESSION['user'] = $user;
             $success = "Logged in successfully! Redirecting...";
+        } else {
+            if (empty($user['families'])) {
+                $error = "You do not belong to any family!";
+            } else if (count($user['families']) == 1) {
+                $selected_family = $user['families'][0];
+                if (empty($selected_family['approved'])) {
+                    $error = "Family not approved!";
+                } else if (!empty($selected_family['is_locked'])) {
+                    $error = "Family is locked!";
+                } else {
+                    $user['active_family_id'] = $selected_family['family_id'] ?? $selected_family['id'];
+                    $user['active_family'] = $selected_family;
+                    
+                    $_SESSION['accounts'][$user['id']] = $user;
+                    $_SESSION['active_account_id'] = $user['id'];
+                    $_SESSION['user'] = $user;
+                    LoginLogs::track($user['id']);
+                    $success = "Logged in successfully! Redirecting...";
+                }
+            } else {
+                $show_family_modal = true;
+                $families_list = $user['families'];
+                $_SESSION['temp_login_user'] = $user;
+            }
         }
     } else {
         $error = $result['message'];
+    }
+} else if (isset($_POST['select_family'])) {
+    $family_id = $_POST['family_id'];
+    if (isset($_SESSION['temp_login_user'])) {
+        $user = $_SESSION['temp_login_user'];
+        $selected_family = null;
+        foreach ($user['families'] as $f) {
+            $f_id = $f['family_id'] ?? $f['id'];
+            if ($f_id == $family_id) {
+                $selected_family = $f;
+                break;
+            }
+        }
+        
+        if ($selected_family) {
+            if (empty($selected_family['approved'])) {
+                $error = "Family not approved!";
+            } else if (!empty($selected_family['is_locked'])) {
+                $error = "Family is locked!";
+            } else {
+                $user['active_family_id'] = $selected_family['family_id'] ?? $selected_family['id'];
+                $user['active_family'] = $selected_family;
+                
+                $_SESSION['accounts'][$user['id']] = $user;
+                $_SESSION['active_account_id'] = $user['id'];
+                $_SESSION['user'] = $user;
+                LoginLogs::track($user['id']);
+                unset($_SESSION['temp_login_user']);
+                $success = "Logged in successfully! Redirecting...";
+            }
+        } else {
+            $error = "Invalid family selected.";
+        }
+    } else {
+        $error = "Session expired. Please login again.";
     }
 }
 
@@ -192,6 +238,67 @@ if (isset($_POST['login'])) {
         </div>
     </div>
 </div>
+
+<?php if (!empty($show_family_modal)): ?>
+<div class="modal fade show" id="familySelectModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-body p-4 p-md-5">
+                <form id="familySelectForm" method="post" action="">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 64px; height: 64px;">
+                            <i class="fa-solid fa-users fs-3"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Select Family</h4>
+                        <p class="text-muted small mb-0">You belong to multiple families. Please choose one to proceed.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="row g-3">
+                            <?php foreach ($families_list as $index => $f): 
+                                $f_id = $f['family_id'] ?? $f['id'];
+                                $f_name = htmlspecialchars($f['name']);
+                                $f_status = "";
+                                $disabled = "";
+                                $card_class = "border border-secondary-subtle hover-shadow transition-all";
+                                if (empty($f['approved'])) { 
+                                    $f_status = "<span class='badge bg-warning text-dark ms-auto'>Pending</span>"; 
+                                    $disabled = "disabled"; 
+                                    $card_class = "border-light bg-light opacity-75";
+                                } else if (!empty($f['is_locked'])) { 
+                                    $f_status = "<span class='badge bg-danger ms-auto'>Locked</span>"; 
+                                    $disabled = "disabled"; 
+                                    $card_class = "border-light bg-light opacity-75";
+                                }
+                            ?>
+                            <div class="col-12">
+                                <label class="card w-100 <?php echo $card_class; ?>" style="<?php echo $disabled ? 'cursor: not-allowed;' : 'cursor: pointer;'; ?>">
+                                    <div class="card-body d-flex align-items-center p-3">
+                                        <div class="form-check mb-0 fs-5">
+                                            <input class="form-check-input border-secondary" type="radio" name="family_id" id="family_<?php echo $f_id; ?>" value="<?php echo $f_id; ?>" <?php echo $disabled; ?> required>
+                                        </div>
+                                        <div class="ms-3 d-flex flex-grow-1 align-items-center">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-0"><?php echo $f_name; ?></h6>
+                                                <small class="text-muted"><i class="fa-solid fa-house-user me-1"></i> Family Group</small>
+                                            </div>
+                                            <?php echo $f_status; ?>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <button type="submit" name="select_family" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill mb-2 shadow-sm">Continue to Dashboard</button>
+                    <a href="login.php?logout=1" class="btn btn-light btn-lg w-100 fw-medium rounded-pill text-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

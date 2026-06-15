@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $path_prefix = "../";
 $page_title = "Recipes";
 include $path_prefix . 'components/header.php';
@@ -14,7 +14,7 @@ require_once $path_prefix . 'classes/Recipe.php';
 
     <div class="container-fluid p-4">
         <script>
-            const userFamilyId = <?php echo $_SESSION['user']['families'][0]['family_id'] ?? 0; ?>;
+            const userFamilyId = <?php echo $_SESSION['user']['active_family_id'] ?? 0; ?>;
             const currentUserId = <?php echo $_SESSION['user']['id'] ?? 0; ?>;
         </script>
 

@@ -5,7 +5,7 @@ include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 require_once $path_prefix . 'classes/EventTypes.php';
 
-$family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
+$family_id = $_SESSION['user']['active_family_id'] ?? null;
 ?>
 
 <!-- Page Content -->
@@ -129,8 +129,56 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
                                         </div>
                                     </div>
                                     <div class="col-12 mt-3">
+                                        <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
+                                            <div>
+                                                <h6 class="fw-bold mb-1 small">Event Sharing</h6>
+                                                <p class="text-muted extra-small mb-0">Share events across all your family calendars, or keep them separate.</p>
+                                            </div>
+                                            <div class="d-flex gap-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="share_events" id="share_yes" value="yes">
+                                                    <label class="form-check-label small" for="share_yes">Share Across Calendars</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="share_events" id="share_no" value="no" checked>
+                                                    <label class="form-check-label small" for="share_no">Keep Separate</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-3">
                                         <div class="d-flex justify-content-end gap-2">
                                             <button type="submit" id="savePersonalSettingsBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2">Save Changes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Request to Join Family -->
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4 mb-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-success bg-opacity-10 text-success p-2 rounded-3 me-3">
+                                    <i class="ri-user-shared-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Join a Family</h5>
+                                    <p class="text-muted small mb-0">Enter the email of a user to request to join their family.</p>
+                                </div>
+                            </div>
+
+                            <form id="inviteFamilyForm">
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold text-dark extra-small text-uppercase ls-1">User Email</label>
+                                        <div class="input-group border rounded-3 overflow-hidden shadow-sm bg-light border-light">
+                                            <span class="input-group-text bg-transparent border-0 text-muted ps-2"><i class="ri-mail-line"></i></span>
+                                            <input type="email" class="form-control border-0 bg-transparent py-1 px-1 small" id="invite_email" name="email" required placeholder="Enter email address">
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <div class="d-flex justify-content-start gap-2">
+                                            <button type="submit" id="sendInviteBtn" class="btn btn-success btn-sm px-3 py-1 fw-medium rounded-2">Send Join Request</button>
                                         </div>
                                     </div>
                                 </div>
@@ -456,24 +504,109 @@ $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
         loadEventTypes();
         loadGroceryCategories();
 
-        // Load personal settings from local storage
+        // Load personal settings from local storage and DB
         const savedView = localStorage.getItem('default_calendar_view');
         if (savedView) {
             const viewRadio = document.querySelector(`input[name="default_view"][value="${savedView}"]`);
             if (viewRadio) viewRadio.checked = true;
         }
 
+        // Load user settings
+        loadUserSettings();
+
         document.getElementById('event_type_colour').addEventListener('input', (e) => {
             document.getElementById('color-hex-label').innerText = e.target.value.toUpperCase();
         });
     });
 
-    document.getElementById('personalSettingsForm').addEventListener('submit', (e) => {
+    document.getElementById('personalSettingsForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const selectedView = document.querySelector('input[name="default_view"]:checked').value;
+        const shareEvents = document.querySelector('input[name="share_events"]:checked').value;
+
         localStorage.setItem('default_calendar_view', selectedView);
-        showAlert('Personal settings saved successfully', 'success');
+
+        const btn = document.getElementById('savePersonalSettingsBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        try {
+            const response = await fetch(`${API_PATH}user_settings.php?action=update`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    settings: {
+                        share_events: shareEvents
+                    }
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Personal settings saved successfully', 'success');
+            } else {
+                showAlert(result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error updating settings:', error);
+            showAlert('Network error occurred', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     });
+
+    document.getElementById('inviteFamilyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        const btn = document.getElementById('sendInviteBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+
+        try {
+            const response = await fetch(`${API_PATH}family_requests.php?action=create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert(result.message, 'success');
+                form.reset();
+            } else {
+                showAlert(result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error sending invite:', error);
+            showAlert('Network error occurred', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+
+    async function loadUserSettings() {
+        try {
+            const response = await fetch(`${API_PATH}user_settings.php?action=get`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                const settings = result.data;
+                const shareEventsSetting = settings.share_events || 'no';
+                const shareRadio = document.querySelector(`input[name="share_events"][value="${shareEventsSetting}"]`);
+                if (shareRadio) shareRadio.checked = true;
+            }
+        } catch (error) {
+            console.error('Error loading user settings:', error);
+        }
+    }
 
     async function loadFamilyProfile() {
         try {

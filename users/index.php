@@ -39,6 +39,11 @@ include $path_prefix . 'components/sidebar.php';
                                 May 12 – May 18, 2024 <i class="fa-solid fa-chevron-down ms-2 fs-7"></i>
                             </button>
                         </div>
+
+                        <!-- Requests Button -->
+                        <button id="btn-requests" class="btn btn-outline-primary rounded-pill px-3 fw-medium ms-lg-3" data-bs-toggle="modal" data-bs-target="#requestsModal" onclick="loadMyRequests()">
+                            <i class="ri-mail-add-line me-1"></i> Requests <span id="requestsCountBadge" class="badge bg-danger rounded-pill ms-1 d-none">0</span>
+                        </button>
                     </div>
                     <div class="btn-group border mt-3 mt-lg-0" role="group">
                         <button type="button" id="btn-view-day"
@@ -235,32 +240,32 @@ include $path_prefix . 'components/sidebar.php';
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 rounded-4 shadow p-3">
             <form action="../helpers/addEvent.php" method="POST" id="addEventForm">
-            <div class="modal-header border-0 pb-0">
-                <h4 class="modal-title fw-bold" id="addEventModalLabel">Add Event</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Type Tabs -->
-                <div class="d-flex border rounded-3 mb-4 overflow-hidden shadow-sm">
-                    <div
-                        class="flex-fill text-center py-3 border-end bg-primary bg-opacity-10 text-primary fw-bold cursor-pointer border-primary border-bottom border-2">
-                        <i class="fa-regular fa-calendar me-2"></i> Event
-                    </div>
-                    <div
-                        class="flex-fill text-center py-3 border-end text-muted fw-medium cursor-pointer hover-bg-light">
-                        <i class="fa-solid fa-utensils text-warning me-2"></i> Meal
-                    </div>
-                    <div
-                        class="flex-fill text-center py-3 border-end text-muted fw-medium cursor-pointer hover-bg-light">
-                        <i class="fa-regular fa-square-check text-success me-2"></i> Chore
-                    </div>
-                    <div class="flex-fill text-center py-3 text-muted fw-medium cursor-pointer hover-bg-light"><i
-                            class="fa-solid fa-ellipsis me-2" style="color: #ba68c8;"></i> Other</div>
+                <div class="modal-header border-0 pb-0">
+                    <h4 class="modal-title fw-bold" id="addEventModalLabel">Add Event</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <div class="modal-body">
+                    <!-- Type Tabs -->
+                    <div class="d-flex border rounded-3 mb-4 overflow-hidden shadow-sm">
+                        <div
+                            class="flex-fill text-center py-3 border-end bg-primary bg-opacity-10 text-primary fw-bold cursor-pointer border-primary border-bottom border-2">
+                            <i class="fa-regular fa-calendar me-2"></i> Event
+                        </div>
+                        <div
+                            class="flex-fill text-center py-3 border-end text-muted fw-medium cursor-pointer hover-bg-light">
+                            <i class="fa-solid fa-utensils text-warning me-2"></i> Meal
+                        </div>
+                        <div
+                            class="flex-fill text-center py-3 border-end text-muted fw-medium cursor-pointer hover-bg-light">
+                            <i class="fa-regular fa-square-check text-success me-2"></i> Chore
+                        </div>
+                        <div class="flex-fill text-center py-3 text-muted fw-medium cursor-pointer hover-bg-light"><i
+                                class="fa-solid fa-ellipsis me-2" style="color: #ba68c8;"></i> Other</div>
+                    </div>
 
-                <!-- Form Grid -->
-                <input type="hidden" name="member_id" id="selectedMemberId">
-                <div class="row g-4 mb-4">
+                    <!-- Form Grid -->
+                    <input type="hidden" name="member_id" id="selectedMemberId">
+                    <div class="row g-4 mb-4">
                         <!-- Title -->
                         <div class="col-md-12">
                             <label class="form-label fw-semibold text-dark fs-7">Title <span
@@ -416,22 +421,22 @@ include $path_prefix . 'components/sidebar.php';
         <div class="modal-content border-0 rounded-4 shadow p-3">
             <form action="../helpers/editEvent.php" method="POST" id="editEventForm">
                 <input type="hidden" name="event_id" id="editEventId">
-            <div class="modal-header border-0 pb-0">
-                <h4 class="modal-title fw-bold" id="editEventModalLabel">Edit Event</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Type Tabs -->
-                <div class="d-flex border rounded-3 mb-4 overflow-hidden shadow-sm">
-                    <div
-                        class="flex-fill text-center py-3 border-end bg-primary bg-opacity-10 text-primary fw-bold cursor-pointer border-primary border-bottom border-2">
-                        <i class="fa-regular fa-calendar me-2"></i> Event
-                    </div>
+                <div class="modal-header border-0 pb-0">
+                    <h4 class="modal-title fw-bold" id="editEventModalLabel">Edit Event</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <div class="modal-body">
+                    <!-- Type Tabs -->
+                    <div class="d-flex border rounded-3 mb-4 overflow-hidden shadow-sm">
+                        <div
+                            class="flex-fill text-center py-3 border-end bg-primary bg-opacity-10 text-primary fw-bold cursor-pointer border-primary border-bottom border-2">
+                            <i class="fa-regular fa-calendar me-2"></i> Event
+                        </div>
+                    </div>
 
-                <!-- Form Grid -->
-                <input type="hidden" name="member_id" id="editSelectedMemberId">
-                <div class="row g-4 mb-4">
+                    <!-- Form Grid -->
+                    <input type="hidden" name="member_id" id="editSelectedMemberId">
+                    <div class="row g-4 mb-4">
                         <!-- Title -->
                         <div class="col-md-12">
                             <label class="form-label fw-semibold text-dark fs-7">Title <span
@@ -605,7 +610,7 @@ include $path_prefix . 'components/sidebar.php';
                     <i class="fa-solid fa-user text-muted me-3 fs-5" style="width: 20px;"></i>
                     <span id="viewEventMember" class="fw-medium text-dark"></span>
                 </div>
-                
+
                 <div class="d-flex justify-content-end gap-2" id="viewEventEditContainer" style="display: none !important;">
                     <a href="#" id="btnEditEvent" class="btn btn-primary px-3 py-2 rounded-3 shadow-sm" title="Edit">
                         <i class="fa-solid fa-pen"></i>
@@ -618,5 +623,143 @@ include $path_prefix . 'components/sidebar.php';
         </div>
     </div>
 </div>
+
+<!-- Requests Modal -->
+<div class="modal fade" id="requestsModal" tabindex="-1" aria-labelledby="requestsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold" id="requestsModalLabel">Family Invites & Memberships</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="requests-container">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+    // Load my requests
+    async function loadMyRequests() {
+        try {
+            const response = await fetch(`${API_PATH}family_requests.php?action=getMyRequests`);
+            const result = await response.json();
+            const container = document.getElementById('requests-container');
+            const badge = document.getElementById('requestsCountBadge');
+
+            if (result.status === 'success') {
+                const visibleRequests = result.data.filter(r => r.status === 'pending' || r.status === 'approved');
+                const pendingCount = visibleRequests.filter(r => r.status === 'pending').length;
+
+                if (pendingCount > 0) {
+                    badge.textContent = pendingCount;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+
+                if (visibleRequests.length > 0) {
+                    container.innerHTML = visibleRequests.map(req => {
+                        let buttons = '';
+                        if (req.status === 'pending') {
+                            buttons = `
+                            <button class="btn btn-sm btn-success fw-medium px-3" onclick="handleRequest(${req.id}, 'approved')">Accept</button>
+                            <button class="btn btn-sm btn-outline-danger fw-medium px-3" onclick="handleRequest(${req.id}, 'rejected')">Reject</button>
+                        `;
+                        } else if (req.status === 'approved') {
+                            buttons = `
+                            <button class="btn btn-sm btn-danger fw-medium px-3" onclick="delinkRequest(${req.id})">De-link</button>
+                        `;
+                        }
+
+                        return `
+                        <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 mb-2 bg-white shadow-sm">
+                            <div>
+                                <h6 class="mb-1 fw-bold">${req.requester_name || 'A user'} wants to join ${req.family_name}</h6>
+                                <small class="text-muted">${req.email} &middot; <span class="${req.status === 'pending' ? 'text-warning' : 'text-success'} text-capitalize">${req.status}</span></small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                ${buttons}
+                            </div>
+                        </div>
+                    `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<p class="text-muted text-center py-4">No incoming requests.</p>';
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('requests-container').innerHTML = '<p class="text-danger text-center py-4">Failed to load requests.</p>';
+        }
+    }
+
+    async function handleRequest(id, status) {
+        try {
+            const response = await fetch(`${API_PATH}family_requests.php?action=updateStatus`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id,
+                    status
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert(`Request ${status} successfully.`, 'success');
+                loadMyRequests();
+                if (status === 'approved') {
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            } else {
+                showAlert(result.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showAlert('Network error', 'error');
+        }
+    }
+
+    async function delinkRequest(id) {
+        if (!confirm('Are you sure you want to de-link this user from the family?')) return;
+        try {
+            const response = await fetch(`${API_PATH}family_requests.php?action=delink`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert(result.message, 'success');
+                loadMyRequests();
+            } else {
+                showAlert(result.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showAlert('Network error', 'error');
+        }
+    }
+
+    // Initial badge update
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMyRequests();
+    });
+</script>
 
 <?php include $path_prefix . 'components/footer.php'; ?>

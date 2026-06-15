@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -13,7 +13,7 @@ switch ($action) {
         $count = isset($_GET['count']) ? (int) $_GET['count'] : 0;
         $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
         $filter = isset($_GET['filter']) ? $_GET['filter'] : [];
-        $userFamilyId = $_SESSION['user']['families'][0]['family_id'] ?? 0;
+        $userFamilyId = $_SESSION['user']['active_family_id'] ?? 0;
         $result = Recipe::getRecipies($count, $offset, $filter, $userFamilyId);
         echo json_encode($result);
         exit;
@@ -53,3 +53,4 @@ switch ($action) {
         echo json_encode(["status" => "error", "message" => "Invalid action."]);
         exit;
 }
+

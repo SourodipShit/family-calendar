@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 header('Content-Type: application/json');
 
@@ -10,7 +10,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 $action = $_GET['action'] ?? '';
-$family_id = $_POST['family_id'] ?? $_SESSION['user']['families'][0]['family_id'] ?? null;
+$family_id = $_POST['family_id'] ?? $_SESSION['user']['active_family_id'] ?? null;
 
 if (!$family_id) {
     echo json_encode(["status" => "error", "message" => "No family selected"]);
@@ -122,3 +122,4 @@ if ($action == 'getStorageDetails') {
 
 echo json_encode(["status" => "error", "message" => "Invalid action"]);
 exit;
+

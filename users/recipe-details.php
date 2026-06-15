@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $path_prefix = "../";
 require_once $path_prefix . 'classes/Recipe.php';
 
@@ -8,7 +8,7 @@ if (!$recipeId) {
     exit;
 }
 
-$userFamilyId = $_SESSION['user']['families'][0]['family_id'] ?? 0;
+$userFamilyId = $_SESSION['user']['active_family_id'] ?? 0;
 $response = Recipe::getById($recipeId, $userFamilyId);
 if ($response['status'] === 'error') {
     header("Location: recipes.php");
@@ -254,3 +254,4 @@ $userImage = $recipe['user_image'] ? (str_contains($recipe['user_image'], 'http'
 </div>
 
 <?php include $path_prefix . 'components/footer.php'; ?>
+

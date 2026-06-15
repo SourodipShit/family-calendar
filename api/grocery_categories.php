@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../classes/GroceryCategories.php';
 require_once __DIR__ . '/../config/Database.php';
 
@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$familyId = $_SESSION['user']['families'][0]['family_id'] ?? null;
+$familyId = $_SESSION['user']['active_family_id'] ?? null;
 
 if (!$familyId) {
     echo json_encode(["status" => false, "message" => "No family found in session"]);
@@ -60,3 +60,4 @@ switch ($action) {
         echo json_encode(["status" => false, "message" => "Invalid action"]);
         break;
 }
+

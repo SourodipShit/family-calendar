@@ -1,14 +1,14 @@
-<?php
+﻿<?php
 $path_prefix = "../";
 $page_title = "Meals";
 include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 
-$family_id = $_SESSION['user']['families'][0]['family_id'] ?? 1;
+$family_id = $_SESSION['user']['active_family_id'] ?? 1;
 
 $use_recipes_in_meal = false;
-if (isset($_SESSION['user']['families'][0]['settings'])) {
-    $settings_json = $_SESSION['user']['families'][0]['settings'];
+if (isset($_SESSION['user']['active_family']['settings'])) {
+    $settings_json = $_SESSION['user']['active_family']['settings'];
     $settings = is_string($settings_json) ? json_decode($settings_json, true) : $settings_json;
     if (is_array($settings) && !empty($settings['use_recipes_in_meal'])) {
         $use_recipes_in_meal = filter_var($settings['use_recipes_in_meal'], FILTER_VALIDATE_BOOLEAN);
@@ -242,7 +242,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                             <button class="btn btn-white border-0 py-2 px-3" id="btn-prev"><i
                                     class="fa-solid fa-chevron-left text-muted"></i></button>
                             <button class="btn btn-white border-0 py-2 px-3 fw-bold border-start border-end"
-                                id="date-picker-btn"><i class="fa-regular fa-calendar me-2"></i> May 12 – May
+                                id="date-picker-btn"><i class="fa-regular fa-calendar me-2"></i> May 12 â€“ May
                                 18, 2024</button>
                             <button class="btn btn-white border-0 py-2 px-3" id="btn-next"><i
                                     class="fa-solid fa-chevron-right text-muted"></i></button>
@@ -358,7 +358,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                         <!-- Motivational Banner -->
                         <div class="mt-4 p-4 rounded-4 d-lg-flex align-items-lg-center"
                             style="background-color: #f0f7ff;">
-                            <div class="bg-white rounded d-inline-block p-2 me-3 fs-5 shadow-sm text-primary">💡
+                            <div class="bg-white rounded d-inline-block p-2 me-3 fs-5 shadow-sm text-primary">ðŸ’¡
                             </div>
                             <div class="flex-grow-1 my-2 my-lg-0">
                                 <span class="fw-bold">Plan ahead for success!</span> Planning your meals in
@@ -406,7 +406,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                             <div id="grocery-content-area" class="d-none">
                                 <div class="text-center mb-3 mt-1">
                                     <h4 id="display-list-title" class="fw-bold mb-0 text-dark">Weekly Groceries</h4>
-                                    <p id="display-list-dates" class="text-muted fw-medium mb-0 small">May 11 – May 17, 2024</p>
+                                    <p id="display-list-dates" class="text-muted fw-medium mb-0 small">May 11 â€“ May 17, 2024</p>
                                 </div>
 
                                 <div id="display-items-list" class="row g-3">
@@ -583,7 +583,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
             const yearOptions = {
                 year: 'numeric'
             };
-            const dateRangeText = `${range.start.toLocaleDateString('en-US', options)} – ${range.end.toLocaleDateString('en-US', options)}, ${range.end.toLocaleDateString('en-US', yearOptions)}`;
+            const dateRangeText = `${range.start.toLocaleDateString('en-US', options)} â€“ ${range.end.toLocaleDateString('en-US', options)}, ${range.end.toLocaleDateString('en-US', yearOptions)}`;
             document.getElementById('date-picker-btn').innerHTML = `<i class="fa-regular fa-calendar me-2"></i> ${dateRangeText}`;
 
             // Update Planner Header
@@ -633,7 +633,7 @@ if (isset($_SESSION['user']['families'][0]['settings'])) {
                 day: 'numeric'
             });
             const end = new Date(list.week_end_date).toLocaleDateString('en-US', options);
-            document.getElementById('display-list-dates').textContent = `${start} – ${end}`;
+            document.getElementById('display-list-dates').textContent = `${start} â€“ ${end}`;
 
             if (list.notes && list.notes.trim() !== "") {
                 document.getElementById('display-list-notes-container').classList.remove('d-none');

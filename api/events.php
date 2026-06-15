@@ -17,7 +17,7 @@ switch ($action) {
 function getEventsByDateRange()
 {
     try {
-        $familyId = $_SESSION['user']['families'][0]['family_id'];
+        $familyId = $_SESSION['user']['active_family_id'];
         $events = Event::getEventsByDateRange($_GET['start'], $_GET['end'], $familyId);
         $filteredEvents = [];
         foreach ($events as $key => $event) {
@@ -55,3 +55,4 @@ function calculateDuration($startTime, $endTime)
     $decimal = $hours + ($minutes / 60);
     return round($decimal, 2); // optional rounding
 }
+

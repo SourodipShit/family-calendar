@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once __DIR__ . '/../classes/Event.php';
 require_once __DIR__ . '/../classes/User.php';
@@ -16,7 +16,7 @@ if (isset($_POST['save'])) {
         exit;
     }
 
-    $family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
+    $family_id = $_SESSION['user']['active_family_id'] ?? null;
     $user_id = $_SESSION['user']['id'] ?? null;
 
     if (!$family_id || !$user_id) {
@@ -105,3 +105,4 @@ if (isset($_POST['save'])) {
     header("Location: ../users/index.php");
     exit;
 }
+

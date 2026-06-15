@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $path_prefix = "../";
 $page_title = "Add Recipe";
 
@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $recipeData = [
             'user_id' => $_SESSION['user']['id'],
-            'family_id' => $_SESSION['user']['families'][0]['family_id'],
+            'family_id' => $_SESSION['user']['active_family_id'],
             'name' => $_POST['name'],
             'category' => $_POST['category'],
             'cuisine' => $_POST['cuisine'],
@@ -281,7 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <div class="col-md-6">
                                                 <div class="input-group input-group-sm border rounded-2 bg-white">
                                                     <span class="input-group-text bg-transparent border-0 text-muted"><i class="fa-solid fa-temperature-half"></i></span>
-                                                    <input type="text" name="temperature[]" class="form-control border-0" placeholder="Temp (e.g. 350°F)">
+                                                    <input type="text" name="temperature[]" class="form-control border-0" placeholder="Temp (e.g. 350Â°F)">
                                                 </div>
                                             </div>
                                         </div>
@@ -579,3 +579,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php include $path_prefix . 'components/footer.php'; ?>
+

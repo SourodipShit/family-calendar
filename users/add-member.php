@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $path_prefix = "../";
 $page_title = "Add Family Member";
 include $path_prefix . 'components/header.php';
@@ -39,7 +39,7 @@ if (isset($_POST['submit'])) {
             'role' => $role,
             'image' => $image_path,
             'password' => $hashed_password,
-            'family_id' => $_SESSION['user']['families'][0]['family_id']
+            'family_id' => $_SESSION['user']['active_family_id']
         ];
 
         $add_result = User::addUser($user_data);
@@ -52,7 +52,7 @@ if (isset($_POST['submit'])) {
             require_once __DIR__ . '/../classes/GlobalSettings.php';
             
             // 1. Notify Family Heads
-            $family_id = $_SESSION['user']['families'][0]['family_id'];
+            $family_id = $_SESSION['user']['active_family_id'];
             $stmt = Database::runPrepared("SELECT u.name, u.email FROM users u JOIN user_family uf ON u.id = uf.user_id WHERE uf.family_id = ? AND u.role = 'family-head'", [$family_id]);
             $heads = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if ($heads) {

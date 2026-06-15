@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/SharedEmails.php';
 
@@ -13,7 +13,7 @@ class Family
             ON users.id = user_family.user_id 
          WHERE user_family.family_id = ?
          AND users.role IN ('member','family-head')",
-            [$_SESSION['user']['families'][0]['family_id']]
+            [$_SESSION['user']['active_family_id']]
         )->fetchAll(PDO::FETCH_ASSOC);
 
         return $members;
@@ -145,3 +145,4 @@ class Family
         }
     }
 }
+

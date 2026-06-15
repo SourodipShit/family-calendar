@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../config/Database.php';
+
 $path_prefix = isset($path_prefix) ? $path_prefix : "";
 $page_title = isset($page_title) ? $page_title : "Family Calendar";
 $logoData = GlobalSettings::getSetting('site_logo')['data'] ?? [];
@@ -8,6 +10,16 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
     // Keep as is
 } else {
     $globalSettingsLogo = $path_prefix . "public/img/logo-fmly.png";
+}
+
+$userFamilies = [];
+if (isset($_SESSION['user']['id'])) {
+    $userFamilies = Database::runPrepared(
+        "SELECT f.id, f.name FROM families f 
+         JOIN user_family uf ON f.id = uf.family_id 
+         WHERE uf.user_id = ?",
+        [$_SESSION['user']['id']]
+    )->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 <!-- Top Navigation -->
@@ -148,6 +160,26 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                         <span class="fw-medium">Add Account</span>
                     </a>
                 </li>
+                <?php if (count($userFamilies) > 1): ?>
+                <li>
+                    <hr class="dropdown-divider opacity-50">
+                </li>
+                <li><h6 class="dropdown-header px-3">Switch Family</h6></li>
+                <?php foreach ($userFamilies as $family): ?>
+                    <li>
+                        <form method="POST" action="<?php echo $path_prefix; ?>helpers/switch-family.php" class="m-0">
+                            <input type="hidden" name="target_family_id" value="<?php echo $family['id']; ?>">
+                            <button type="submit" class="dropdown-item d-flex align-items-center py-2 rounded-2 <?php echo ($family['id'] == $_SESSION['user']['active_family_id']) ? 'bg-light' : ''; ?>">
+                                <i class="fa-solid fa-users me-2 text-secondary fs-6"></i>
+                                <span class="fw-medium"><?php echo htmlspecialchars($family['name']); ?></span>
+                                <?php if ($family['id'] == $_SESSION['user']['active_family_id']): ?>
+                                    <i class="fa-solid fa-check ms-auto text-success"></i>
+                                <?php endif; ?>
+                            </button>
+                        </form>
+                    </li>
+                <?php endforeach; ?>
+                <?php endif; ?>
                 <li>
                     <hr class="dropdown-divider opacity-50">
                 </li>

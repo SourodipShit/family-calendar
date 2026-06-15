@@ -17,7 +17,7 @@ $action = $_GET['action'] ?? '';
 $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
 // Current family ID
-$family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
+$family_id = $_SESSION['user']['active_family_id'] ?? null;
 
 if (!$family_id) {
     echo json_encode(['status' => 'error', 'message' => 'Family context not found']);
@@ -39,12 +39,63 @@ switch ($action) {
     case 'updateSettings':
         $result = Family::updateFamilySettings($data['settings'], $family_id);
         if ($result['status'] === 'success') {
-            $_SESSION['user']['families'][0]['settings'] = json_encode($data['settings']);
+            $_SESSION['user']['active_family']['settings'] = json_encode($data['settings']);
         }
         echo json_encode($result);
+        exit;
+
+    case 'leave':
+        $leave_family_id = $data['family_id'] ?? null;
+        $user_id = $_SESSION['user']['id'];
+        if (!$leave_family_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Missing family ID']);
+            exit;
+        }
+        try {
+            $count = Database::runPrepared("SELECT COUNT(*) as c FROM user_family WHERE user_id = ?", [$user_id])->fetch()['c'];
+            if ($count <= 1) {
+                echo json_encode(['status' => 'error', 'message' => 'You cannot leave your only family.']);
+                exit;
+            }
+            Database::runPrepared("DELETE FROM user_family WHERE user_id = ? AND family_id = ?", [$user_id, $leave_family_id]);
+            
+            if ($leave_family_id == $family_id) {
+                // If they leave the active family, clear session families to force re-evaluation on reload
+                unset($_SESSION['user']['families']);
+                echo json_encode(['status' => 'success', 'redirect' => true, 'message' => 'Left family successfully.']);
+            } else {
+                echo json_encode(['status' => 'success', 'message' => 'Left family successfully.']);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to leave family.']);
+        }
+        exit;
+
+    case 'getMembers':
+        $members = Family::getMembersByFamilyId($family_id);
+        echo json_encode(['status' => 'success', 'data' => $members]);
+        exit;
+
+    case 'removeMember':
+        $remove_user_id = $data['user_id'] ?? null;
+        if (!$remove_user_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Missing user ID']);
+            exit;
+        }
+        if ($remove_user_id == $_SESSION['user']['id']) {
+            echo json_encode(['status' => 'error', 'message' => 'You cannot remove yourself. Use the leave family option.']);
+            exit;
+        }
+        try {
+            Database::runPrepared("DELETE FROM user_family WHERE user_id = ? AND family_id = ?", [$remove_user_id, $family_id]);
+            echo json_encode(['status' => 'success', 'message' => 'Member removed successfully.']);
+        } catch (PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to remove member.']);
+        }
         exit;
 
     default:
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         exit;
 }
+

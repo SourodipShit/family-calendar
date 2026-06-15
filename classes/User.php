@@ -91,6 +91,31 @@ class User
         return ['status' => 'error', 'message' => 'Failed to update user'];
     }
 
+    public static function getUserSettings($user_id)
+    {
+        $stmt = Database::runPrepared("SELECT settings FROM users WHERE id = ?", [$user_id]);
+        $result = $stmt->fetchColumn();
+        return $result ? json_decode($result, true) : [];
+    }
+
+    public static function updateUserSettings($settings, $user_id)
+    {
+        try {
+            // Ensure settings is a valid JSON string
+            $settings_json = is_string($settings) ? $settings : json_encode($settings);
+            
+            $result = Database::runPrepared("UPDATE users SET settings = ? WHERE id = ?", [$settings_json, $user_id]);
+            
+            if ($result) {
+                return ['status' => 'success', 'message' => 'User settings updated successfully'];
+            }
+        } catch (PDOException $e) {
+            return ['status' => 'error', 'message' => 'Failed to update user settings: ' . $e->getMessage()];
+        }
+
+        return ['status' => 'error', 'message' => 'Failed to update user settings'];
+    }
+
     public static function deleteUser($user_id, $image_path = null)
     {
         if ($image_path && file_exists($image_path)) {

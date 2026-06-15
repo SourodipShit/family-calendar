@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -41,7 +41,7 @@ if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
     <script>
         const API_PATH = "<?php echo $path_prefix; ?>api/";
         window.familySettings = <?php 
-            $settings = $_SESSION['user']['families'][0]['settings'] ?? '{}';
+            $settings = $_SESSION['user']['active_family']['settings'] ?? '{}';
             if (is_string($settings) && !empty($settings)) {
                 echo $settings;
             } else {

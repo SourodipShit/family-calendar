@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../classes/EventTypes.php';
 require_once __DIR__ . '/../config/Database.php';
 
@@ -17,7 +17,7 @@ $action = $_GET['action'] ?? '';
 $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
 // Current family ID - assuming the first one for now or from session if set
-$family_id = $_SESSION['user']['families'][0]['family_id'] ?? null;
+$family_id = $_SESSION['user']['active_family_id'] ?? null;
 
 if (!$family_id) {
     echo json_encode(['status' => 'error', 'message' => 'Family context not found']);
@@ -67,3 +67,4 @@ switch ($action) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
         break;
 }
+
