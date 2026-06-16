@@ -69,14 +69,9 @@ class FamilyRequest
             );
             
             if ($status === 'approved') {
-                $req = Database::runPrepared("SELECT * FROM family_requests WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
-                if ($req && $req['requester_id']) {
-                    // Check if already in user_family
-                    $existing = Database::runPrepared("SELECT id FROM user_family WHERE user_id = ? AND family_id = ?", [$req['requester_id'], $req['family_id']])->fetch();
-                    if (!$existing) {
-                        Database::runPrepared("INSERT INTO user_family (user_id, family_id) VALUES (?, ?)", [$req['requester_id'], $req['family_id']]);
-                    }
-                }
+                // The requester and receiver are now linked.
+                // We no longer insert the requester into user_family.
+                // This ensures they only see shared events, not the full family calendar.
             }
             
             $pdo->commit();

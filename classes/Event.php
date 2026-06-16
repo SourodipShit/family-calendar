@@ -4,15 +4,25 @@ require_once __DIR__ . "/Remainder.php";
 
 class  Event
 {
-    public static function getEventsByDateRange($startDate, $endDate, $familyId)
+    public static function getEventsByDateRange($startDate, $endDate, $familyId, $userId = null)
     {
         $sql = "SELECT e.*, e.created_by, et.name AS type, et.colour AS color, em.user_id, u.name as member, u.nickname as member_nickname
                 FROM events AS e 
                 INNER JOIN event_types AS et ON e.type_id = et.id 
                 INNER JOIN event_members AS em ON e.id = em.event_id 
                 INNER JOIN users u ON em.user_id = u.id
-                WHERE e.start_time BETWEEN ? AND ? AND e.family_id = ?";
-        $events = Database::runPrepared($sql, [$startDate, $endDate, $familyId])->fetchAll(PDO::FETCH_ASSOC);
+                WHERE e.start_time BETWEEN ? AND ? 
+                AND (
+                    e.family_id = ? 
+                    OR 
+                    e.id IN (
+                        SELECT em2.event_id 
+                        FROM event_members em2 
+                        JOIN family_requests fr ON fr.receiver_id = em2.user_id 
+                        WHERE fr.requester_id = ? AND fr.status = 'approved'
+                    )
+                )";
+        $events = Database::runPrepared($sql, [$startDate, $endDate, $familyId, $userId])->fetchAll(PDO::FETCH_ASSOC);
         return $events;
     }
 
