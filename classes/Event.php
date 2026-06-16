@@ -29,52 +29,31 @@ class  Event
     public static function add($data)
     {
         try {
-            // Check if user has share_events enabled
             $userId = $data['created_by'];
-            $userSettings = User::getUserSettings($userId);
-            $shareEvents = isset($userSettings['share_events']) && $userSettings['share_events'] === 'yes';
+            $fId = $data['family_id'];
 
-            $targetFamilies = [$data['family_id']];
-            $syncId = null;
+            $sql = "INSERT INTO events (family_id, title, description, type_id, start_time, end_time, location, is_all_day, event_repeat, remainder, created_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-            if ($shareEvents) {
-                // Get all families for user
-                $userFamilies = Database::runPrepared("SELECT family_id FROM user_family WHERE user_id = ?", [$userId])->fetchAll(PDO::FETCH_ASSOC);
-                if (count($userFamilies) > 1) {
-                    $targetFamilies = array_column($userFamilies, 'family_id');
-                    $syncId = uniqid('sync_', true);
-                }
-            }
+            Database::runPrepared($sql, [
+                $fId,
+                $data['title'],
+                $data['description'] ?? null,
+                $data['type_id'],
+                $data['start_time'],
+                $data['end_time'] ?? null,
+                $data['location'] ?? null,
+                $data['is_all_day'] ?? 0,
+                $data['event_repeat'] ?? null,
+                $data['remainder'] ?? null,
+                $userId
+            ]);
 
-            foreach ($targetFamilies as $fId) {
-                $sql = "INSERT INTO events (family_id, title, description, type_id, start_time, end_time, location, is_all_day, event_repeat, remainder, created_by, sync_id)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-                Database::runPrepared($sql, [
-                    $fId,
-                    $data['title'],
-                    $data['description'] ?? null,
-                    $data['type_id'],
-                    $data['start_time'],
-                    $data['end_time'] ?? null,
-                    $data['location'] ?? null,
-                    $data['is_all_day'] ?? 0,
-                    $data['event_repeat'] ?? null,
-                    $data['remainder'] ?? null,
-                    $userId,
-                    $syncId
-                ]);
-
-                $id = Database::getInstance()->lastInsertId();
-                
-                // Only invite members to the primary active family event
-                if ($fId == $data['family_id'] && isset($data['members'])) {
-                    foreach ($data['members'] as $memberId) {
-                        Event::addMember($id, $memberId);
-                    }
-                } else if ($fId != $data['family_id']) {
-                    // For other families, just add the creator as a member
-                    Event::addMember($id, $userId);
+            $id = Database::getInstance()->lastInsertId();
+            
+            if (isset($data['members'])) {
+                foreach ($data['members'] as $memberId) {
+                    Event::addMember($id, $memberId);
                 }
             }
 
@@ -96,28 +75,17 @@ class  Event
     public static function update($id, $data, $userId)
     {
         try {
-            $check = Database::runPrepared("SELECT created_by, sync_id FROM events WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
+            $check = Database::runPrepared("SELECT created_by FROM events WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
             if (!$check || $check['created_by'] != $userId) {
                 return ["msg" => "Unauthorized", "status" => "error"];
             }
 
-            $syncId = $check['sync_id'];
-
-            if ($syncId) {
-                $sql = "UPDATE events SET title = ?, description = ?, type_id = ?, start_time = ?, end_time = ?, location = ?, is_all_day = ?, event_repeat = ?, remainder = ? WHERE sync_id = ?";
-                $params = [
-                    $data['title'], $data['description'] ?? null, $data['type_id'], $data['start_time'],
-                    $data['end_time'] ?? null, $data['location'] ?? null, $data['is_all_day'] ?? 0,
-                    $data['event_repeat'] ?? null, $data['remainder'] ?? null, $syncId
-                ];
-            } else {
-                $sql = "UPDATE events SET title = ?, description = ?, type_id = ?, start_time = ?, end_time = ?, location = ?, is_all_day = ?, event_repeat = ?, remainder = ? WHERE id = ?";
-                $params = [
-                    $data['title'], $data['description'] ?? null, $data['type_id'], $data['start_time'],
-                    $data['end_time'] ?? null, $data['location'] ?? null, $data['is_all_day'] ?? 0,
-                    $data['event_repeat'] ?? null, $data['remainder'] ?? null, $id
-                ];
-            }
+            $sql = "UPDATE events SET title = ?, description = ?, type_id = ?, start_time = ?, end_time = ?, location = ?, is_all_day = ?, event_repeat = ?, remainder = ? WHERE id = ?";
+            $params = [
+                $data['title'], $data['description'] ?? null, $data['type_id'], $data['start_time'],
+                $data['end_time'] ?? null, $data['location'] ?? null, $data['is_all_day'] ?? 0,
+                $data['event_repeat'] ?? null, $data['remainder'] ?? null, $id
+            ];
             Database::runPrepared($sql, $params);
 
             // Members are only updated for the explicit event ID being edited, as other families have different members
@@ -138,27 +106,14 @@ class  Event
     public static function delete($id, $userId)
     {
         try {
-            $check = Database::runPrepared("SELECT created_by, sync_id FROM events WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
+            $check = Database::runPrepared("SELECT created_by FROM events WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
             if (!$check || $check['created_by'] != $userId) {
                 return ["msg" => "Unauthorized", "status" => "error"];
             }
 
-            $syncId = $check['sync_id'];
-
-            if ($syncId) {
-                // Delete all events with syncId
-                $eventIds = Database::runPrepared("SELECT id FROM events WHERE sync_id = ?", [$syncId])->fetchAll(PDO::FETCH_COLUMN);
-                if ($eventIds) {
-                    $inQuery = implode(',', array_fill(0, count($eventIds), '?'));
-                    Database::runPrepared("DELETE FROM event_reminders WHERE event_id IN ($inQuery)", $eventIds);
-                    Database::runPrepared("DELETE FROM event_members WHERE event_id IN ($inQuery)", $eventIds);
-                    Database::runPrepared("DELETE FROM events WHERE sync_id = ?", [$syncId]);
-                }
-            } else {
-                Database::runPrepared("DELETE FROM event_reminders WHERE event_id = ?", [$id]);
-                Database::runPrepared("DELETE FROM event_members WHERE event_id = ?", [$id]);
-                Database::runPrepared("DELETE FROM events WHERE id = ?", [$id]);
-            }
+            Database::runPrepared("DELETE FROM event_reminders WHERE event_id = ?", [$id]);
+            Database::runPrepared("DELETE FROM event_members WHERE event_id = ?", [$id]);
+            Database::runPrepared("DELETE FROM events WHERE id = ?", [$id]);
 
             return ["msg" => "Event deleted successfully", "status" => "success"];
         } catch (Exception $e) {

@@ -25,16 +25,18 @@ require_once $path_prefix . 'classes/Recipe.php';
                 <p class="text-muted small mb-0">Explore and share family favorites</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="recipe-requests.php" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">
-                    <i class="fa-solid fa-envelope-open-text me-2"></i> Access Requests 
-                    <?php 
-                    $reqCountRes = Recipe::getAccessRequestCount($_SESSION['user']['id']);
-                    $pendingCount = ($reqCountRes['status'] === 'success') ? $reqCountRes['data'] : 0;
-                    if ($pendingCount > 0): 
-                    ?>
-                        <span class="badge bg-danger rounded-circle ms-2" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;" id="access-requests-count"><?php echo $pendingCount; ?></span>
-                    <?php endif; ?>
-                </a>
+                <?php if ($_SESSION['user']['role'] == 'family-head'): ?>
+                    <a href="recipe-requests.php" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">
+                        <i class="fa-solid fa-envelope-open-text me-2"></i> Access Requests
+                        <?php
+                        $reqCountRes = Recipe::getAccessRequestCount($_SESSION['user']['id']);
+                        $pendingCount = ($reqCountRes['status'] === 'success') ? $reqCountRes['data'] : 0;
+                        if ($pendingCount > 0):
+                        ?>
+                            <span class="badge bg-danger rounded-circle ms-2" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;" id="access-requests-count"><?php echo $pendingCount; ?></span>
+                        <?php endif; ?>
+                    </a>
+                <?php endif; ?>
                 <a href="add-recipe.php" class="btn btn-primary rounded-pill px-4 py-2 fw-bold">
                     <i class="fa-solid fa-plus me-2"></i> Add Recipe
                 </a>
@@ -267,24 +269,24 @@ require_once $path_prefix . 'classes/Recipe.php';
             if (confirm('Are you sure you want to delete this recipe?')) {
                 const formData = new FormData();
                 formData.append('recipeId', recipeId);
-                
+
                 fetch(`../api/recipe.php?action=deleteRecipe`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(response => {
-                    if (response.status === 'success') {
-                        showAlert(response.message, 'success');
-                        fetchRecipes(true); // Refresh grid
-                    } else {
-                        showAlert(response.message || 'Failed to delete recipe', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error deleting recipe:', error);
-                    showAlert('Failed to delete recipe', 'error');
-                });
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status === 'success') {
+                            showAlert(response.message, 'success');
+                            fetchRecipes(true); // Refresh grid
+                        } else {
+                            showAlert(response.message || 'Failed to delete recipe', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting recipe:', error);
+                        showAlert('Failed to delete recipe', 'error');
+                    });
             }
         };
 

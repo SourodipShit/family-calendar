@@ -32,58 +32,36 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                 <small class="opacity-75" style="font-size: 0.7rem;">Your personal preferences</small>
                             </div>
                         </a>
-                        <a href="#family-details" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
-                            <i class="ri-home-4-line me-3 fs-5 text-primary"></i>
-                            <div>
-                                <span class="fw-bold d-block small">Family Profile</span>
-                                <small class="opacity-75" style="font-size: 0.7rem;">Basic info & location</small>
-                            </div>
-                        </a>
-                        <a href="#general-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
-                            <i class="ri-settings-4-line me-3 fs-5 text-secondary"></i>
-                            <div>
-                                <span class="fw-bold d-block small">General Settings</span>
-                                <small class="text-muted" style="font-size: 0.7rem;">Display & app preferences</small>
-                            </div>
-                        </a>
-                        <a href="#event-types" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
-                            <i class="ri-calendar-event-line me-3 fs-5 text-warning"></i>
-                            <div>
-                                <span class="fw-bold d-block small">Event Types</span>
-                                <small class="text-muted" style="font-size: 0.7rem;">Custom categories & colors</small>
-                            </div>
-                        </a>
-                        <a href="#grocery-categories" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
-                            <i class="ri-shopping-basket-2-line me-3 fs-5 text-success"></i>
-                            <div>
-                                <span class="fw-bold d-block small">Grocery Categories</span>
-                                <small class="text-muted" style="font-size: 0.7rem;">Organize your shopping list</small>
-                            </div>
-                        </a>
-                        <!-- Commented out tabs as requested -->
-                        <!-- 
-                        <a href="#meal-types" class="list-group-item list-group-item-action py-2 px-3 d-flex align-items-center border-0" data-bs-toggle="list">
-                            <i class="ri-restaurant-line me-2 fs-5 text-success"></i>
-                            <div>
-                                <span class="fw-bold d-block small">Meal Types</span>
-                                <small class="text-muted" style="font-size: 0.7rem;">Daily meal planning labels</small>
-                            </div>
-                        </a>
-                        <a href="#chore-types" class="list-group-item list-group-item-action py-2 px-3 d-flex align-items-center border-0" data-bs-toggle="list">
-                            <i class="ri-checkbox-circle-line me-2 fs-5 text-info"></i>
-                            <div>
-                                <span class="fw-bold d-block small">Chore Categories</span>
-                                <small class="text-muted" style="font-size: 0.7rem;">Organize household tasks</small>
-                            </div>
-                        </a>
-                        <a href="#notifications" class="list-group-item list-group-item-action py-2 px-3 d-flex align-items-center border-0" data-bs-toggle="list">
-                            <i class="ri-notification-3-line me-2 fs-5 text-danger"></i>
-                            <div>
-                                <span class="fw-bold d-block small">Notifications</span>
-                                <small class="text-muted" style="font-size: 0.7rem;">Email & push alerts</small>
-                            </div>
-                        </a>
-                        -->
+                        <?php if ($_SESSION['user']['role'] == 'family-head'): ?>
+                            <a href="#family-details" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                                <i class="ri-home-4-line me-3 fs-5 text-primary"></i>
+                                <div>
+                                    <span class="fw-bold d-block small">Family Profile</span>
+                                    <small class="opacity-75" style="font-size: 0.7rem;">Basic info & location</small>
+                                </div>
+                            </a>
+                            <a href="#general-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                                <i class="ri-settings-4-line me-3 fs-5 text-secondary"></i>
+                                <div>
+                                    <span class="fw-bold d-block small">General Settings</span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Display & app preferences</small>
+                                </div>
+                            </a>
+                            <a href="#event-types" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                                <i class="ri-calendar-event-line me-3 fs-5 text-warning"></i>
+                                <div>
+                                    <span class="fw-bold d-block small">Event Types</span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Custom categories & colors</small>
+                                </div>
+                            </a>
+                            <a href="#grocery-categories" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                                <i class="ri-shopping-basket-2-line me-3 fs-5 text-success"></i>
+                                <div>
+                                    <span class="fw-bold d-block small">Grocery Categories</span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Organize your shopping list</small>
+                                </div>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

@@ -57,6 +57,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                 <small class="text-muted" style="font-size: 0.7rem;">Manage system time zones</small>
                             </div>
                         </a>
+                        <a href="#system-reset" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0 text-danger" data-bs-toggle="list">
+                            <i class="ri-alert-line me-3 fs-5"></i>
+                            <div>
+                                <span class="fw-bold d-block small">System Reset</span>
+                                <small class="text-danger opacity-75" style="font-size: 0.7rem;">Danger Zone</small>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -455,6 +462,37 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             </div>
                         </div>
                     </div>
+
+                    <!-- System Reset -->
+                    <div class="tab-pane fade" id="system-reset">
+                        <div class="card border-danger shadow-sm rounded-3 p-3 p-md-4 mb-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 me-3">
+                                    <i class="ri-alert-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-danger mb-0">Danger Zone</h5>
+                                    <p class="text-muted small mb-0">Irreversible system reset actions.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4 pb-4 border-bottom">
+                                <h6 class="fw-bold">Reset All Family Assets</h6>
+                                <p class="small text-muted">This will delete all events, meals, recipes, grocery lists, and uploaded photos. Users, families, and configuration will remain untouched.</p>
+                                <button class="btn btn-outline-danger" onclick="triggerResetAssets()">
+                                    <i class="ri-delete-bin-line me-2"></i> Reset Family Assets
+                                </button>
+                            </div>
+
+                            <div>
+                                <h6 class="fw-bold text-danger">Factory Reset</h6>
+                                <p class="small text-muted">This will wipe the entire system clean! It deletes all families, all users (except site admins), and all assets. Only global settings and default categories are preserved.</p>
+                                <button class="btn btn-danger" onclick="triggerFactoryReset()">
+                                    <i class="ri-skull-line me-2"></i> Perform Factory Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -495,6 +533,32 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         transition: height 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     }
 </style>
+
+<!-- Password Confirmation Modal for Resets -->
+<div class="modal fade" id="passwordConfirmModal" tabindex="-1" aria-labelledby="passwordConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold text-danger" id="passwordConfirmModalLabel">Security Check</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <p class="small text-muted mb-3" id="passwordConfirmMessage">Please enter your admin password to confirm this action.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark small">Admin Password <span class="text-danger">*</span></label>
+                    <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                        <input type="password" class="form-control border-0 px-3 py-2 small" id="confirmAdminPassword" placeholder="Enter your password" required>
+                    </div>
+                </div>
+                <input type="hidden" id="confirmActionType">
+            </div>
+            <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="executeResetBtn" class="btn btn-danger btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm">Confirm Action</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Event Type Modal -->
 <div class="modal fade" id="eventTypeModal" tabindex="-1" aria-labelledby="eventTypeModalLabel" aria-hidden="true">
@@ -1432,6 +1496,80 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             }
         } catch (error) {
             console.error('Error saving timezone:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+
+    // Reset System Functions
+    let resetModalInstance = null;
+
+    function openPasswordModal(actionType, message) {
+        document.getElementById('confirmActionType').value = actionType;
+        document.getElementById('passwordConfirmMessage').innerText = message;
+        document.getElementById('confirmAdminPassword').value = '';
+        
+        if (!resetModalInstance) {
+            resetModalInstance = new bootstrap.Modal(document.getElementById('passwordConfirmModal'));
+        }
+        resetModalInstance.show();
+    }
+
+    function triggerResetAssets() {
+        if (!confirm("WARNING: You are about to permanently delete all events, meals, recipes, grocery lists, and uploaded photos in the system! Users and Configuration will be kept.")) {
+            return;
+        }
+        openPasswordModal('resetAssets', "Type your password to permanently delete all family assets:");
+    }
+
+    function triggerFactoryReset() {
+        if (!confirm("CRITICAL WARNING: This will FACTORY RESET the entire application! All non-admin users, all families, all assets, and all data will be permanently wiped.")) {
+            return;
+        }
+        openPasswordModal('factoryReset', "Type your password to securely wipe the entire system:");
+    }
+
+    document.getElementById('executeResetBtn').addEventListener('click', async () => {
+        const actionType = document.getElementById('confirmActionType').value;
+        const password = document.getElementById('confirmAdminPassword').value;
+
+        if (!password) {
+            alert('Password is required!');
+            return;
+        }
+
+        const btn = document.getElementById('executeResetBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+
+        try {
+            const response = await fetch(`../api/admin_reset.php?action=${actionType}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: password })
+            });
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                if (typeof showAlert === 'function') showAlert(result.message, 'success');
+                else alert(result.message);
+                
+                resetModalInstance.hide();
+                if (actionType === 'factoryReset') {
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                else alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error executing reset:', error);
             if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
             else alert('Network error occurred');
         } finally {
