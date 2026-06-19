@@ -483,11 +483,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. UI RENDERING FUNCTIONS
     // ---------------------------------------------------------
-    function openEventModal(evt) {
-        document.getElementById('viewEventTitle').textContent = evt.title;
-        document.getElementById('viewEventLocation').textContent = evt.location || 'No location specified';
-        document.getElementById('viewEventMember').textContent = getDisplayName({name: evt.member, nickname: evt.member_nickname});
+    function setupEditModal(evt) {
+        // Populate edit modal
+        document.getElementById('editEventId').value = evt.id;
+        document.getElementById('editEventTitle').value = evt.title;
+        document.getElementById('editEventLocation').value = evt.location || '';
         
+        if (evt.startStr) {
+            document.getElementById('editEventDate').value = evt.startStr.split('T')[0];
+        }
+        if (evt.endStr) {
+            document.getElementById('editEventEndDate').value = evt.endStr.split('T')[0];
+        }
+        
+        if (!evt.is_all_day && !evt.isAllDay && evt.startHour !== undefined) {
+            document.getElementById('editEventAllDay').checked = false;
+            let mStr = Math.round((evt.startHour - Math.floor(evt.startHour)) * 60).toString().padStart(2, '0');
+            let hStr = Math.floor(evt.startHour).toString().padStart(2, '0');
+            document.getElementById('editEventStartTime').value = hStr + ':' + mStr;
+            
+            if (evt.duration) {
+                let eH = evt.startHour + evt.duration;
+                let emStr = Math.round((eH - Math.floor(eH)) * 60).toString().padStart(2, '0');
+                let ehStr = Math.floor(eH).toString().padStart(2, '0');
+                document.getElementById('editEventEndTime').value = ehStr + ':' + emStr;
+            }
+        } else {
+            document.getElementById('editEventAllDay').checked = true;
+        }
+        
+        // Populate event types if not already done
+        const typeSelect = document.getElementById('editEventType');
+        if (typeSelect && typeSelect.options.length <= 1) {
+            typeSelect.innerHTML = document.getElementById('eventType').innerHTML;
+        }
+        
+        // Populate members using the same function but different container
+        populateModalMembers(document.getElementById('edit-modal-members-container'), 'editSelectedMemberId');
+        
+        // Set the correct selected member visually
+        setTimeout(() => {
+            document.getElementById('editSelectedMemberId').value = '';
+            const memberAvatars = document.getElementById('edit-modal-members-container').querySelectorAll('.avatar-wrapper');
+            memberAvatars.forEach(av => {
+                av.classList.remove('selected');
+                if (av.querySelector('img').getAttribute('alt').toLowerCase() === evt.member.toLowerCase()) {
+                    av.classList.add('selected');
+                    document.getElementById('editSelectedMemberId').value = av.getAttribute('data-id');
+                }
+            });
+        }, 100);
+        
+        // Show edit modal
+        const editModal = new bootstrap.Modal(document.getElementById('editEventModal'));
+        editModal.show();
+    }
+
+    function openEventModal(evt) {
         let dateStr = '';
         let timeStr = 'All Day';
         const dateOpts = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
@@ -501,8 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 dateStr += ' - ' + ed.toLocaleDateString('en-US', dateOpts);
             }
         }
-        const dateEl = document.getElementById('viewEventDate');
-        if (dateEl) dateEl.textContent = dateStr;
 
         if (!evt.is_all_day && !evt.isAllDay && evt.startHour !== undefined) {
             timeStr = formatTime(evt.startHour);
@@ -510,6 +560,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 timeStr += ' - ' + formatTime(evt.startHour + evt.duration);
             }
         }
+        
+        const isMobile = window.innerWidth < 992; // Bootstrap lg breakpoint
+
+        if (isMobile) {
+            const container = document.getElementById('mobileEventDetailsContainer');
+            if (container) {
+                document.getElementById('mobileEventTitle').textContent = evt.title;
+                
+                let subtitle = '';
+                if (dateStr) subtitle += dateStr;
+                if (evt.location) {
+                    subtitle += (subtitle ? '  ' : '') + evt.location;
+                }
+                document.getElementById('mobileEventSubtitle').textContent = subtitle;
+                
+                const editContainer = document.getElementById('mobileEventEditContainer');
+                const btnEdit = document.getElementById('mobileBtnEditEvent');
+                const btnDelete = document.getElementById('mobileBtnDeleteEvent');
+                
+                if (evt.created_by == window.CURRENT_USER_ID) {
+                    editContainer.style.setProperty('display', 'flex', 'important');
+                    btnEdit.onclick = function(e) {
+                        e.preventDefault();
+                        container.classList.add('d-none');
+                        setupEditModal(evt);
+                    };
+                    btnDelete.onclick = function(e) {
+                        e.preventDefault();
+                        if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+                            window.location.href = `../helpers/deleteEvent.php?id=${evt.id}`;
+                        }
+                    };
+                } else {
+                    editContainer.style.setProperty('display', 'none', 'important');
+                }
+                
+                container.classList.remove('d-none');
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+        }
+
+        // Desktop behavior
+        document.getElementById('viewEventTitle').textContent = evt.title;
+        document.getElementById('viewEventLocation').textContent = evt.location || 'No location specified';
+        document.getElementById('viewEventMember').textContent = getDisplayName({name: evt.member, nickname: evt.member_nickname});
+        
+        const dateEl = document.getElementById('viewEventDate');
+        if (dateEl) dateEl.textContent = dateStr;
+
         document.getElementById('viewEventTime').textContent = timeStr;
         
         const editContainer = document.getElementById('viewEventEditContainer');
@@ -522,62 +622,13 @@ document.addEventListener('DOMContentLoaded', () => {
             btnEdit.onclick = function(e) {
                 e.preventDefault();
                 // Close view modal
-                const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewEventModal'));
-                if (viewModal) viewModal.hide();
-                
-                // Populate edit modal
-                document.getElementById('editEventId').value = evt.id;
-                document.getElementById('editEventTitle').value = evt.title;
-                document.getElementById('editEventLocation').value = evt.location || '';
-                
-                if (evt.startStr) {
-                    document.getElementById('editEventDate').value = evt.startStr.split('T')[0];
+                const viewModalEl = document.getElementById('viewEventModal');
+                let viewModal = bootstrap.Modal.getInstance(viewModalEl);
+                if (!viewModal) {
+                    viewModal = new bootstrap.Modal(viewModalEl);
                 }
-                if (evt.endStr) {
-                    document.getElementById('editEventEndDate').value = evt.endStr.split('T')[0];
-                }
-                
-                if (!evt.is_all_day && !evt.isAllDay && evt.startHour !== undefined) {
-                    document.getElementById('editEventAllDay').checked = false;
-                    let mStr = Math.round((evt.startHour - Math.floor(evt.startHour)) * 60).toString().padStart(2, '0');
-                    let hStr = Math.floor(evt.startHour).toString().padStart(2, '0');
-                    document.getElementById('editEventStartTime').value = hStr + ':' + mStr;
-                    
-                    if (evt.duration) {
-                        let eH = evt.startHour + evt.duration;
-                        let emStr = Math.round((eH - Math.floor(eH)) * 60).toString().padStart(2, '0');
-                        let ehStr = Math.floor(eH).toString().padStart(2, '0');
-                        document.getElementById('editEventEndTime').value = ehStr + ':' + emStr;
-                    }
-                } else {
-                    document.getElementById('editEventAllDay').checked = true;
-                }
-                
-                // Populate event types if not already done
-                const typeSelect = document.getElementById('editEventType');
-                if (typeSelect && typeSelect.options.length <= 1) {
-                    typeSelect.innerHTML = document.getElementById('eventType').innerHTML;
-                }
-                
-                // Populate members using the same function but different container
-                populateModalMembers(document.getElementById('edit-modal-members-container'), 'editSelectedMemberId');
-                
-                // Set the correct selected member visually
-                setTimeout(() => {
-                    document.getElementById('editSelectedMemberId').value = '';
-                    const memberAvatars = document.getElementById('edit-modal-members-container').querySelectorAll('.avatar-wrapper');
-                    memberAvatars.forEach(av => {
-                        av.classList.remove('selected');
-                        if (av.querySelector('img').getAttribute('alt').toLowerCase() === evt.member.toLowerCase()) {
-                            av.classList.add('selected');
-                            document.getElementById('editSelectedMemberId').value = av.getAttribute('data-id');
-                        }
-                    });
-                }, 100);
-                
-                // Show edit modal
-                const editModal = new bootstrap.Modal(document.getElementById('editEventModal'));
-                editModal.show();
+                viewModal.hide();
+                setupEditModal(evt);
             };
 
             // Set up Delete button
@@ -593,7 +644,11 @@ document.addEventListener('DOMContentLoaded', () => {
             editContainer.style.setProperty('display', 'none', 'important');
         }
         
-        const modal = new bootstrap.Modal(document.getElementById('viewEventModal'));
+        const viewModalEl = document.getElementById('viewEventModal');
+        let modal = bootstrap.Modal.getInstance(viewModalEl);
+        if (!modal) {
+            modal = new bootstrap.Modal(viewModalEl);
+        }
         modal.show();
     }
 

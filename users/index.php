@@ -132,6 +132,40 @@ include $path_prefix . 'components/sidebar.php';
                     </div>
 
                 </div> <!-- End Calendar Views Container -->
+                
+                <!-- Mobile Event Details Container -->
+                <div id="mobileEventDetailsContainer" class="d-lg-none mt-3 d-none">
+                    <div class="card border rounded-4 shadow-sm p-3 position-relative bg-white">
+                        <div class="d-flex align-items-center">
+                            <!-- Icon -->
+                            <div class="me-3 text-primary d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded p-2" style="width: 36px; height: 36px;">
+                                <i class="fa-solid fa-calendar-days fs-5 text-primary"></i>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div class="flex-grow-1 min-w-0" style="overflow: hidden;">
+                                <h6 class="fw-bold mb-1 text-truncate text-dark" id="mobileEventTitle" style="font-size: 0.95rem;">Event Title</h6>
+                                <div class="text-truncate text-muted" id="mobileEventSubtitle" style="font-size: 0.75rem;">
+                                    Jun 2 - Jun 3 &middot; Location
+                                </div>
+                            </div>
+                            
+                            <!-- Actions Dropdown -->
+                            <div class="dropdown ms-2" id="mobileEventEditContainer" style="display: none !important;">
+                                <button class="btn btn-link text-muted p-1 text-decoration-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-ellipsis-vertical fs-5"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border">
+                                    <li><a class="dropdown-item d-flex align-items-center text-dark" href="#" id="mobileBtnEditEvent"><i class="fa-solid fa-pen me-2 text-primary"></i> Edit</a></li>
+                                    <li><a class="dropdown-item d-flex align-items-center text-danger" href="#" id="mobileBtnDeleteEvent"><i class="fa-solid fa-trash-can me-2"></i> Delete</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Close Button (Always visible) -->
+                            <button type="button" class="btn-close ms-2 mb-4" aria-label="Close" onclick="document.getElementById('mobileEventDetailsContainer').classList.add('d-none');" style="font-size: 0.6rem; opacity: 0.5;"></button>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Add Event Button -->
                 <div class="mt-4 d-flex justify-content-end">
