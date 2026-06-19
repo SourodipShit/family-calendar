@@ -36,35 +36,47 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
 
         <div class="list-group list-group-flush flex-grow-1 w-100">
             <a href="<?php echo $path_prefix; ?>siteadmin/index.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'index.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-dashboard-3-line me-3"></i>Dashboard
+                class="list-group-item list-group-item-action <?php echo $current_page == 'index.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-dashboard-3-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Dashboard</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Dashboard</small>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/families.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'families.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-community-line me-3"></i>Manage Families
+                class="list-group-item list-group-item-action <?php echo $current_page == 'families.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-community-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Manage Families</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Manage Families</small>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/users.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'users.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-user-settings-line me-3"></i>Manage Users
+                class="list-group-item list-group-item-action <?php echo $current_page == 'users.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-user-settings-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Manage Users</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Manage Users</small>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/recipes.php"
-                class="list-group-item list-group-item-action d-flex align-items-center <?php echo $current_page == 'recipes.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-restaurant-line me-3"></i>Manage Recipes
-                <?php 
-                $pendingRecipesRes = Recipe::getPendingRecipesCount();
-                $pendingRecipesCount = ($pendingRecipesRes['status'] === 'success') ? $pendingRecipesRes['data'] : 0;
-                if ($pendingRecipesCount > 0): 
-                ?>
-                    <span class="badge bg-danger rounded-circle ms-auto" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;"><?php echo $pendingRecipesCount; ?></span>
-                <?php endif; ?>
+                class="list-group-item list-group-item-action d-flex flex-column flex-lg-row align-items-center text-center text-lg-start <?php echo $current_page == 'recipes.php' ? 'active' : ''; ?> rounded mb-1">
+                <div class="d-flex flex-column flex-lg-row align-items-center w-100">
+                    <i class="ri-restaurant-line me-lg-3 fs-4 fs-lg-auto"></i>
+                    <span class="d-none d-lg-inline">Manage Recipes</span>
+                    <small class="d-block d-lg-none" style="font-size: 10px;">Manage Recipes</small>
+                    <?php 
+                    $pendingRecipesRes = Recipe::getPendingRecipesCount();
+                    $pendingRecipesCount = ($pendingRecipesRes['status'] === 'success') ? $pendingRecipesRes['data'] : 0;
+                    if ($pendingRecipesCount > 0): 
+                    ?>
+                        <span class="badge bg-danger rounded-circle ms-lg-auto mt-1 mt-lg-0" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;"><?php echo $pendingRecipesCount; ?></span>
+                    <?php endif; ?>
+                </div>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/system.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'system.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-server-line me-3"></i>System Health
+                class="list-group-item list-group-item-action <?php echo $current_page == 'system.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-server-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">System Health</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">System Health</small>
             </a>
 
             <div class="px-4 mt-4 mb-2">
@@ -72,31 +84,39 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
             </div>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/agreements.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'agreements.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-file-paper-2-line me-3"></i>Legal Agreements
+                class="list-group-item list-group-item-action <?php echo $current_page == 'agreements.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-file-paper-2-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Legal Agreements</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Legal Agreements</small>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/settings.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'settings.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-settings-4-line me-3"></i>Global Settings
+                class="list-group-item list-group-item-action <?php echo $current_page == 'settings.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-settings-4-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Global Settings</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Global Settings</small>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/loginlogs.php"
-                class="list-group-item list-group-item-action <?php echo $current_page == 'loginlogs.php' ? 'active' : ''; ?> rounded mb-1">
-                <i class="ri-history-line me-3"></i>Login Logs
+                class="list-group-item list-group-item-action <?php echo $current_page == 'loginlogs.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-history-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Login Logs</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Login Logs</small>
             </a>
         </div>
 
         <div class="sidebar-footer mt-auto p-3 w-100 border-top" style="border-color: #f1f5f9 !important;">
             <a href="<?php echo $path_prefix; ?>users/index.php"
-                class="d-flex align-items-center text-decoration-none text-light hover-bg-dark-opacity p-2 rounded mb-2">
-                <i class="ri-arrow-left-line me-2"></i>
-                <span>Back to App</span>
+                class="d-flex flex-column flex-lg-row align-items-center text-center text-lg-start text-decoration-none text-light hover-bg-dark-opacity p-2 rounded mb-2">
+                <i class="ri-arrow-left-line me-lg-2 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Back to App</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Back to App</small>
             </a>
             <a href="<?php echo $path_prefix; ?>logout.php"
-                class="d-flex align-items-center text-decoration-none text-danger hover-bg-dark-opacity p-2 rounded">
-                <i class="ri-logout-box-r-line me-2"></i>
-                <span>Logout</span>
+                class="d-flex flex-column flex-lg-row align-items-center text-center text-lg-start text-decoration-none text-danger hover-bg-dark-opacity p-2 rounded">
+                <i class="ri-logout-box-r-line me-lg-2 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Logout</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Logout</small>
             </a>
         </div>
     </div>

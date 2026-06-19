@@ -30,24 +30,58 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
         </div>
         <div class="list-group list-group-flush flex-grow-1 w-100">
             <a href="<?php echo $path_prefix; ?>users/index.php"
-                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-calendar-2-line me-lg-3"></i><span class="d-none d-lg-inline">Calendar</span></a>
-            <a href="<?php echo $path_prefix; ?>users/chores.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'chores.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-cloud-line me-lg-3"></i><span class="d-none d-lg-inline">Chores</span></a>
-            <a href="<?php echo $path_prefix; ?>users/rewards.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'rewards.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-medal-line me-lg-3"></i><span class="d-none d-lg-inline">Rewards</span></a>
-            <a href="<?php echo $path_prefix; ?>users/meals.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'meals.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-bowl-line me-lg-3"></i><span class="d-none d-lg-inline">Meals</span></a>
-            <a href="<?php echo $path_prefix; ?>users/recipes.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'recipes.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-bread-line me-lg-3"></i><span class="d-none d-lg-inline">Recipes</span></a>
-            <a href="<?php echo $path_prefix; ?>users/photos.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'photos.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-folder-image-line me-lg-3"></i><span class="d-none d-lg-inline">Photos</span></a>
-            <a href="<?php echo $path_prefix; ?>users/coaches.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'coaches.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-group-line me-lg-3"></i><span class="d-none d-lg-inline">Coaches</span></a>
-            <a href="<?php echo $path_prefix; ?>users/settings.php" class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2"><i
-                    class="ri-settings-2-line me-lg-3"></i><span class="d-none d-lg-inline">Settings</span></a>
-            <a href="mailto:<?php echo $_SESSION['user']['active_family']['email'] ?>" class="list-group-item list-group-item-action text-secondary rounded mb-2 d-lg-none"><i
-                    class="ri-mail-line me-lg-3"></i><span class="d-none d-lg-inline">Email</span></a>
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-calendar-2-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Calendar</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Calendar</small>
+            </a>
+            <a href="<?php echo $path_prefix; ?>users/chores.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'chores.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-cloud-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Chores</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Chores</small>
+            </a>
+            <a href="<?php echo $path_prefix; ?>users/rewards.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'rewards.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-medal-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Rewards</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Rewards</small>
+            </a>
+            <a href="<?php echo $path_prefix; ?>users/meals.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'meals.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-bowl-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Meals</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Meals</small>
+            </a>
+            <a href="<?php echo $path_prefix; ?>users/recipes.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'recipes.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-bread-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Recipes</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Recipes</small>
+            </a>
+            <a href="<?php echo $path_prefix; ?>users/photos.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'photos.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-folder-image-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Photos</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Photos</small>
+            </a>
+            <a href="<?php echo $path_prefix; ?>users/coaches.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'coaches.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-group-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Coaches</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Coaches</small>
+            </a>
+            <a href="<?php echo $path_prefix; ?>users/settings.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-settings-2-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Settings</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Settings</small>
+            </a>
+            <a href="mailto:<?php echo $_SESSION['user']['active_family']['email'] ?>" 
+                class="list-group-item list-group-item-action text-secondary rounded mb-2 d-lg-none d-flex flex-column align-items-center text-center">
+                <i class="ri-mail-line fs-4"></i>
+                <small class="d-block mt-1" style="font-size: 10px;">Email</small>
+            </a>
         </div>
         <div class="sidebar-footer mt-auto p-3 w-100">
             <div class="bg-light rounded p-3 mb-3 d-none d-lg-block">
