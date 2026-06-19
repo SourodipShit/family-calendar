@@ -204,8 +204,17 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
 
         <div class="row g-4">
             <div class="col-12">
+                <style>
+                    .family-members-list::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .family-members-list {
+                        -ms-overflow-style: none;  /* IE and Edge */
+                        scrollbar-width: none;  /* Firefox */
+                    }
+                </style>
                 <!-- Family Members Row -->
-                <div class="d-flex flex-wrap align-items-center gap-0 mb-4 family-members-list">
+                <div class="d-flex flex-nowrap align-items-center gap-0 mb-4 family-members-list overflow-x-auto">
                     <!-- Populated by JS: Dad, Mom, Emma, Liam, Ava, Grandma, Grandpa, Add -->
                 </div>
 
