@@ -23,6 +23,13 @@ include_once __DIR__ . '/classes/GlobalSettings.php';
 $setting = GlobalSettings::getSetting("login_page_image");
 $page_image = ($setting['status'] === 'success' && !empty($setting['data']['setting_value'])) ? $setting['data']['setting_value'] : "";
 
+if (isset($_GET['success_msg'])) {
+    $success = urldecode($_GET['success_msg']);
+}
+if (isset($_GET['msg'])) {
+    $error = urldecode($_GET['msg']);
+}
+
 if (isset($_POST['login'])) {
     $email = $_POST['email'];
     $password = $_POST['password'];

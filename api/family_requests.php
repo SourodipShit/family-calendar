@@ -46,6 +46,33 @@ switch ($action) {
         $data['receiver_id'] = $receiver_id;
 
         $result = FamilyRequest::create($data);
+
+        if ($result['status'] === 'success') {
+            require_once __DIR__ . '/../classes/GlobalSettings.php';
+            require_once __DIR__ . '/../services/mail/Mail.php';
+            
+            $setting = GlobalSettings::getSetting('base_url');
+            $base_url = ($setting['status'] === 'success') ? rtrim($setting['data']['setting_value'], '/') : 'http://localhost';
+            
+            $request_id = $result['request_id'];
+            $receiver_email = $data['email'];
+            $token = md5($request_id . $receiver_email . 'FC_SECURE_SALT_2026');
+            
+            $invitationLink = $base_url . '/helpers/approve-request.php?id=' . $request_id . '&token=' . $token;
+            
+            $receiver_name = "there";
+            if ($receiver) {
+                $receiver_info = Database::runPrepared("SELECT name FROM users WHERE id = ?", [$receiver_id])->fetch(PDO::FETCH_ASSOC);
+                if ($receiver_info) {
+                    $receiver_name = $receiver_info['name'];
+                }
+            }
+            
+            $requester_name = $_SESSION['user']['name'] ?? "Someone";
+            
+            Mail::sendFamilyRequest($receiver_email, $receiver_name, $requester_name, $invitationLink);
+        }
+
         echo json_encode($result);
         exit;
 
@@ -60,6 +87,11 @@ switch ($action) {
 
     case 'getMyRequests':
         $requests = FamilyRequest::getByUserEmail($user_email);
+        echo json_encode(['status' => 'success', 'data' => $requests]);
+        exit;
+
+    case 'getUserConnections':
+        $requests = FamilyRequest::getRequestsByUser($user_id, $user_email);
         echo json_encode(['status' => 'success', 'data' => $requests]);
         exit;
 
@@ -95,7 +127,7 @@ switch ($action) {
         
         // Authorization check for deletion
         $req = Database::runPrepared("SELECT * FROM family_requests WHERE id = ?", [$id])->fetch(PDO::FETCH_ASSOC);
-        if ($req && ($req['requester_id'] == $user_id || $req['email'] === $user_email)) {
+        if ($req && ($req['requester_id'] == $user_id || $req['email'] === $user_email || $req['receiver_id'] == $user_id)) {
             $result = FamilyRequest::delete($id);
             echo json_encode($result);
         } else {

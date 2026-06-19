@@ -25,7 +25,8 @@ class FamilyRequest
                 "INSERT INTO family_requests (requester_id, family_id, email, receiver_id, status) VALUES (?, ?, ?, ?, 'pending')",
                 [$requester_id, $family_id, $email, $receiver_id]
             );
-            return ["status" => "success", "message" => "Request created successfully."];
+            $request_id = Database::getInstance()->lastInsertId();
+            return ["status" => "success", "message" => "Request created successfully.", "request_id" => $request_id];
         } catch (PDOException $e) {
             return ["status" => "error", "message" => "Failed to create request: " . $e->getMessage()];
         }
@@ -40,6 +41,22 @@ class FamilyRequest
              LEFT JOIN users u ON fr.requester_id = u.id 
              WHERE fr.family_id = ?",
             [$family_id]
+        )->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Get all requests involving this user (either sent or received)
+    public static function getRequestsByUser($user_id, $user_email)
+    {
+        return Database::runPrepared(
+            "SELECT fr.*, 
+                    u1.name as requester_name, u1.email as requester_email,
+                    u2.name as receiver_name 
+             FROM family_requests fr 
+             LEFT JOIN users u1 ON fr.requester_id = u1.id 
+             LEFT JOIN users u2 ON fr.email = u2.email 
+             WHERE fr.requester_id = ? OR fr.receiver_id = ? OR fr.email = ?
+             ORDER BY fr.created_at DESC",
+            [$user_id, $user_id, $user_email]
         )->fetchAll(PDO::FETCH_ASSOC);
     }
 

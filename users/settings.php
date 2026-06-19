@@ -162,6 +162,35 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                 </div>
                             </form>
                         </div>
+
+                        <!-- Connections and Invites -->
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4 mb-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
+                                    <i class="ri-links-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Your Connections & Invites</h5>
+                                    <p class="text-muted small mb-0">Manage your external family connections and pending invites.</p>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle border-0 mb-0">
+                                    <thead class="bg-light border-0">
+                                        <tr>
+                                            <th class="border-0 rounded-start px-3 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">User</th>
+                                            <th class="border-0 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Status</th>
+                                            <th class="border-0 rounded-end px-3 py-2 text-end text-uppercase extra-small ls-1 fw-bold text-muted">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="connections-table-body" class="border-0">
+                                        <tr>
+                                            <td colspan="3" class="text-center py-4 text-muted small">Loading connections...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Family Profile -->
@@ -476,11 +505,14 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
 
 <script>
     let familySettings = {};
+    const CURRENT_USER_ID = <?php echo $_SESSION['user']['id']; ?>;
+    const CURRENT_USER_EMAIL = "<?php echo $_SESSION['user']['email']; ?>";
 
     document.addEventListener('DOMContentLoaded', () => {
         loadFamilyProfile();
         loadEventTypes();
         loadGroceryCategories();
+        loadConnections();
 
         // Load personal settings from local storage and DB
         const savedView = localStorage.getItem('default_calendar_view');
@@ -559,6 +591,7 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             if (result.status === 'success') {
                 showAlert(result.message, 'success');
                 form.reset();
+                if (typeof loadConnections === 'function') loadConnections();
             } else {
                 showAlert(result.message, 'error');
             }
@@ -728,6 +761,96 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
         } catch (error) {
             console.error('Error loading event types:', error);
             tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger small">Failed to connect to server</td></tr>`;
+        }
+    }
+
+    async function loadConnections() {
+        const tableBody = document.getElementById('connections-table-body');
+        try {
+            const response = await fetch(`${API_PATH}family_requests.php?action=getUserConnections`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                renderConnectionsTable(result.data);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">${result.message}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error loading connections:', error);
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">Failed to connect to server</td></tr>`;
+        }
+    }
+
+    function renderConnectionsTable(connections) {
+        const tableBody = document.getElementById('connections-table-body');
+        tableBody.innerHTML = '';
+
+        if (!connections || connections.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted small">No connections or invites found.</td></tr>';
+            return;
+        }
+
+        connections.forEach(conn => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-bottom';
+            
+            let otherName = '';
+            let isRequester = (conn.requester_id == CURRENT_USER_ID);
+            
+            if (isRequester) {
+                otherName = conn.receiver_name ? conn.receiver_name : conn.email;
+            } else {
+                otherName = conn.requester_name;
+            }
+            
+            let statusBadge = '';
+            if (conn.status === 'approved') {
+                statusBadge = '<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill extra-small">Approved</span>';
+            } else if (conn.status === 'pending') {
+                statusBadge = '<span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded-pill extra-small">Pending</span>';
+            } else {
+                statusBadge = `<span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill extra-small">${conn.status}</span>`;
+            }
+            
+            let actions = '';
+            if (conn.status === 'pending') {
+                if (isRequester) {
+                    actions = `<button class="btn btn-outline-danger btn-sm rounded-2 py-0 px-2 extra-small" onclick="cancelConnection(${conn.id})">Cancel</button>`;
+                } else {
+                    actions = `<span class="text-muted extra-small">Pending</span>`;
+                }
+            } else if (conn.status === 'approved') {
+                actions = `<button class="btn btn-outline-danger btn-sm rounded-2 py-0 px-2 extra-small" onclick="cancelConnection(${conn.id}, true)">Remove</button>`;
+            }
+
+            tr.innerHTML = `
+                <td class="px-3 py-2 fw-bold text-dark small">${otherName}</td>
+                <td class="py-2">${statusBadge}</td>
+                <td class="px-3 py-2 text-end">${actions}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    async function cancelConnection(id, isRemove = false) {
+        if (!confirm(isRemove ? 'Are you sure you want to remove this connection?' : 'Are you sure you want to cancel this invite?')) return;
+        
+        try {
+            const response = await fetch(`${API_PATH}family_requests.php?action=delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert(result.message, 'success');
+                loadConnections();
+            } else {
+                showAlert(result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error cancelling connection:', error);
+            showAlert('Network error occurred', 'error');
         }
     }
 

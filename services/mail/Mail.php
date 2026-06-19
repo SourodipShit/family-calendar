@@ -86,6 +86,21 @@ class Mail
         ]);
     }
 
+    public static function sendFamilyRequest($email, $receiverName, $requesterName, $approvalLink)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        $html = Mailer::render('family_request', [
+            'receiverName' => $receiverName,
+            'requesterName' => $requesterName,
+            'approvalLink' => $approvalLink
+        ]);
+        return Mailer::send([
+            'to' => $email,
+            'subject' => 'New Family Connection Request - Family Calendar',
+            'html' => $html
+        ]);
+    }
+
     public static function sendMemberInvitation($email, $name, $invitationLink)
     {
         require_once __DIR__ . '/Mailer.php';

@@ -94,12 +94,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const memberFilterId = member.name.toLowerCase();
             div.className = `family-member-filter ${activeMemberFilter === memberFilterId ? 'active' : ''}`;
             div.setAttribute('data-member', memberFilterId);
+            
+            let badgeOrEdit = member.is_external ? 
+                `<span class="position-absolute top-0 end-0 bg-white text-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center fw-bold" style="width: 22px; height: 22px; font-size: 11px; transform: translate(10%, -10%); border: 1px solid #eee; z-index: 10;">E</span>` 
+                : 
+                `<a href="../users/edit-member.php?id=${member.id}" class="edit-member-btn position-absolute top-0 end-0 bg-white rounded-circle shadow-sm text-primary" style="width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: translate(10%, -10%); border: 1px solid #eee; z-index: 10;">
+                    <i class="fa-solid fa-pen"></i>
+                </a>`;
+
             div.innerHTML = `
                 <div class="avatar-wrapper position-relative">
                     <img src="${member.avatar}" alt="${member.name}" width="60" height="60" class="rounded-circle border border-2 border-white shadow-sm">
-                    <a href="../users/edit-member.php?id=${member.id}" class="edit-member-btn position-absolute top-0 end-0 bg-white rounded-circle shadow-sm text-primary" style="width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: translate(10%, -10%); border: 1px solid #eee; z-index: 10;">
-                        <i class="fa-solid fa-pen"></i>
-                    </a>
+                    ${badgeOrEdit}
                     <span class="name text-dark">${getDisplayName(member)}</span>
                 </div>
             `;

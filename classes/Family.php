@@ -6,21 +6,15 @@ class Family
 {
     public static function getMembers()
     {
-        $members = Database::runPrepared(
-            "SELECT users.* 
-         FROM users 
-         INNER JOIN user_family 
-            ON users.id = user_family.user_id 
-         WHERE user_family.family_id = ?
-         AND users.role IN ('member','family-head')",
-            [$_SESSION['user']['active_family_id']]
-        )->fetchAll(PDO::FETCH_ASSOC);
-
-        return $members;
+        return self::getMembersByFamilyId($_SESSION['user']['active_family_id']);
     }
 
-    public static function getMembersByFamilyId($family_id)
+    public static function getMembersByFamilyId($family_id, $user_id = null)
     {
+        if (!$user_id && isset($_SESSION['user']['id'])) {
+            $user_id = $_SESSION['user']['id'];
+        }
+
         $members = Database::runPrepared(
             "SELECT users.* 
          FROM users 
@@ -31,7 +25,37 @@ class Family
             [$family_id]
         )->fetchAll(PDO::FETCH_ASSOC);
 
-        return $members;
+        $external_users = [];
+        if ($user_id) {
+            $external_requesters = Database::runPrepared(
+                "SELECT u.* 
+                 FROM users u
+                 INNER JOIN family_requests fr ON u.id = fr.requester_id
+                 WHERE fr.family_id = ? AND fr.receiver_id = ? AND fr.status = 'approved'",
+                [$family_id, $user_id]
+            )->fetchAll(PDO::FETCH_ASSOC);
+
+            $external_receivers = Database::runPrepared(
+                "SELECT u.* 
+                 FROM users u
+                 INNER JOIN family_requests fr ON u.id = fr.receiver_id
+                 INNER JOIN user_family uf ON fr.requester_id = uf.user_id
+                 WHERE uf.family_id = ? AND fr.requester_id = ? AND fr.status = 'approved'",
+                [$family_id, $user_id]
+            )->fetchAll(PDO::FETCH_ASSOC);
+
+            $existing_ids = array_map(function($m) { return $m['id']; }, $members);
+            
+            foreach (array_merge($external_requesters, $external_receivers) as $eu) {
+                if (!in_array($eu['id'], $existing_ids)) {
+                    $eu['is_external'] = true;
+                    $external_users[] = $eu;
+                    $existing_ids[] = $eu['id'];
+                }
+            }
+        }
+
+        return array_merge($members, $external_users);
     }
 
     public static function getFamily($family_id)
