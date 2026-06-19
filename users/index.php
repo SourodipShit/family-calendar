@@ -14,7 +14,16 @@ include $path_prefix . 'components/sidebar.php';
 
         <div class="row">
             <div class="col-12">
-                <div class="d-flex flex-wrap align-items-center gap-0 mb-4 family-members-list">
+                <style>
+                    .family-members-list::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .family-members-list {
+                        -ms-overflow-style: none;  /* IE and Edge */
+                        scrollbar-width: none;  /* Firefox */
+                    }
+                </style>
+                <div class="d-flex flex-nowrap align-items-center gap-0 mb-4 family-members-list overflow-x-auto">
                     <!-- Populated by JS -->
                 </div>
             </div>
