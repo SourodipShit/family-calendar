@@ -62,18 +62,34 @@ class SharedEmails
     {
         try {
             $freeEmail = Database::runPrepared("SELECT id FROM family_shared_emails WHERE family_id IS NULL LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($freeEmail) {
                 Database::runPrepared("UPDATE family_shared_emails SET family_id = ?, allocated_at = NOW() WHERE id = ?", [
-                    $familyId, 
+                    $familyId,
                     $freeEmail['id']
                 ]);
                 return ['status' => 'success', 'message' => 'Email allocated successfully', 'email_id' => $freeEmail['id']];
             }
-            
+
             return ['status' => 'warning', 'message' => 'No shared emails available'];
         } catch (PDOException $e) {
             return ['status' => 'error', 'message' => 'Failed to allocate email: ' . $e->getMessage()];
+        }
+    }
+
+    public static function getFamilyEmail($familyId)
+    {
+        try {
+            $stmt = Database::runPrepared("SELECT email_address FROM family_shared_emails WHERE family_id = ?", [$familyId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result) {
+                return ['status' => 'success', 'email' => $result['email_address']];
+            }
+            
+            return ['status' => 'error', 'message' => 'No shared email found for this family'];
+        } catch (PDOException $e) {
+            return ['status' => 'error', 'message' => 'Failed to get family email: ' . $e->getMessage()];
         }
     }
 }

@@ -127,4 +127,18 @@ class Mail
             'html' => $html
         ]);
     }
+
+    public static function sendSignupSuccess($email, $name, $familyEmail)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        $html = Mailer::render('signup_success', [
+            'name' => $name,
+            'familyEmail' => $familyEmail
+        ]);
+        return Mailer::send([
+            'to' => $email,
+            'subject' => 'Sign Up Successful - Pending Approval',
+            'html' => $html
+        ]);
+    }
 }

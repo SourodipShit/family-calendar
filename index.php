@@ -34,6 +34,32 @@ if (isset($_POST['signup'])) {
         }
     }
 
+    $locationInput = trim($_POST['location'] ?? '');
+    $detectedTz = $_POST['timezone'] ?? null;
+    
+    $matched = false;
+    if (!empty($locationInput)) {
+        $tzs = DateTimeZone::listIdentifiers();
+        foreach ($tzs as $tz) {
+            $parts = explode('/', $tz);
+            $city = end($parts);
+            $cityNorm = str_replace('_', ' ', $city);
+            if (stripos($cityNorm, $locationInput) !== false || stripos($locationInput, $cityNorm) !== false) {
+                $detectedTz = $tz;
+                $locationInput = $cityNorm; // Normalize location string to proper city
+                $matched = true;
+                break;
+            }
+        }
+    }
+
+    // If no match was found for their input, fallback to the JS-detected timezone's city
+    if (!$matched && !empty($detectedTz)) {
+        $parts = explode('/', $detectedTz);
+        $city = end($parts);
+        $locationInput = str_replace('_', ' ', $city);
+    }
+
     $data = [
         'user' => [
             'name' => $_POST['head_name'],
@@ -43,9 +69,8 @@ if (isset($_POST['signup'])) {
         ],
         'family' => [
             'name' => $_POST['family_name'],
-            'email' => $_POST['family_email'],
-            'location' => $_POST['location'],
-            'timezone' => $_POST['timezone']
+            'location' => $locationInput,
+            'timezone' => $detectedTz
         ]
     ];
     $result = Auth::register($data);
@@ -211,15 +236,6 @@ if (isset($_POST['signup'])) {
                             </div>
                         </div>
 
-                        <!-- Family Email Input -->
-                        <div class="mb-3">
-                            <label for="family_email" class="form-label fw-medium">Family Email</label>
-                            <div class="input-group-custom">
-                                <span class="input-icon"><i class="fa-solid fa-envelope-open-text"></i></span>
-                                <input type="email" class="form-control" id="family_email" name="family_email" placeholder="family@example.com">
-                            </div>
-                        </div>
-
                         <!-- Location Input -->
                         <div class="mb-3">
                             <label for="location" class="form-label fw-medium">Location</label>
@@ -229,31 +245,8 @@ if (isset($_POST['signup'])) {
                             </div>
                         </div>
 
-                        <!-- Timezone Input -->
-                        <div class="mb-4">
-                            <label for="timezone" class="form-label fw-medium">Timezone</label>
-                            <div class="input-group-custom">
-                                <span class="input-icon"><i class="fa-solid fa-globe"></i></span>
-                                <select class="form-control text-muted" id="timezone" name="timezone" style="appearance: auto;">
-                                    <option value="" disabled selected>Select your timezone</option>
-                                    <?php
-                                    require_once __DIR__ . '/classes/GlobalSettings.php';
-                                    $timezone_setting = GlobalSettings::getSetting('timezone');
-                                    $timezones = [];
-                                    if ($timezone_setting['status'] === 'success' && !empty($timezone_setting['data'])) {
-                                        $timezones = json_decode($timezone_setting['data']['setting_value'], true);
-                                    }
-                                    if (is_array($timezones)) {
-                                        foreach ($timezones as $tz) {
-                                            $val = htmlspecialchars($tz['timezone']);
-                                            $lbl = htmlspecialchars($tz['lable']);
-                                            echo "<option value=\"$val\">$lbl</option>";
-                                        }
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
+                        <!-- Hidden Timezone Input -->
+                        <input type="hidden" id="timezone" name="timezone" value="">
 
                         <div class="d-flex gap-2 mb-4">
                             <button type="button" class="btn btn-light btn-lg flex-grow-1 border fw-semibold text-secondary" id="btnPrev">
@@ -366,14 +359,7 @@ if (isset($_POST['signup'])) {
         
         try {
             const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const tzSelect = document.getElementById('timezone');
-            for(let i=0; i<tzSelect.options.length; i++) {
-                if(tzSelect.options[i].value === tz) {
-                    tzSelect.selectedIndex = i;
-                    tzSelect.classList.remove('text-muted');
-                    break;
-                }
-            }
+            document.getElementById('timezone').value = tz;
         } catch(e) {}
         
         window.previewProfileImage = function(input) {
@@ -388,10 +374,6 @@ if (isset($_POST['signup'])) {
                 preview.innerHTML = '<i class="fa-solid fa-user text-muted fs-5"></i>';
             }
         };
-        
-        document.getElementById('timezone').addEventListener('change', function() {
-            this.classList.remove('text-muted');
-        });
     });
 </script>
 
