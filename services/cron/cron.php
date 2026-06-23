@@ -19,22 +19,41 @@ require_once __DIR__ . '/jobs/FetchFamilyEmailsJob.php';
 // Set default timezone for server output
 date_default_timezone_set('UTC');
 
-echo "========================================<br>";
-echo "        FAMILY CALENDAR CRON            <br>";
-echo "========================================<br>";
-echo "Server Time (UTC): " . date('Y-m-d H:i:s') . "<br>";
+$scriptStartTime = time();
+$maxExecutionTime = 29 * 60; // Run for up to 29 minutes before exiting (allows cron to restart)
 
-$indiaTz = new DateTimeZone('Asia/Kolkata');
-$indiaTime = new DateTime('now', $indiaTz);
-echo "Indian Time:       " . $indiaTime->format('Y-m-d H:i:s') . "<br>";
-echo "----------------------------------------<br><br>";
+while ((time() - $scriptStartTime) < $maxExecutionTime) {
+    $loopStartTime = time();
 
-// Run the Event Reminder Job
-echo "Checking for pending event reminders...<br>";
-EventReminderJob::run();
+    echo "========================================<br>\n";
+    echo "        FAMILY CALENDAR CRON            <br>\n";
+    echo "========================================<br>\n";
+    echo "Server Time (UTC): " . date('Y-m-d H:i:s') . "<br>\n";
 
-echo "<br>Checking for family shared emails...<br>";
-FetchFamilyEmailsJob::run();
+    $indiaTz = new DateTimeZone('Asia/Kolkata');
+    $indiaTime = new DateTime('now', $indiaTz);
+    echo "Indian Time:       " . $indiaTime->format('Y-m-d H:i:s') . "<br>\n";
+    echo "----------------------------------------<br><br>\n";
 
-echo "<br>Cron execution finished.<br>";
-echo "========================================<br>";
+    // Run the Event Reminder Job
+    echo "Checking for pending event reminders...<br>\n";
+    EventReminderJob::run();
+
+    echo "<br>Checking for family shared emails...<br>\n";
+    FetchFamilyEmailsJob::run();
+
+    echo "<br>Cron execution finished for this minute.<br>\n";
+    echo "========================================<br><br>\n";
+
+    // Flush output buffers to ensure logs are sent immediately if viewed in browser/terminal
+    if (ob_get_level() > 0) ob_flush();
+    flush();
+
+    // Calculate sleep time to ensure the loop runs exactly once every 60 seconds
+    $elapsed = time() - $loopStartTime;
+    $sleepTime = 60 - $elapsed;
+    
+    if ($sleepTime > 0) {
+        sleep($sleepTime);
+    }
+}
