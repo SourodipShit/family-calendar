@@ -14,6 +14,7 @@ if (!$user_id) {
 }
 
 $user = User::getUserById($user_id);
+$user_families = User::getUserFamilies($user_id);
 
 if (!$user) {
     $error_msg = "User not found";
@@ -175,10 +176,15 @@ if (isset($_SESSION['error_msg'])) {
                                 <!-- Submit Buttons -->
                                 <div class="col-12 mt-4">
                                     <hr class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <button type="button" class="btn btn-outline-danger px-4 py-2 fw-medium rounded-3" onclick="confirmDelete(<?php echo $user_id; ?>)">
-                                            <i class="fa-solid fa-trash-can me-2"></i> Delete Member
-                                        </button>
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-danger px-3 py-2 fw-medium rounded-3" onclick="confirmRemoveFromFamily(<?php echo $user_id; ?>)">
+                                                <i class="fa-solid fa-user-minus me-2"></i> Remove from Family
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary px-3 py-2 fw-medium rounded-3" onclick="confirmDelete(<?php echo $user_id; ?>)">
+                                                <i class="fa-solid fa-trash-can me-2"></i> Delete Account
+                                            </button>
+                                        </div>
                                         <div class="d-flex gap-3">
                                             <a href="index.php" class="btn btn-white border px-4 py-2 fw-medium rounded-3 text-dark">Cancel</a>
                                             <button type="submit" name="submit" class="btn btn-primary px-5 py-2 fw-medium rounded-3 shadow-sm">
@@ -194,8 +200,14 @@ if (isset($_SESSION['error_msg'])) {
             </div>
 
 <script>
+    function confirmRemoveFromFamily(userId) {
+        if (confirm("Are you sure you want to remove this member from your family? Their account will not be deleted, but they will lose access to your family's calendar.")) {
+            window.location.href = "../helpers/remove-user-from-family.php?id=" + userId;
+        }
+    }
+
     function confirmDelete(userId) {
-        if (confirm("Are you sure you want to delete this family member? This action cannot be undone.")) {
+        if (confirm("Are you sure you want to completely delete this user's account? This action cannot be undone and will remove them from ALL families.")) {
             window.location.href = "../helpers/delete-user.php?id=" + userId;
         }
     }
@@ -203,15 +215,37 @@ if (isset($_SESSION['error_msg'])) {
 
             <!-- Helper Sidebar -->
             <div class="col-lg-4">
-                <div class="card border-0 bg-primary bg-opacity-10 rounded-4 p-3">
+                <div class="card border-0 bg-primary bg-opacity-10 rounded-4 p-3 mb-4">
                     <div class="card-body">
                         <h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user-pen me-2"></i> Editing Member</h5>
                         <p class="text-dark opacity-75 small">You are currently editing <strong><?php echo htmlspecialchars($user['name']); ?>'s</strong> profile information.</p>
-                        <ul class="text-dark opacity-75 small ps-3">
+                        <ul class="text-dark opacity-75 small ps-3 mb-0">
                             <li>Update contact details and profile picture.</li>
                             <li>Change password only if necessary.</li>
                             <li>These changes will reflect immediately on the dashboard.</li>
                         </ul>
+                    </div>
+                </div>
+
+                <div class="card border-0 bg-light rounded-4 p-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-link me-2"></i> Family Connections</h6>
+                        <?php if (!empty($user_families)): ?>
+                            <ul class="list-group list-group-flush rounded-3 border overflow-hidden">
+                                <?php foreach ($user_families as $fam): ?>
+                                    <li class="list-group-item bg-white d-flex justify-content-between align-items-center px-3 py-2">
+                                        <span class="text-dark fw-medium small text-truncate" style="max-width: 150px;">
+                                            <?php echo htmlspecialchars($fam['name']); ?>
+                                        </span>
+                                        <span class="badge bg-secondary bg-opacity-25 text-dark fw-normal rounded-pill" style="font-size: 0.7rem;">
+                                            <?php echo htmlspecialchars($fam['connection_type']); ?>
+                                        </span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php else: ?>
+                            <p class="text-muted small mb-0">This user is not connected to any families.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

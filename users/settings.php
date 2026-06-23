@@ -32,6 +32,13 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                 <small class="opacity-75" style="font-size: 0.7rem;">Your personal preferences</small>
                             </div>
                         </a>
+                        <a href="#shared-family" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-team-line me-3 fs-5 text-success"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Shared Family</span>
+                                <small class="opacity-75" style="font-size: 0.7rem;">Manage connections & invites</small>
+                            </div>
+                        </a>
                         <?php if ($_SESSION['user']['role'] == 'family-head'): ?>
                             <a href="#family-details" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
                                 <i class="ri-home-4-line me-3 fs-5 text-primary"></i>
@@ -133,6 +140,10 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                             </form>
                         </div>
 
+                    </div>
+
+                    <!-- Shared Family -->
+                    <div class="tab-pane fade" id="shared-family">
                         <!-- Request to Join Family -->
                         <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4 mb-4">
                             <div class="d-flex align-items-center mb-4">
@@ -147,16 +158,14 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
 
                             <form id="inviteFamilyForm">
                                 <div class="row g-3">
-                                    <div class="col-md-8">
+                                    <div class="col-12 col-md-10 col-lg-8">
                                         <label class="form-label fw-bold text-dark extra-small text-uppercase ls-1">User Email</label>
-                                        <div class="input-group border rounded-3 overflow-hidden shadow-sm bg-light border-light">
-                                            <span class="input-group-text bg-transparent border-0 text-muted ps-2"><i class="ri-mail-line"></i></span>
-                                            <input type="email" class="form-control border-0 bg-transparent py-1 px-1 small" id="invite_email" name="email" required placeholder="Enter email address">
-                                        </div>
-                                    </div>
-                                    <div class="col-12 mt-3">
-                                        <div class="d-flex justify-content-start gap-2">
-                                            <button type="submit" id="sendInviteBtn" class="btn btn-success btn-sm px-3 py-1 fw-medium rounded-2">Send Join Request</button>
+                                        <div class="d-flex gap-2 flex-wrap flex-sm-nowrap">
+                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm bg-light border-light flex-grow-1">
+                                                <span class="input-group-text bg-transparent border-0 text-muted ps-2"><i class="ri-mail-line"></i></span>
+                                                <input type="email" class="form-control border-0 bg-transparent py-1 px-1 small" id="invite_email" name="email" required placeholder="Enter email address">
+                                            </div>
+                                            <button type="submit" id="sendInviteBtn" class="btn btn-success btn-sm px-4 py-1 fw-medium rounded-2 flex-shrink-0">Send Join Request</button>
                                         </div>
                                     </div>
                                 </div>

@@ -148,4 +148,36 @@ class User
         $stmt = Database::runPrepared("SELECT * FROM users WHERE email = ?", [$email]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public static function getUserFamilies($user_id)
+    {
+        // Get native families from user_family
+        $nativeFamilies = Database::runPrepared("
+            SELECT f.id, f.name, 'Native' as connection_type 
+            FROM families f 
+            INNER JOIN user_family uf ON f.id = uf.family_id 
+            WHERE uf.user_id = ?
+        ", [$user_id])->fetchAll(PDO::FETCH_ASSOC);
+
+        // Get linked families from family_requests
+        $linkedFamilies = Database::runPrepared("
+            SELECT f.id, f.name, 'Shared Connection' as connection_type 
+            FROM families f 
+            INNER JOIN family_requests fr ON f.id = fr.family_id 
+            WHERE (fr.requester_id = ? OR fr.receiver_id = ?) AND fr.status = 'approved'
+        ", [$user_id, $user_id])->fetchAll(PDO::FETCH_ASSOC);
+
+        // Combine and remove duplicates by family ID
+        $families = [];
+        $seen = [];
+        
+        foreach (array_merge($nativeFamilies, $linkedFamilies) as $family) {
+            if (!isset($seen[$family['id']])) {
+                $families[] = $family;
+                $seen[$family['id']] = true;
+            }
+        }
+        
+        return $families;
+    }
 }
