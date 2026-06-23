@@ -98,9 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let badgeOrEdit = member.is_external ? 
                 `<span class="position-absolute top-0 end-0 bg-white text-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center fw-bold" style="width: 22px; height: 22px; font-size: 11px; transform: translate(10%, -10%); border: 1px solid #eee; z-index: 10;">E</span>` 
                 : 
-                `<a href="../users/edit-member.php?id=${member.id}" class="edit-member-btn position-absolute top-0 end-0 bg-white rounded-circle shadow-sm text-primary" style="width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: translate(10%, -10%); border: 1px solid #eee; z-index: 10;">
+                (window.CURRENT_USER_ROLE === 'family-head' ? `<a href="../users/edit-member.php?id=${member.id}" class="edit-member-btn position-absolute top-0 end-0 bg-white rounded-circle shadow-sm text-primary" style="width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: translate(10%, -10%); border: 1px solid #eee; z-index: 10;">
                     <i class="fa-solid fa-pen"></i>
-                </a>`;
+                </a>` : '');
 
             div.innerHTML = `
                 <div class="avatar-wrapper position-relative">
@@ -113,17 +113,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Add Button for Members
-        const addDiv = document.createElement('div');
-        addDiv.className = 'family-member-filter-add';
-        addDiv.innerHTML = `
-            <div class="avatar-wrapper">
-                <button class="add-avatar-btn" onclick="window.location.href='../users/add-member.php'">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-                <span class="name text-muted">Add</span>
-            </div>
-        `;
-        membersContainer.appendChild(addDiv);
+        if (window.CURRENT_USER_ROLE === 'family-head') {
+            const addDiv = document.createElement('div');
+            addDiv.className = 'family-member-filter-add';
+            addDiv.innerHTML = `
+                <div class="avatar-wrapper">
+                    <button class="add-avatar-btn" onclick="window.location.href='../users/add-member.php'">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <span class="name text-muted">Add</span>
+                </div>
+            `;
+            membersContainer.appendChild(addDiv);
+        }
 
         // Re-initialize Filter Logic
         const filters = membersContainer.querySelectorAll('.family-member-filter');

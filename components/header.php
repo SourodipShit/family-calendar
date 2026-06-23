@@ -49,6 +49,7 @@ if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
             }
         ?>;
         window.CURRENT_USER_ID = <?php echo json_encode($_SESSION['user']['id'] ?? null); ?>;
+        window.CURRENT_USER_ROLE = <?php echo json_encode($_SESSION['user']['role'] ?? null); ?>;
     </script>
 </head>
 
