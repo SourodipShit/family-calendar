@@ -29,6 +29,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                             </div>
                         </a>
                         <!-- Future tabs can go here -->
+                        <a href="#manage-rewards-themes" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-medal-line me-3 fs-5 text-danger"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Manage Rewards Themes</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">Themes & points</small>
+                            </div>
+                        </a>
                         <a href="#grocery-categories" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
                             <i class="ri-shopping-basket-2-line me-3 fs-5 text-success"></i>
                             <div>
@@ -116,6 +123,92 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manage Rewards Themes -->
+                    <div class="tab-pane fade" id="manage-rewards-themes">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 me-3">
+                                        <i class="ri-medal-line fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0">Manage Rewards Themes</h5>
+                                        <p class="text-muted small mb-0">Configure global themes and reward point levels.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Horizontal Tabs -->
+                            <ul class="nav nav-tabs mb-4" id="rewardsThemesTab" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="themed-rewards-tab" data-bs-toggle="tab" data-bs-target="#themed-rewards" type="button" role="tab">Themed Rewards</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="levels-tab" data-bs-toggle="tab" data-bs-target="#levels" type="button" role="tab">Levels</button>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content" id="rewardsThemesTabContent">
+                                <!-- Themed Rewards -->
+                                <div class="tab-pane fade show active" id="themed-rewards" role="tabpanel">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold mb-0">Global Themed Rewards</h6>
+                                        <button class="btn btn-primary btn-sm rounded-2 px-3 py-1" data-bs-toggle="modal" data-bs-target="#themedRewardModal" onclick="prepareThemedRewardModal('add')">
+                                            <i class="ri-add-line me-1"></i> Add Theme
+                                        </button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table id="themedRewardsTable" class="table table-hover align-middle border-0 mb-0 w-100">
+                                            <thead class="bg-light border-0">
+                                                <tr>
+                                                    <th class="border-0 rounded-start px-3 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Theme Name</th>
+                                                    <th class="border-0 px-3 py-2 text-center text-uppercase extra-small ls-1 fw-bold text-muted">Levels</th>
+                                                    <th class="border-0 rounded-end px-3 py-2 text-end text-uppercase extra-small ls-1 fw-bold text-muted">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="themed-rewards-table-body" class="border-0">
+                                                <tr id="themed-rewards-loading-row">
+                                                    <td colspan="3" class="text-center py-4">
+                                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                        <span class="small text-muted">Loading themed rewards...</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <!-- Levels -->
+                                <div class="tab-pane fade" id="levels" role="tabpanel">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold mb-0">Theme Levels</h6>
+                                        <button class="btn btn-primary btn-sm rounded-2 px-3 py-1" data-bs-toggle="modal" data-bs-target="#themeLevelModal" onclick="prepareThemeLevelModal('add')">
+                                            <i class="ri-add-line me-1"></i> Add Level
+                                        </button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table id="themeLevelsTable" class="table table-hover align-middle border-0 mb-0 w-100">
+                                            <thead class="bg-light border-0">
+                                                <tr>
+                                                    <th class="border-0 rounded-start px-3 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Level Name</th>
+                                                    <th class="border-0 rounded-end px-3 py-2 text-end text-uppercase extra-small ls-1 fw-bold text-muted">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="theme-levels-table-body" class="border-0">
+                                                <tr id="theme-levels-loading-row">
+                                                    <td colspan="2" class="text-center py-4">
+                                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                        <span class="small text-muted">Loading levels...</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -599,6 +692,33 @@ require_once $path_prefix . 'components/admin-sidebar.php';
     </div>
 </div>
 
+<!-- Theme Level Modal -->
+<div class="modal fade" id="themeLevelModal" tabindex="-1" aria-labelledby="themeLevelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold" id="themeLevelModalLabel">Add Theme Level</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <form id="themeLevelForm">
+                    <input type="hidden" id="theme_level_id" name="id">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Level Name <span class="text-danger">*</span></label>
+                        <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                            <input type="text" class="form-control border-0 px-3 py-2 small" id="theme_level_name" name="name" placeholder="e.g. Platinum" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveThemeLevelBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm">Save Level</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Event Type Modal -->
 <div class="modal fade" id="eventTypeModal" tabindex="-1" aria-labelledby="eventTypeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -699,6 +819,41 @@ require_once $path_prefix . 'components/admin-sidebar.php';
     </div>
 </div>
 
+<!-- Themed Reward Modal -->
+<div class="modal fade" id="themedRewardModal" tabindex="-1" aria-labelledby="themedRewardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold" id="themedRewardModalLabel">Add Global Theme</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <form id="themedRewardForm" enctype="multipart/form-data">
+                    <input type="hidden" id="themed_reward_old_name" name="old_name">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark small">Theme Name <span class="text-danger">*</span></label>
+                        <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                            <input type="text" class="form-control border-0 px-3 py-2 small" id="themed_reward_name" name="name" placeholder="e.g. Medals, Badges" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 text-dark small">Levels</h6>
+                    </div>
+                    
+                    <div id="themed-reward-levels-container">
+                        <!-- Dynamic levels will be appended here -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-3 d-flex justify-content-end gap-2 border-top mt-2">
+                <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveThemedRewardBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm">Save Theme</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const ADMIN_API_PATH = '<?php echo $path_prefix; ?>api/admin/event_types.php';
     const SETTINGS_API_PATH = '<?php echo $path_prefix; ?>api/admin/settings.php';
@@ -709,6 +864,8 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         loadGeneralSettings();
         loadConfigSettings();
         loadTimezones();
+        loadThemeLevels();
+        loadThemedRewards();
 
         document.getElementById('event_type_colour').addEventListener('input', (e) => {
             document.getElementById('color-hex-label').innerText = e.target.value.toUpperCase();
@@ -1208,6 +1365,175 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             btn.innerHTML = originalText;
         }
     });
+    // --- Theme Levels Logic ---
+
+    const THEME_LEVEL_API_PATH = '<?php echo $path_prefix; ?>api/admin/theme_level.php';
+    let globalThemeLevels = [];
+
+    async function loadThemeLevels() {
+        const tableBody = document.getElementById('theme-levels-table-body');
+        try {
+            const response = await fetch(`${THEME_LEVEL_API_PATH}?action=list`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                globalThemeLevels = result.data;
+                renderThemeLevelsTable(result.data);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-danger small">${result.message || 'No levels found'}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error loading theme levels:', error);
+            tableBody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-danger small">Failed to connect to server</td></tr>`;
+        }
+    }
+
+    function renderThemeLevelsTable(levels) {
+        const tableBody = document.getElementById('theme-levels-table-body');
+
+        if ($.fn.DataTable.isDataTable('#themeLevelsTable')) {
+            $('#themeLevelsTable').DataTable().destroy();
+        }
+
+        tableBody.innerHTML = '';
+
+        if (levels.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-muted small">No theme levels found.</td></tr>';
+            return;
+        }
+
+        levels.forEach(level => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-bottom';
+
+            tr.innerHTML = `
+                <td class="px-3 py-2 fw-bold text-dark small">${level.name}</td>
+                <td class="px-3 py-2 text-end">
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 me-1 hover-shadow" style="width: 32px; height: 32px;" onclick="editThemeLevel(${level.id}, '${level.name}')" title="Edit">
+                        <i class="ri-pencil-line fs-6"></i>
+                    </button>
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteThemeLevel(${level.id})" title="Delete">
+                        <i class="ri-delete-bin-line fs-6"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        $('#themeLevelsTable').DataTable({
+            "dom": 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+            "pageLength": 10,
+            "destroy": true,
+            "language": {
+                "paginate": {
+                    "next": '<i class="ri-arrow-right-s-line"></i>',
+                    "previous": '<i class="ri-arrow-left-s-line"></i>'
+                }
+            },
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 1
+            }]
+        });
+    }
+
+    function prepareThemeLevelModal(action) {
+        const modalTitle = document.getElementById('themeLevelModalLabel');
+        const form = document.getElementById('themeLevelForm');
+        form.reset();
+        document.getElementById('theme_level_id').value = '';
+
+        if (action === 'add') {
+            modalTitle.innerText = 'Add Theme Level';
+        } else {
+            modalTitle.innerText = 'Edit Theme Level';
+        }
+    }
+
+    function editThemeLevel(id, name) {
+        prepareThemeLevelModal('edit');
+        document.getElementById('theme_level_id').value = id;
+        document.getElementById('theme_level_name').value = name;
+
+        const modal = new bootstrap.Modal(document.getElementById('themeLevelModal'));
+        modal.show();
+    }
+
+    async function deleteThemeLevel(id) {
+        if (confirm('Are you sure you want to delete this level?')) {
+            try {
+                const response = await fetch(`${THEME_LEVEL_API_PATH}?action=delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: id })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (typeof showAlert === 'function') showAlert('Level deleted successfully', 'success');
+                    else alert('Level deleted successfully');
+                    loadThemeLevels();
+                } else {
+                    if (typeof showAlert === 'function') showAlert(result.message || 'Failed to delete level', 'error');
+                    else alert(result.message || 'Failed to delete level');
+                }
+            } catch (error) {
+                console.error('Error deleting level:', error);
+                if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+                else alert('Network error occurred');
+            }
+        }
+    }
+
+    document.getElementById('saveThemeLevelBtn').addEventListener('click', async () => {
+        const form = document.getElementById('themeLevelForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const action = data.id ? 'update' : 'create';
+
+        const btn = document.getElementById('saveThemeLevelBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        try {
+            const response = await fetch(`${THEME_LEVEL_API_PATH}?action=${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                if (typeof showAlert === 'function') showAlert(result.message || 'Level saved successfully', 'success');
+                else alert(result.message || 'Level saved successfully');
+
+                const modalEl = document.getElementById('themeLevelModal');
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+
+                loadThemeLevels();
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message || 'Failed to save level', 'error');
+                else alert(result.message || 'Failed to save level');
+            }
+        } catch (error) {
+            console.error('Error saving theme level:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+
     // --- Grocery Categories Logic ---
 
     const GROCERY_API_PATH = '<?php echo $path_prefix; ?>api/admin/grocery_categories.php';
@@ -1571,6 +1897,290 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             }
         } catch (error) {
             console.error('Error saving timezone:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+
+    // --- Themed Rewards Logic ---
+
+    const THEMED_REWARDS_API_PATH = '<?php echo $path_prefix; ?>api/admin/theme_rewards.php';
+    let themedRewardLevelCount = 0;
+
+    async function loadThemedRewards() {
+        const tableBody = document.getElementById('themed-rewards-table-body');
+        try {
+            const response = await fetch(`${THEMED_REWARDS_API_PATH}?action=list`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                renderThemedRewardsTable(result.data);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">${result.message || 'No themes found'}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error loading themed rewards:', error);
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">Failed to connect to server</td></tr>`;
+        }
+    }
+
+    function renderThemedRewardsTable(themes) {
+        const tableBody = document.getElementById('themed-rewards-table-body');
+
+        if ($.fn.DataTable.isDataTable('#themedRewardsTable')) {
+            $('#themedRewardsTable').DataTable().destroy();
+        }
+
+        tableBody.innerHTML = '';
+
+        if (themes.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted small">No global themes found.</td></tr>';
+            return;
+        }
+
+        themes.forEach(theme => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-bottom';
+
+            let levelsHtml = '<div class="d-flex flex-wrap gap-1 justify-content-center">';
+            if (theme.levels && theme.levels.length > 0) {
+                theme.levels.forEach(l => {
+                    let imgHtml = '';
+                    if (l.image) {
+                        let imagePath = l.image;
+                        if (!imagePath.startsWith('../') && !imagePath.startsWith('http')) {
+                            imagePath = '<?php echo $path_prefix; ?>' + imagePath;
+                        } else if (imagePath.startsWith('../')) {
+                            imagePath = '<?php echo $path_prefix; ?>' + imagePath.replace('../', '');
+                        }
+                        imgHtml = `<img src="${imagePath}" class="rounded-circle me-1" style="width: 16px; height: 16px; object-fit: cover;">`;
+                    }
+                    levelsHtml += `<span class="badge bg-light text-dark border d-flex align-items-center">${imgHtml}${l.level} (${l.points} pts)</span>`;
+                });
+            } else {
+                levelsHtml += `<span class="badge bg-light text-muted border">0 Levels</span>`;
+            }
+            levelsHtml += '</div>';
+
+            tr.innerHTML = `
+                <td class="px-3 py-2 fw-bold text-dark small">${theme.name}</td>
+                <td class="px-3 py-2 text-center small text-muted">${levelsHtml}</td>
+                <td class="px-3 py-2 text-end">
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 me-1 hover-shadow" style="width: 32px; height: 32px;" onclick='editThemedReward(${JSON.stringify(theme).replace(/'/g, "&#39;")})' title="Edit">
+                        <i class="ri-pencil-line fs-6"></i>
+                    </button>
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteThemedReward('${theme.name.replace(/'/g, "\\'")}')" title="Delete">
+                        <i class="ri-delete-bin-line fs-6"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        $('#themedRewardsTable').DataTable({
+            "dom": 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+            "pageLength": 10,
+            "destroy": true,
+            "language": {
+                "paginate": {
+                    "next": '<i class="ri-arrow-right-s-line"></i>',
+                    "previous": '<i class="ri-arrow-left-s-line"></i>'
+                }
+            },
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 2
+            }]
+        });
+    }
+
+    function addThemedRewardLevel(levelData = null) {
+        const container = document.getElementById('themed-reward-levels-container');
+        const id = themedRewardLevelCount++;
+        
+        let existingImageHtml = '';
+        let currentImgSrc = '';
+        if (levelData && levelData.image) {
+            let imagePath = levelData.image;
+            if (!imagePath.startsWith('../') && !imagePath.startsWith('http')) {
+                imagePath = '<?php echo $path_prefix; ?>' + imagePath;
+            } else if (imagePath.startsWith('../')) {
+                imagePath = '<?php echo $path_prefix; ?>' + imagePath.replace('../', '');
+            }
+            currentImgSrc = imagePath;
+            existingImageHtml = `<input type="hidden" name="levels[${id}][existing_image]" value="${levelData.image}">`;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'card bg-light border-0 mb-2 level-row shadow-none';
+        div.id = `themed-reward-level-${id}`;
+        div.innerHTML = `
+            <div class="card-body p-2 px-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold text-dark extra-small mb-1">Level Name</label>
+                        <input type="text" class="form-control form-control-sm border-0 shadow-sm bg-white" name="levels[${id}][level]" value="${levelData ? levelData.level : ''}" required readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-dark extra-small mb-1">Points</label>
+                        <input type="number" class="form-control form-control-sm border-0 shadow-sm" name="levels[${id}][points]" value="${levelData ? levelData.points : ''}" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold text-dark extra-small mb-1">Image</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="file" class="form-control form-control-sm border-0 shadow-sm" name="levels_image_${id}" accept="image/*" onchange="previewLevelImage(this, 'level-img-preview-${id}')">
+                            <img id="level-img-preview-${id}" src="${currentImgSrc}" class="rounded border ${currentImgSrc ? '' : 'd-none'}" style="width: 30px; height: 30px; object-fit: cover;">
+                        </div>
+                        ${existingImageHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    function previewLevelImage(input, previewId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function prepareThemedRewardModal(action) {
+        const modalTitle = document.getElementById('themedRewardModalLabel');
+        const form = document.getElementById('themedRewardForm');
+        form.reset();
+        document.getElementById('themed_reward_old_name').value = '';
+        document.getElementById('themed-reward-levels-container').innerHTML = '';
+        themedRewardLevelCount = 0;
+
+        if (action === 'add') {
+            modalTitle.innerText = 'Add Global Theme';
+            globalThemeLevels.forEach(level => addThemedRewardLevel({ level: level.name, points: '' }));
+        } else {
+            modalTitle.innerText = 'Edit Global Theme';
+        }
+    }
+
+    function editThemedReward(theme) {
+        prepareThemedRewardModal('edit');
+        document.getElementById('themed_reward_old_name').value = theme.name;
+        document.getElementById('themed_reward_name').value = theme.name;
+
+        // Add rows based on predefined levels
+        globalThemeLevels.forEach(predefined => {
+            const existing = theme.levels ? theme.levels.find(l => l.level === predefined.name) : null;
+            if (existing) {
+                addThemedRewardLevel({ level: existing.level, points: existing.amount, image: existing.image });
+            } else {
+                addThemedRewardLevel({ level: predefined.name, points: '' });
+            }
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('themedRewardModal'));
+        modal.show();
+    }
+
+    async function deleteThemedReward(name) {
+        if (confirm(`Are you sure you want to delete the theme "${name}" and all its levels?`)) {
+            try {
+                const response = await fetch(`${THEMED_REWARDS_API_PATH}?action=delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: name })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (typeof showAlert === 'function') showAlert('Theme deleted successfully', 'success');
+                    else alert('Theme deleted successfully');
+                    loadThemedRewards();
+                } else {
+                    if (typeof showAlert === 'function') showAlert(result.message || 'Failed to delete theme', 'error');
+                    else alert(result.message || 'Failed to delete theme');
+                }
+            } catch (error) {
+                console.error('Error deleting theme:', error);
+                if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+                else alert('Network error occurred');
+            }
+        }
+    }
+
+    document.getElementById('saveThemedRewardBtn').addEventListener('click', async () => {
+        const form = document.getElementById('themedRewardForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const container = document.getElementById('themed-reward-levels-container');
+        if (container.children.length === 0) {
+            alert('Please add at least one level to the theme.');
+            return;
+        }
+
+        const formData = new FormData(form);
+        const oldName = formData.get('old_name');
+        const action = oldName ? 'update' : 'create';
+
+        // Reconstruct levels array from FormData to standard JSON format for the API
+        // But since we have file uploads, we'll just send the FormData directly 
+        // after formatting the levels as JSON so PHP can decode it
+        
+        let levels = [];
+        const levelsNodes = container.querySelectorAll('.level-row');
+        levelsNodes.forEach(node => {
+            const id = node.id.split('-').pop();
+            levels.push({
+                level: formData.get(`levels[${id}][level]`),
+                points: formData.get(`levels[${id}][points]`),
+                existing_image: formData.get(`levels[${id}][existing_image]`) || null
+            });
+            formData.delete(`levels[${id}][level]`);
+            formData.delete(`levels[${id}][points]`);
+            formData.delete(`levels[${id}][existing_image]`);
+        });
+        
+        formData.append('levels', JSON.stringify(levels));
+
+        const btn = document.getElementById('saveThemedRewardBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        try {
+            const response = await fetch(`${THEMED_REWARDS_API_PATH}?action=${action}`, {
+                method: 'POST',
+                // Don't set Content-Type header when using FormData; browser does it automatically with boundary
+                body: formData
+            });
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                if (typeof showAlert === 'function') showAlert(result.message || 'Theme saved successfully', 'success');
+                else alert(result.message || 'Theme saved successfully');
+
+                const modalEl = document.getElementById('themedRewardModal');
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+
+                loadThemedRewards();
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message || 'Failed to save theme', 'error');
+                else alert(result.message || 'Failed to save theme');
+            }
+        } catch (error) {
+            console.error('Error saving theme:', error);
             if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
             else alert('Network error occurred');
         } finally {
