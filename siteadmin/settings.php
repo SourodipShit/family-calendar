@@ -407,6 +407,45 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                     </div>
                                                 </div>
                                             </div>
+                                            
+                                            <!-- Stripe Configuration -->
+                                            <div class="accordion-item border-0 mb-3 rounded-3 shadow-sm overflow-hidden">
+                                                <h2 class="accordion-header" id="headingStripe">
+                                                    <button class="accordion-button collapsed fw-bold bg-light text-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStripe" aria-expanded="false" aria-controls="collapseStripe">
+                                                        <i class="ri-bank-card-line me-2 text-primary"></i> Stripe Settings for Payments
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseStripe" class="accordion-collapse collapse" aria-labelledby="headingStripe" data-bs-parent="#configAccordion">
+                                                    <div class="accordion-body border-top border-light bg-white">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Stripe Public Key</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-key-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="stripe_public_key" name="stripe_public_key" placeholder="e.g. pk_test_...">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Stripe Secret Key</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-key-2-line"></i></span>
+                                                                <input type="password" class="form-control border-0 px-3 py-2 small" id="stripe_secret_key" name="stripe_secret_key" placeholder="e.g. sk_test_...">
+                                                                <button class="btn btn-white border-0 px-3" type="button" id="toggleStripeKeyBtn" onclick="toggleStripeKeyVisibility()">
+                                                                    <i class="ri-eye-line text-muted"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Stripe Webhook Secret</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-lock-line"></i></span>
+                                                                <input type="password" class="form-control border-0 px-3 py-2 small" id="stripe_webhook_secret" name="stripe_webhook_secret" placeholder="e.g. whsec_...">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                         </div>
 
@@ -984,6 +1023,21 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (imapFlagsSetting) {
                     document.getElementById('imap_flags').value = imapFlagsSetting.setting_value || '';
                 }
+
+                const stripePublicKeySetting = settings.find(s => s.setting_key === 'stripe_public_key');
+                if (stripePublicKeySetting) {
+                    document.getElementById('stripe_public_key').value = stripePublicKeySetting.setting_value || '';
+                }
+                
+                const stripeSecretKeySetting = settings.find(s => s.setting_key === 'stripe_secret_key');
+                if (stripeSecretKeySetting) {
+                    document.getElementById('stripe_secret_key').value = stripeSecretKeySetting.setting_value || '';
+                }
+
+                const stripeWebhookSecretSetting = settings.find(s => s.setting_key === 'stripe_webhook_secret');
+                if (stripeWebhookSecretSetting) {
+                    document.getElementById('stripe_webhook_secret').value = stripeWebhookSecretSetting.setting_value || '';
+                }
             }
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -999,6 +1053,20 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             toggleBtnIcon.classList.add('ri-eye-off-line');
         } else {
             apiKeyInput.type = 'password';
+            toggleBtnIcon.classList.remove('ri-eye-off-line');
+            toggleBtnIcon.classList.add('ri-eye-line');
+        }
+    }
+
+    function toggleStripeKeyVisibility() {
+        const stripeKeyInput = document.getElementById('stripe_secret_key');
+        const toggleBtnIcon = document.querySelector('#toggleStripeKeyBtn i');
+        if (stripeKeyInput.type === 'password') {
+            stripeKeyInput.type = 'text';
+            toggleBtnIcon.classList.remove('ri-eye-line');
+            toggleBtnIcon.classList.add('ri-eye-off-line');
+        } else {
+            stripeKeyInput.type = 'password';
             toggleBtnIcon.classList.remove('ri-eye-off-line');
             toggleBtnIcon.classList.add('ri-eye-line');
         }
@@ -1089,6 +1157,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         const imapHost = document.getElementById('imap_host').value;
         const imapPort = document.getElementById('imap_port').value;
         const imapFlags = document.getElementById('imap_flags').value;
+        
+        const stripePublicKey = document.getElementById('stripe_public_key').value;
+        const stripeSecretKey = document.getElementById('stripe_secret_key').value;
+        const stripeWebhookSecret = document.getElementById('stripe_webhook_secret').value;
 
         const btn = document.getElementById('saveConfigBtn');
         const originalText = btn.innerHTML;
@@ -1111,7 +1183,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         infobip_sender: infobipSender,
                         imap_host: imapHost,
                         imap_port: imapPort,
-                        imap_flags: imapFlags
+                        imap_flags: imapFlags,
+                        stripe_public_key: stripePublicKey,
+                        stripe_secret_key: stripeSecretKey,
+                        stripe_webhook_secret: stripeWebhookSecret
                     }
                 })
             });

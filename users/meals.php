@@ -251,7 +251,7 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                             <button class="btn btn-white border-0 py-2 px-3" id="btn-prev"><i
                                     class="fa-solid fa-chevron-left text-muted"></i></button>
                             <button class="btn btn-white border-0 py-2 px-3 fw-bold border-start border-end"
-                                id="date-picker-btn"><i class="fa-regular fa-calendar me-2"></i> May 12 â€“ May
+                                id="date-picker-btn"><i class="fa-regular fa-calendar me-2"></i> May 12 - May
                                 18, 2024</button>
                             <button class="btn btn-white border-0 py-2 px-3" id="btn-next"><i
                                     class="fa-solid fa-chevron-right text-muted"></i></button>
@@ -415,7 +415,7 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                             <div id="grocery-content-area" class="d-none">
                                 <div class="text-center mb-3 mt-1">
                                     <h4 id="display-list-title" class="fw-bold mb-0 text-dark">Weekly Groceries</h4>
-                                    <p id="display-list-dates" class="text-muted fw-medium mb-0 small">May 11 â€“ May 17, 2024</p>
+                                    <p id="display-list-dates" class="text-muted fw-medium mb-0 small">May 11 - May 17, 2024</p>
                                 </div>
 
                                 <div id="display-items-list" class="row g-3">
@@ -560,9 +560,12 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
         fetchGroceryCategories();
         let currentDate = new Date(); // Start with today
 
-        // Helper to format date as YYYY-MM-DD
+        // Helper to format date as YYYY-MM-DD (local time)
         const formatDate = (date) => {
-            return date.toISOString().split('T')[0];
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         };
 
         // Helper to get week range (Sunday to Saturday)
@@ -592,7 +595,7 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
             const yearOptions = {
                 year: 'numeric'
             };
-            const dateRangeText = `${range.start.toLocaleDateString('en-US', options)} â€“ ${range.end.toLocaleDateString('en-US', options)}, ${range.end.toLocaleDateString('en-US', yearOptions)}`;
+            const dateRangeText = `${range.start.toLocaleDateString('en-US', options)} - ${range.end.toLocaleDateString('en-US', options)}, ${range.end.toLocaleDateString('en-US', yearOptions)}`;
             document.getElementById('date-picker-btn').innerHTML = `<i class="fa-regular fa-calendar me-2"></i> ${dateRangeText}`;
 
             // Update Planner Header
@@ -642,7 +645,7 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                 day: 'numeric'
             });
             const end = new Date(list.week_end_date).toLocaleDateString('en-US', options);
-            document.getElementById('display-list-dates').textContent = `${start} â€“ ${end}`;
+            document.getElementById('display-list-dates').textContent = `${start} - ${end}`;
 
             if (list.notes && list.notes.trim() !== "") {
                 document.getElementById('display-list-notes-container').classList.remove('d-none');
@@ -1292,6 +1295,66 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
         const mealTabs = document.getElementById('mealTabs');
         const addMealBtn = document.getElementById('add-meal-btn');
         const newListBtn = document.getElementById('new-list-btn');
+
+        const updateDefaultTitle = (titleId, startId, endId) => {
+            const titleEl = document.getElementById(titleId);
+            const startVal = document.getElementById(startId).value;
+            const endVal = document.getElementById(endId).value;
+            if(!startVal || !endVal) return;
+            
+            if (titleEl.value.startsWith('Groceries: ')) {
+                const start = new Date(startVal + 'T00:00:00');
+                const end = new Date(endVal + 'T00:00:00');
+                const options = { month: 'short', day: 'numeric' };
+                titleEl.value = `Groceries: ${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
+            }
+        };
+
+        const setupDateSnapping = (startId, endId, titleId) => {
+            const startInput = document.getElementById(startId);
+            const endInput = document.getElementById(endId);
+
+            if(startInput) {
+                startInput.addEventListener('change', function(e) {
+                    if(!this.value) return;
+                    const d = new Date(this.value + 'T00:00:00');
+                    if(d.getDay() !== 0) {
+                        showAlert('Start date must be a Sunday. The date will be automatically adjusted.', 'warning');
+                        d.setDate(d.getDate() - d.getDay());
+                        this.value = formatDate(d);
+                    }
+                    
+                    // Enforce the corresponding Saturday for the end date
+                    const end = new Date(d);
+                    end.setDate(end.getDate() + 6);
+                    if (endInput) endInput.value = formatDate(end);
+                    
+                    updateDefaultTitle(titleId, startId, endId);
+                });
+            }
+
+            if(endInput) {
+                endInput.addEventListener('change', function(e) {
+                    if(!this.value) return;
+                    const d = new Date(this.value + 'T00:00:00');
+                    if(d.getDay() !== 6) {
+                        showAlert('End date must be a Saturday. The date will be automatically adjusted.', 'warning');
+                        d.setDate(d.getDate() + (6 - d.getDay()));
+                        this.value = formatDate(d);
+                    }
+
+                    // Enforce the corresponding Sunday for the start date
+                    const start = new Date(d);
+                    start.setDate(start.getDate() - 6);
+                    if (startInput) startInput.value = formatDate(start);
+
+                    updateDefaultTitle(titleId, startId, endId);
+                });
+            }
+        };
+
+        setupDateSnapping('listStartDate', 'listEndDate', 'listTitle');
+        setupDateSnapping('editListStartDate', 'editListEndDate', 'editListTitle');
 
         mealTabs.addEventListener('shown.bs.tab', function(event) {
             if (event.target.id === 'groceries-tab') {
