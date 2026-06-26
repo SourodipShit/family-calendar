@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/Points.php';
 
 class Chore
 {
@@ -127,11 +128,23 @@ class Chore
     public static function approve($instanceId, $userId)
     {
         try {
+            // Get the chore details and points
+            $sqlInfo = "SELECT c.assigned_to, c.title, tr.points 
+                        FROM chore_instances ci 
+                        JOIN chores c ON ci.chore_id = c.id 
+                        LEFT JOIN theme_rewards tr ON c.reward_id = tr.id 
+                        WHERE ci.id = ?";
+            $info = Database::runPrepared($sqlInfo, [$instanceId])->fetch(PDO::FETCH_ASSOC);
+
             // Note: Ideally, we should verify that $userId is the Head of Family for this chore's family
             $sql = "UPDATE chore_instances SET status = 'complete', approved_by = ?, approved_at = NOW() WHERE id = ?";
             Database::runPrepared($sql, [$userId, $instanceId]);
 
-            // Reward points logic can be integrated here later based on the chore's reward_id
+            // Reward points logic
+            if ($info && !empty($info['points']) && $info['points'] > 0) {
+                Points::creditPoints($info['assigned_to'], (int)$info['points'], "Completed chore: " . $info['title']);
+            }
+
             return ["msg" => "Chore approved successfully", "status" => "success"];
         } catch (Exception $e) {
             return ["msg" => $e->getMessage(), "status" => "error"];

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../config/Database.php";
+require_once __DIR__ . "/Points.php";
 
 class User
 {
@@ -25,6 +26,7 @@ class User
             $user_id = Database::runPrepared("SELECT id FROM users WHERE email = ?", [$data['email']]);
             $user_id = $user_id->fetchColumn();
             self::linkUserToFamily($user_id, $data['family_id']);
+            Points::createInstance($user_id);
 
             if ($result) {
                 return ['status' => 'success', 'message' => 'User added successfully'];
@@ -103,9 +105,9 @@ class User
         try {
             // Ensure settings is a valid JSON string
             $settings_json = is_string($settings) ? $settings : json_encode($settings);
-            
+
             $result = Database::runPrepared("UPDATE users SET settings = ? WHERE id = ?", [$settings_json, $user_id]);
-            
+
             if ($result) {
                 return ['status' => 'success', 'message' => 'User settings updated successfully'];
             }
@@ -170,14 +172,14 @@ class User
         // Combine and remove duplicates by family ID
         $families = [];
         $seen = [];
-        
+
         foreach (array_merge($nativeFamilies, $linkedFamilies) as $family) {
             if (!isset($seen[$family['id']])) {
                 $families[] = $family;
                 $seen[$family['id']] = true;
             }
         }
-        
+
         return $families;
     }
 }

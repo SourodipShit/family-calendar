@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
-
+require_once __DIR__ . "/Points.php";
 
 class Auth
 {
@@ -55,37 +55,41 @@ class Auth
             $phone = isset($user['phone']) ? $user['phone'] : '';
             $image = isset($user['image']) ? $user['image'] : '';
 
-            Database::runPrepared("INSERT INTO users (name, email, phone, role, password, image) VALUES (?, ?, ?, 'family-head', ?, ?)", 
-                [$user['name'], $user['email'], $phone, $user['password'], $image]);
+            Database::runPrepared(
+                "INSERT INTO users (name, email, phone, role, password, image) VALUES (?, ?, ?, 'family-head', ?, ?)",
+                [$user['name'], $user['email'], $phone, $user['password'], $image]
+            );
             $lastUserId = Database::getInstance()->lastInsertId();
+            Points::createInstance($lastUserId);
 
-            if($lastUserId) {
+            if ($lastUserId) {
                 $timezone = isset($family['timezone']) ? $family['timezone'] : null;
                 $location = isset($family['location']) ? $family['location'] : null;
 
-                Database::runPrepared("INSERT INTO families (name, email, location, timezone) VALUES (?, NULL, ?, ?)", 
-                    [$family['name'], $location, $timezone]);
+                Database::runPrepared(
+                    "INSERT INTO families (name, email, location, timezone) VALUES (?, NULL, ?, ?)",
+                    [$family['name'], $location, $timezone]
+                );
                 $lastFamilyId = Database::getInstance()->lastInsertId();
 
                 // Allocate family shared email
                 require_once __DIR__ . '/SharedEmails.php';
                 SharedEmails::allocateFamily($lastFamilyId);
-                
+
                 $allocatedData = SharedEmails::getFamilyEmail($lastFamilyId);
                 $allocatedEmail = ($allocatedData && $allocatedData['status'] === 'success') ? $allocatedData['email'] : null;
-                
+
                 if ($allocatedEmail) {
                     Database::runPrepared("UPDATE families SET email = ? WHERE id = ?", [$allocatedEmail, $lastFamilyId]);
                 }
-                
+
                 // Send signup success email
                 require_once __DIR__ . '/../services/mail/Mail.php';
                 Mail::sendSignupSuccess($user['email'], $user['name'], $allocatedEmail);
 
-                if(Database::runPrepared("INSERT INTO user_family (user_id, family_id) VALUES (?, ?)", [$lastUserId, $lastFamilyId])) {
+                if (Database::runPrepared("INSERT INTO user_family (user_id, family_id) VALUES (?, ?)", [$lastUserId, $lastFamilyId])) {
                     return ["status" => "success", "message" => "User and family registered successfully."];
-                }
-                else {
+                } else {
                     return ["status" => "error", "message" => "Failed to link user and family."];
                 }
             }
