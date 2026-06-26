@@ -141,7 +141,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Horizontal Tabs -->
                             <ul class="nav nav-tabs mb-4" id="rewardsThemesTab" role="tablist">
                                 <li class="nav-item" role="presentation">
@@ -151,7 +151,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                     <button class="nav-link" id="levels-tab" data-bs-toggle="tab" data-bs-target="#levels" type="button" role="tab">Levels</button>
                                 </li>
                             </ul>
-                            
+
                             <div class="tab-content" id="rewardsThemesTabContent">
                                 <!-- Themed Rewards -->
                                 <div class="tab-pane fade show active" id="themed-rewards" role="tabpanel">
@@ -166,6 +166,8 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                             <thead class="bg-light border-0">
                                                 <tr>
                                                     <th class="border-0 rounded-start px-3 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Theme Name</th>
+                                                    <th class="border-0 px-3 py-2 text-center text-uppercase extra-small ls-1 fw-bold text-muted">Scope</th>
+                                                    <th class="border-0 px-3 py-2 text-center text-uppercase extra-small ls-1 fw-bold text-muted">Family</th>
                                                     <th class="border-0 px-3 py-2 text-center text-uppercase extra-small ls-1 fw-bold text-muted">Levels</th>
                                                     <th class="border-0 rounded-end px-3 py-2 text-end text-uppercase extra-small ls-1 fw-bold text-muted">Actions</th>
                                                 </tr>
@@ -181,7 +183,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                         </table>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Levels -->
                                 <div class="tab-pane fade" id="levels" role="tabpanel">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -500,7 +502,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Stripe Configuration -->
                                             <div class="accordion-item border-0 mb-3 rounded-3 shadow-sm overflow-hidden">
                                                 <h2 class="accordion-header" id="headingStripe">
@@ -528,7 +530,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <div class="mb-3">
                                                             <label class="form-label fw-bold small text-muted text-uppercase ls-1">Stripe Webhook Secret</label>
                                                             <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
@@ -607,7 +609,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                     <p class="text-muted small mb-0">Irreversible system reset actions.</p>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-4 pb-4 border-bottom">
                                 <h6 class="fw-bold">Reset All Family Assets</h6>
                                 <p class="small text-muted">This will delete all events, meals, recipes, grocery lists, and uploaded photos. Users, families, and configuration will remain untouched.</p>
@@ -830,17 +832,19 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             <div class="modal-body py-2">
                 <form id="themedRewardForm" enctype="multipart/form-data">
                     <input type="hidden" id="themed_reward_old_name" name="old_name">
+                    <input type="hidden" id="themed_reward_family_id" name="family_id">
+                    <input type="hidden" id="themed_reward_is_global" name="is_global">
                     <div class="mb-4">
                         <label class="form-label fw-semibold text-dark small">Theme Name <span class="text-danger">*</span></label>
                         <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
                             <input type="text" class="form-control border-0 px-3 py-2 small" id="themed_reward_name" name="name" placeholder="e.g. Medals, Badges" required>
                         </div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-bold mb-0 text-dark small">Levels</h6>
                     </div>
-                    
+
                     <div id="themed-reward-levels-container">
                         <!-- Dynamic levels will be appended here -->
                     </div>
@@ -1185,7 +1189,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (stripePublicKeySetting) {
                     document.getElementById('stripe_public_key').value = stripePublicKeySetting.setting_value || '';
                 }
-                
+
                 const stripeSecretKeySetting = settings.find(s => s.setting_key === 'stripe_secret_key');
                 if (stripeSecretKeySetting) {
                     document.getElementById('stripe_secret_key').value = stripeSecretKeySetting.setting_value || '';
@@ -1314,7 +1318,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         const imapHost = document.getElementById('imap_host').value;
         const imapPort = document.getElementById('imap_port').value;
         const imapFlags = document.getElementById('imap_flags').value;
-        
+
         const stripePublicKey = document.getElementById('stripe_public_key').value;
         const stripeSecretKey = document.getElementById('stripe_secret_key').value;
         const stripeWebhookSecret = document.getElementById('stripe_webhook_secret').value;
@@ -1467,7 +1471,9 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ id: id })
+                    body: JSON.stringify({
+                        id: id
+                    })
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
@@ -1951,10 +1957,11 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     let imgHtml = '';
                     if (l.image) {
                         let imagePath = l.image;
-                        if (!imagePath.startsWith('../') && !imagePath.startsWith('http')) {
+                        if (imagePath.startsWith('../')) {
+                            imagePath = imagePath.replace('../', '');
+                        }
+                        if (!imagePath.startsWith('http')) {
                             imagePath = '<?php echo $path_prefix; ?>' + imagePath;
-                        } else if (imagePath.startsWith('../')) {
-                            imagePath = '<?php echo $path_prefix; ?>' + imagePath.replace('../', '');
                         }
                         imgHtml = `<img src="${imagePath}" class="rounded-circle me-1" style="width: 16px; height: 16px; object-fit: cover;">`;
                     }
@@ -1965,14 +1972,27 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             }
             levelsHtml += '</div>';
 
+            let badge = '';
+            if (theme.is_global == 1) {
+                badge = `<span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill extra-small">Global</span>`;
+            } else {
+                badge = `<span class="badge bg-success bg-opacity-10 text-success px-2 py-1 rounded-pill extra-small">Family</span>`;
+            }
+
+            let familyContent = theme.family_name ?
+                `<span class="small fw-semibold text-dark">${theme.family_name}</span>` :
+                `<span class="badge bg-light text-muted px-2 py-1 rounded-pill extra-small border">N/A</span>`;
+
             tr.innerHTML = `
                 <td class="px-3 py-2 fw-bold text-dark small">${theme.name}</td>
+                <td class="px-3 py-2 text-center">${badge}</td>
+                <td class="px-3 py-2 text-center">${familyContent}</td>
                 <td class="px-3 py-2 text-center small text-muted">${levelsHtml}</td>
                 <td class="px-3 py-2 text-end">
                     <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 me-1 hover-shadow" style="width: 32px; height: 32px;" onclick='editThemedReward(${JSON.stringify(theme).replace(/'/g, "&#39;")})' title="Edit">
                         <i class="ri-pencil-line fs-6"></i>
                     </button>
-                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteThemedReward('${theme.name.replace(/'/g, "\\'")}')" title="Delete">
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteThemedReward('${theme.name.replace(/'/g, "\\'")}', ${theme.family_id || 'null'}, ${theme.is_global})" title="Delete">
                         <i class="ri-delete-bin-line fs-6"></i>
                     </button>
                 </td>
@@ -1992,7 +2012,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             },
             "columnDefs": [{
                 "orderable": false,
-                "targets": 2
+                "targets": 4
             }]
         });
     }
@@ -2000,15 +2020,16 @@ require_once $path_prefix . 'components/admin-sidebar.php';
     function addThemedRewardLevel(levelData = null) {
         const container = document.getElementById('themed-reward-levels-container');
         const id = themedRewardLevelCount++;
-        
+
         let existingImageHtml = '';
         let currentImgSrc = '';
         if (levelData && levelData.image) {
             let imagePath = levelData.image;
-            if (!imagePath.startsWith('../') && !imagePath.startsWith('http')) {
+            if (imagePath.startsWith('../')) {
+                imagePath = imagePath.replace('../', '');
+            }
+            if (!imagePath.startsWith('http')) {
                 imagePath = '<?php echo $path_prefix; ?>' + imagePath;
-            } else if (imagePath.startsWith('../')) {
-                imagePath = '<?php echo $path_prefix; ?>' + imagePath.replace('../', '');
             }
             currentImgSrc = imagePath;
             existingImageHtml = `<input type="hidden" name="levels[${id}][existing_image]" value="${levelData.image}">`;
@@ -2059,12 +2080,17 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         const form = document.getElementById('themedRewardForm');
         form.reset();
         document.getElementById('themed_reward_old_name').value = '';
+        document.getElementById('themed_reward_family_id').value = '';
+        document.getElementById('themed_reward_is_global').value = '1';
         document.getElementById('themed-reward-levels-container').innerHTML = '';
         themedRewardLevelCount = 0;
 
         if (action === 'add') {
             modalTitle.innerText = 'Add Global Theme';
-            globalThemeLevels.forEach(level => addThemedRewardLevel({ level: level.name, points: '' }));
+            globalThemeLevels.forEach(level => addThemedRewardLevel({
+                level: level.name,
+                points: ''
+            }));
         } else {
             modalTitle.innerText = 'Edit Global Theme';
         }
@@ -2074,14 +2100,23 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         prepareThemedRewardModal('edit');
         document.getElementById('themed_reward_old_name').value = theme.name;
         document.getElementById('themed_reward_name').value = theme.name;
+        document.getElementById('themed_reward_family_id').value = theme.family_id || '';
+        document.getElementById('themed_reward_is_global').value = theme.is_global;
 
         // Add rows based on predefined levels
         globalThemeLevels.forEach(predefined => {
             const existing = theme.levels ? theme.levels.find(l => l.level === predefined.name) : null;
             if (existing) {
-                addThemedRewardLevel({ level: existing.level, points: existing.amount, image: existing.image });
+                addThemedRewardLevel({
+                    level: existing.level,
+                    points: existing.points,
+                    image: existing.image
+                });
             } else {
-                addThemedRewardLevel({ level: predefined.name, points: '' });
+                addThemedRewardLevel({
+                    level: predefined.name,
+                    points: ''
+                });
             }
         });
 
@@ -2089,7 +2124,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         modal.show();
     }
 
-    async function deleteThemedReward(name) {
+    async function deleteThemedReward(name, family_id, is_global) {
         if (confirm(`Are you sure you want to delete the theme "${name}" and all its levels?`)) {
             try {
                 const response = await fetch(`${THEMED_REWARDS_API_PATH}?action=delete`, {
@@ -2097,7 +2132,11 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name: name })
+                    body: JSON.stringify({
+                        name: name,
+                        family_id: family_id,
+                        is_global: is_global
+                    })
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
@@ -2136,7 +2175,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         // Reconstruct levels array from FormData to standard JSON format for the API
         // But since we have file uploads, we'll just send the FormData directly 
         // after formatting the levels as JSON so PHP can decode it
-        
+
         let levels = [];
         const levelsNodes = container.querySelectorAll('.level-row');
         levelsNodes.forEach(node => {
@@ -2144,13 +2183,14 @@ require_once $path_prefix . 'components/admin-sidebar.php';
             levels.push({
                 level: formData.get(`levels[${id}][level]`),
                 points: formData.get(`levels[${id}][points]`),
-                existing_image: formData.get(`levels[${id}][existing_image]`) || null
+                existing_image: formData.get(`levels[${id}][existing_image]`) || null,
+                frontend_id: id
             });
             formData.delete(`levels[${id}][level]`);
             formData.delete(`levels[${id}][points]`);
             formData.delete(`levels[${id}][existing_image]`);
         });
-        
+
         formData.append('levels', JSON.stringify(levels));
 
         const btn = document.getElementById('saveThemedRewardBtn');
@@ -2165,7 +2205,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 body: formData
             });
             const result = await response.json();
-            
+
             if (result.status === 'success') {
                 if (typeof showAlert === 'function') showAlert(result.message || 'Theme saved successfully', 'success');
                 else alert(result.message || 'Theme saved successfully');
@@ -2196,7 +2236,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         document.getElementById('confirmActionType').value = actionType;
         document.getElementById('passwordConfirmMessage').innerText = message;
         document.getElementById('confirmAdminPassword').value = '';
-        
+
         if (!resetModalInstance) {
             resetModalInstance = new bootstrap.Modal(document.getElementById('passwordConfirmModal'));
         }
@@ -2237,14 +2277,16 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ password: password })
+                body: JSON.stringify({
+                    password: password
+                })
             });
             const result = await response.json();
-            
+
             if (result.status === 'success') {
                 if (typeof showAlert === 'function') showAlert(result.message, 'success');
                 else alert(result.message);
-                
+
                 resetModalInstance.hide();
                 if (actionType === 'factoryReset') {
                     setTimeout(() => window.location.reload(), 2000);
