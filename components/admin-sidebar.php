@@ -62,14 +62,21 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                     <i class="ri-restaurant-line me-lg-3 fs-4 fs-lg-auto"></i>
                     <span class="d-none d-lg-inline">Manage Recipes</span>
                     <small class="d-block d-lg-none" style="font-size: 10px;">Manage Recipes</small>
-                    <?php 
+                    <?php
                     $pendingRecipesRes = Recipe::getPendingRecipesCount();
                     $pendingRecipesCount = ($pendingRecipesRes['status'] === 'success') ? $pendingRecipesRes['data'] : 0;
-                    if ($pendingRecipesCount > 0): 
+                    if ($pendingRecipesCount > 0):
                     ?>
                         <span class="badge bg-danger rounded-circle ms-lg-auto mt-1 mt-lg-0" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;"><?php echo $pendingRecipesCount; ?></span>
                     <?php endif; ?>
                 </div>
+            </a>
+
+            <a href="<?php echo $path_prefix; ?>siteadmin/promocodes.php"
+                class="list-group-item list-group-item-action <?php echo $current_page == 'promocodes.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-coupon-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Promo Codes</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Promo Codes</small>
             </a>
 
             <a href="<?php echo $path_prefix; ?>siteadmin/system.php"
