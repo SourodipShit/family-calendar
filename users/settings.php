@@ -75,6 +75,13 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                     <small class="text-muted" style="font-size: 0.7rem;">Manage your custom rewards</small>
                                 </div>
                             </a>
+                            <a href="#manage-rewards" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                                <i class="ri-gift-line me-3 fs-5 text-danger"></i>
+                                <div>
+                                    <span class="fw-bold d-block small">Manage Rewards</span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Manage redeemable rewards</small>
+                                </div>
+                            </a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -441,6 +448,40 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                             </div>
                         </div>
                     </div>
+                    <!-- Manage Rewards Settings -->
+                    <div class="tab-pane fade" id="manage-rewards">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 me-3">
+                                        <i class="ri-gift-line fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0">Rewards Store</h5>
+                                        <p class="text-muted small mb-0">Manage items members can redeem.</p>
+                                    </div>
+                                </div>
+                                <button id="addStoreRewardBtn" class="btn btn-primary btn-sm px-3 py-2 fw-medium rounded-2 shadow-sm d-flex align-items-center" onclick="prepareRewardModal('add')" data-bs-toggle="modal" data-bs-target="#rewardModal">
+                                    <i class="ri-add-line me-1"></i> Add Reward
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="border-0 rounded-start-2 text-muted small fw-semibold py-2 px-3">Image</th>
+                                            <th class="border-0 text-muted small fw-semibold py-2 px-3">Title</th>
+                                            <th class="border-0 text-muted small fw-semibold py-2 px-3">Price</th>
+                                            <th class="border-0 rounded-end-2 text-muted small fw-semibold py-2 px-3 text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="manage-rewards-table-body" class="border-0">
+                                        <tr><td colspan="4" class="text-center py-4 text-muted small">Loading rewards...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -586,6 +627,44 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             <div class="modal-footer border-0 pt-3 d-flex justify-content-end gap-2 border-top mt-2">
                 <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="saveThemeRewardBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm" onclick="saveThemeReward()">Save Reward</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reward Modal -->
+<div class="modal fade" id="rewardModal" tabindex="-1" aria-labelledby="rewardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold" id="rewardModalLabel">Add Reward</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <form id="rewardForm">
+                    <input type="hidden" id="reward_id" name="id">
+                    <input type="hidden" id="reward_existing_image" name="existing_image">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control px-3 py-2 small border rounded-3" id="reward_title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Price (Points) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control px-3 py-2 small border rounded-3" id="reward_price" name="price" required min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Image</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="file" class="form-control px-3 py-2 small border rounded-3" id="reward_image" name="image" accept="image/*" onchange="previewLevelImage(this, 'reward_img_preview')">
+                            <img id="reward_img_preview" src="" class="rounded border d-none" style="width: 40px; height: 40px; object-fit: cover;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveRewardBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm" onclick="saveReward()">Save Reward</button>
             </div>
         </div>
     </div>
@@ -1552,6 +1631,148 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             btn.innerText = originalText;
         }
     }
+
+    // --- Manage Rewards Logic ---
+    let storeRewardsData = [];
+
+    async function loadStoreRewards() {
+        const tableBody = document.getElementById('manage-rewards-table-body');
+        try {
+            const response = await fetch(`${API_PATH}rewards.php?action=list`);
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                storeRewardsData = result.data || [];
+                renderStoreRewardsTable();
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger small">${result.message || 'No rewards found'}</td></tr>`;
+            }
+        } catch (error) {
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger small">Error loading rewards</td></tr>`;
+        }
+    }
+
+    function renderStoreRewardsTable() {
+        const tableBody = document.getElementById('manage-rewards-table-body');
+        const addBtn = document.getElementById('addStoreRewardBtn');
+        
+        tableBody.innerHTML = '';
+        
+        if (addBtn) {
+            addBtn.style.display = storeRewardsData.length >= 10 ? 'none' : 'flex';
+        }
+
+        if (storeRewardsData.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted small">No rewards found. Add one above.</td></tr>';
+            return;
+        }
+        
+        storeRewardsData.forEach(reward => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-bottom';
+            let imgSrc = reward.image ? (reward.image.startsWith('../') ? reward.image.substring(3) : reward.image) : '';
+            if (imgSrc && !imgSrc.startsWith('http')) imgSrc = '<?php echo $path_prefix; ?>' + imgSrc;
+            let imgHtml = imgSrc ? `<img src="${imgSrc}" class="rounded border" style="width: 40px; height: 40px; object-fit: cover;">` : `<div class="bg-light rounded border d-flex align-items-center justify-content-center text-muted" style="width:40px;height:40px;"><i class="ri-image-line"></i></div>`;
+            
+            tr.innerHTML = `
+                <td class="px-3 py-2">${imgHtml}</td>
+                <td class="px-3 py-2 fw-bold text-dark small">${reward.title}</td>
+                <td class="px-3 py-2 text-dark small">${reward.price} pts</td>
+                <td class="px-3 py-2 text-end">
+                    <button class="btn btn-light btn-sm rounded-circle p-0 me-1 hover-shadow" style="width: 32px; height: 32px;" onclick="editReward(${reward.id})" title="Edit">
+                        <i class="ri-pencil-line fs-6"></i>
+                    </button>
+                    <button class="btn btn-light btn-sm rounded-circle p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteReward(${reward.id})" title="Delete">
+                        <i class="ri-delete-bin-line fs-6"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function prepareRewardModal(action) {
+        document.getElementById('rewardForm').reset();
+        document.getElementById('reward_id').value = '';
+        document.getElementById('reward_existing_image').value = '';
+        document.getElementById('reward_img_preview').classList.add('d-none');
+        document.getElementById('reward_img_preview').src = '';
+        
+        document.getElementById('rewardModalLabel').innerText = action === 'add' ? 'Add Reward' : 'Edit Reward';
+    }
+
+    function editReward(id) {
+        const reward = storeRewardsData.find(r => r.id == id);
+        if (reward) {
+            prepareRewardModal('edit');
+            document.getElementById('reward_id').value = reward.id;
+            document.getElementById('reward_title').value = reward.title;
+            document.getElementById('reward_price').value = reward.price;
+            if (reward.image) {
+                document.getElementById('reward_existing_image').value = reward.image;
+                let imgSrc = reward.image.startsWith('../') ? reward.image.substring(3) : reward.image;
+                if (!imgSrc.startsWith('http')) imgSrc = '<?php echo $path_prefix; ?>' + imgSrc;
+                document.getElementById('reward_img_preview').src = imgSrc;
+                document.getElementById('reward_img_preview').classList.remove('d-none');
+            }
+            new bootstrap.Modal(document.getElementById('rewardModal')).show();
+        }
+    }
+
+    async function saveReward() {
+        const form = document.getElementById('rewardForm');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        
+        const formData = new FormData(form);
+        const action = formData.get('id') ? 'update' : 'create';
+        const btn = document.getElementById('saveRewardBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true; btn.innerHTML = 'Saving...';
+        
+        try {
+            const response = await fetch(`${API_PATH}rewards.php?action=${action}`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Reward saved successfully', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('rewardModal')).hide();
+                loadStoreRewards();
+            } else {
+                showAlert(result.message || 'Failed to save', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        } finally {
+            btn.disabled = false; btn.innerText = originalText;
+        }
+    }
+
+    async function deleteReward(id) {
+        if (confirm('Are you sure you want to delete this reward?')) {
+            try {
+                const response = await fetch(`${API_PATH}rewards.php?action=delete`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({id: id})
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showAlert('Reward deleted', 'success');
+                    loadStoreRewards();
+                } else {
+                    showAlert('Failed to delete', 'error');
+                }
+            } catch (e) {
+                showAlert('Network error', 'error');
+            }
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStoreRewards();
+    });
 </script>
 
 <?php include $path_prefix . 'components/footer.php'; ?>

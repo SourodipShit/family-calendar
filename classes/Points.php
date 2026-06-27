@@ -18,7 +18,10 @@ class Points
     {
         try {
             $db = Database::getInstance();
-            $db->beginTransaction();
+            $inTransaction = $db->inTransaction();
+            if (!$inTransaction) {
+                $db->beginTransaction();
+            }
 
             $sql = "UPDATE user_points SET balance = balance + ? WHERE user_id = ?";
             Database::runPrepared($sql, [$amount, $userId]);
@@ -28,10 +31,14 @@ class Points
 
             self::recordTransaction($userId, $amount, 'earn', $newBalance, $description);
 
-            $db->commit();
+            if (!$inTransaction) {
+                $db->commit();
+            }
             return ["status" => "success", "message" => "Points credited successfully"];
         } catch (Exception $e) {
-            Database::getInstance()->rollBack();
+            if (isset($db) && isset($inTransaction) && !$inTransaction && $db->inTransaction()) {
+                $db->rollBack();
+            }
             return ["status" => "error", "message" => "Failed to credit points", "data" => $e->getMessage()];
         }
     }
@@ -40,7 +47,10 @@ class Points
     {
         try {
             $db = Database::getInstance();
-            $db->beginTransaction();
+            $inTransaction = $db->inTransaction();
+            if (!$inTransaction) {
+                $db->beginTransaction();
+            }
             
             $sql = "UPDATE user_points SET balance = balance - ? WHERE user_id = ?";
             Database::runPrepared($sql, [$amount, $userId]);
@@ -50,10 +60,14 @@ class Points
 
             self::recordTransaction($userId, $amount, 'redeem', $newBalance, $description);
 
-            $db->commit();
+            if (!$inTransaction) {
+                $db->commit();
+            }
             return ["status" => "success", "message" => "Points debited successfully"];
         } catch (Exception $e) {
-            Database::getInstance()->rollBack();
+            if (isset($db) && isset($inTransaction) && !$inTransaction && $db->inTransaction()) {
+                $db->rollBack();
+            }
             return ["status" => "error", "message" => "Failed to debit points", "data" => $e->getMessage()];
         }
     }
