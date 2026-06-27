@@ -71,7 +71,8 @@ if (isset($_POST['signup'])) {
             'name' => $_POST['family_name'],
             'location' => $locationInput,
             'timezone' => $detectedTz
-        ]
+        ],
+        'promo_code' => trim($_POST['promo_code'] ?? '')
     ];
     $result = Auth::register($data);
     if ($result['status'] == 'success') {
@@ -242,6 +243,15 @@ if (isset($_POST['signup'])) {
                             <div class="input-group-custom">
                                 <span class="input-icon"><i class="fa-solid fa-location-dot"></i></span>
                                 <input type="text" class="form-control" id="location" name="location" placeholder="City, State/Country">
+                            </div>
+                        </div>
+
+                        <!-- Promo Code Input -->
+                        <div class="mb-3">
+                            <label for="promo_code" class="form-label fw-medium">Promo Code <span class="text-muted small">(Optional)</span></label>
+                            <div class="input-group-custom">
+                                <span class="input-icon"><i class="fa-solid fa-tag"></i></span>
+                                <input type="text" class="form-control text-uppercase" id="promo_code" name="promo_code" placeholder="e.g. 1MFREE">
                             </div>
                         </div>
 

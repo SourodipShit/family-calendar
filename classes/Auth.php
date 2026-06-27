@@ -76,6 +76,11 @@ class Auth
                 require_once __DIR__ . '/SharedEmails.php';
                 SharedEmails::allocateFamily($lastFamilyId);
 
+                // Create Billing Account
+                require_once __DIR__ . '/Account.php';
+                $promoCode = isset($data['promo_code']) ? $data['promo_code'] : null;
+                Account::create($lastFamilyId, $promoCode);
+
                 $allocatedData = SharedEmails::getFamilyEmail($lastFamilyId);
                 $allocatedEmail = ($allocatedData && $allocatedData['status'] === 'success') ? $allocatedData['email'] : null;
 

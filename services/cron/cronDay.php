@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../../config/Database.php';
 require_once __DIR__ . '/jobs/ChoresCreateJob.php';
+require_once __DIR__ . '/jobs/BillingJob.php';
 
 // Set default timezone for server output
 date_default_timezone_set('UTC');
@@ -24,6 +25,9 @@ echo "----------------------------------------<br><br>\n";
 // Run the Chores Create Job
 echo "Running daily chore instance generation...<br>\n";
 ChoresCreateJob::run();
+
+echo "<br>Running daily billing cycle...<br>\n";
+BillingJob::run();
 
 echo "<br>Daily cron execution finished.<br>\n";
 echo "========================================<br><br>\n";
