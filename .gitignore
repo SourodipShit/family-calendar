@@ -15,3 +15,7 @@ x-tools/
 # IDE settings
 .vscode/
 .idea/
+
+# Composer packages
+/vendor/
+
