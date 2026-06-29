@@ -37,6 +37,7 @@ require_once $path_prefix . 'classes/Family.php';
                             <tr>
                                 <th class="ps-4 border-0">Family Name</th>
                                 <th class="border-0">Email</th>
+                                <th class="border-0">Account Number</th>
                                 <th class="border-0">Location</th>
                                 <th class="border-0">Timezone</th>
                                 <th class="border-0">Members</th>
@@ -54,6 +55,15 @@ require_once $path_prefix . 'classes/Family.php';
                             <tr id="family-row-<?php echo $family['id']; ?>">
                                 <td class="ps-4 fw-bold"><?php echo htmlspecialchars(!empty($family['name']) ? $family['name'] : 'N/A'); ?></td>
                                 <td class="small text-muted"><?php echo htmlspecialchars(!empty($family['email']) ? $family['email'] : 'N/A'); ?></td>
+                                <td class="small">
+                                    <?php if (!empty($family['account_number'])): ?>
+                                        <a href="bills.php?account=<?php echo htmlspecialchars($family['account_number']); ?>" class="text-primary text-decoration-none fw-medium">
+                                            <?php echo htmlspecialchars($family['account_number']); ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="text-muted">N/A</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="small"><?php echo htmlspecialchars(!empty($family['location']) ? $family['location'] : 'N/A'); ?></td>
                                 <td class="small text-muted"><?php echo htmlspecialchars(!empty($family['timezone']) ? $family['timezone'] : 'N/A'); ?></td>
                                 <td>
@@ -134,7 +144,7 @@ $(document).ready(function() {
             }
         },
         "columnDefs": [
-            { "orderable": false, "targets": 5 } // Disable ordering on Actions column
+            { "orderable": false, "targets": 7 } // Disable ordering on Actions column
         ]
     });
 

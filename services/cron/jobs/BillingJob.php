@@ -24,6 +24,9 @@ class BillingJob
         $monthlyCostRes = GlobalSettings::getSetting('monthly_subscription_cost');
         $monthlyCost = ($monthlyCostRes['status'] === 'success' && !empty($monthlyCostRes['data'])) ? (float)$monthlyCostRes['data']['setting_value'] : 15.00; // Default $15
 
+        $baseUrlRes = GlobalSettings::getSetting('base_url');
+        $baseUrl = ($baseUrlRes['status'] === 'success' && !empty($baseUrlRes['data'])) ? rtrim($baseUrlRes['data']['setting_value'], '/') : 'http://localhost/project/family-calendar';
+
         if (empty($stripeKey)) {
             echo "Error: Stripe Secret Key not configured in GlobalSettings. Aborting BillingJob.<br>\n";
             return;
@@ -64,8 +67,8 @@ class BillingJob
                     ]],
                     'mode' => 'payment',
                     // The site base URL should ideally come from GlobalSettings, but using a generic one for now
-                    'success_url' => 'http://localhost/project/family-calendar/payment_success.php',
-                    'cancel_url' => 'http://localhost/project/family-calendar/payment_failed.php',
+                    'success_url' => $baseUrl . '/payment_status.php?status=success',
+                    'cancel_url' => $baseUrl . '/payment_status.php?status=failed',
                 ]);
 
                 $stripeSessionId = $checkout_session->id;
@@ -77,21 +80,48 @@ class BillingJob
                 if ($paymentRes['status'] === 'success') {
                     $paymentId = $paymentRes['data']['id'];
 
-                    // TODO: Generate PDF Invoice here
-                    // e.g., $pdfPath = InvoiceGenerator::generate($paymentId, $familyId);
-                    // Payment::updatePdfPath($paymentId, $pdfPath);
-
-                    // Fetch family details for emailing
+                    // Fetch family details for emailing and PDF
                     $familyRes = Family::getFamily($familyId);
-                    if ($familyRes['status'] === 'success') {
-                        $familyName = $familyRes['data']['name'];
+                    if ($familyRes) {
+                        $familyName = $familyRes['name'];
 
-                        // We need the family head's email. For now, try sending to family email or fetch family head
-                        $familyEmail = $familyRes['data']['email'];
+                        // Get all family heads
+                        $headsQuery = Database::runPrepared("
+                            SELECT users.email, users.name 
+                            FROM users 
+                            INNER JOIN user_family ON users.id = user_family.user_id 
+                            WHERE user_family.family_id = ? AND users.role = 'family-head'
+                        ", [$familyId]);
+                        $familyHeads = $headsQuery->fetchAll(PDO::FETCH_ASSOC);
 
-                        // TODO: Send Email
-                        // require_once __DIR__ . '/../../mail/Mail.php';
-                        // Mail::sendInvoice($familyEmail, $familyName, $paymentUrl, $pdfPath);
+                        // Generate PDF Invoice
+                        require_once __DIR__ . '/../../../classes/PDF.php';
+                        $pdfData = [
+                            'family_name' => $familyName,
+                            'account_number' => $accountNumber,
+                            'invoice_date' => $invoiceDate,
+                            'amount' => $monthlyCost,
+                            'stripe_link' => $paymentUrl
+                        ];
+                        
+                        $pdfRes = PDF::generateBill($pdfData);
+                        $pdfPath = '';
+                        if ($pdfRes['status'] === 'success') {
+                            $pdfPath = $pdfRes['file_path'];
+                            Payment::updatePdfPath($paymentId, $pdfPath);
+                        }
+
+                        // Send Email
+                        require_once __DIR__ . '/../../mail/Mail.php';
+                        if (!empty($familyHeads)) {
+                            foreach ($familyHeads as $head) {
+                                Mail::sendInvoice($head['email'], $head['name'], $paymentUrl, $pdfPath, $invoiceDate, $monthlyCost);
+                            }
+                        } else {
+                            // Fallback to family email
+                            $familyEmail = $familyRes['email'];
+                            Mail::sendInvoice($familyEmail, $familyName, $paymentUrl, $pdfPath, $invoiceDate, $monthlyCost);
+                        }
 
                         echo "Created invoice for Account: $accountNumber | Session ID: $stripeSessionId<br>\n";
                     }

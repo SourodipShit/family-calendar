@@ -538,6 +538,14 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                                 <input type="password" class="form-control border-0 px-3 py-2 small" id="stripe_webhook_secret" name="stripe_webhook_secret" placeholder="e.g. whsec_...">
                                                             </div>
                                                         </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Monthly Subscription Cost ($)</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-money-dollar-circle-line"></i></span>
+                                                                <input type="number" step="0.01" class="form-control border-0 px-3 py-2 small" id="monthly_subscription_cost" name="monthly_subscription_cost" placeholder="e.g. 15.00">
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1199,6 +1207,11 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (stripeWebhookSecretSetting) {
                     document.getElementById('stripe_webhook_secret').value = stripeWebhookSecretSetting.setting_value || '';
                 }
+
+                const monthlySubscriptionCostSetting = settings.find(s => s.setting_key === 'monthly_subscription_cost');
+                if (monthlySubscriptionCostSetting) {
+                    document.getElementById('monthly_subscription_cost').value = monthlySubscriptionCostSetting.setting_value || '';
+                }
             }
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -1322,6 +1335,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         const stripePublicKey = document.getElementById('stripe_public_key').value;
         const stripeSecretKey = document.getElementById('stripe_secret_key').value;
         const stripeWebhookSecret = document.getElementById('stripe_webhook_secret').value;
+        const monthlySubscriptionCost = document.getElementById('monthly_subscription_cost').value;
 
         const btn = document.getElementById('saveConfigBtn');
         const originalText = btn.innerHTML;
@@ -1347,7 +1361,8 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         imap_flags: imapFlags,
                         stripe_public_key: stripePublicKey,
                         stripe_secret_key: stripeSecretKey,
-                        stripe_webhook_secret: stripeWebhookSecret
+                        stripe_webhook_secret: stripeWebhookSecret,
+                        monthly_subscription_cost: monthlySubscriptionCost
                     }
                 })
             });

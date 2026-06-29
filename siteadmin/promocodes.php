@@ -77,8 +77,6 @@ require_once $path_prefix . 'classes/PromoCode.php';
                                     </tr>
                             <?php
                                 endforeach;
-                            } else {
-                                echo '<tr><td colspan="6" class="text-center py-4 text-muted">No promo codes found.</td></tr>';
                             }
                             ?>
                         </tbody>

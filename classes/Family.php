@@ -66,10 +66,11 @@ class Family
 
     public static function getAllFamilies()
     {
-        $sql = "SELECT f.*, COUNT(uf.user_id) as member_count 
+        $sql = "SELECT f.*, COUNT(uf.user_id) as member_count, a.account_number 
                 FROM families f 
                 LEFT JOIN user_family uf ON f.id = uf.family_id 
-                GROUP BY f.id 
+                LEFT JOIN accounts a ON f.id = a.family_id
+                GROUP BY f.id, a.account_number 
                 ORDER BY f.name ASC";
         $stmt = Database::run($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

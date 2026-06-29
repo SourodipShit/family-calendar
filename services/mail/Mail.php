@@ -141,4 +141,31 @@ class Mail
             'html' => $html
         ]);
     }
+
+    public static function sendInvoice($email, $name, $paymentUrl, $pdfPath, $invoiceDate, $amount)
+    {
+        require_once __DIR__ . '/Mailer.php';
+        $html = Mailer::render('invoice', [
+            'name' => $name,
+            'paymentUrl' => $paymentUrl,
+            'invoiceDate' => $invoiceDate,
+            'amount' => $amount
+        ]);
+        
+        $attachments = [];
+        if (!empty($pdfPath) && file_exists($pdfPath)) {
+            $attachments[] = [
+                'type' => 'application/pdf',
+                'name' => basename($pdfPath),
+                'content' => file_get_contents($pdfPath)
+            ];
+        }
+
+        return Mailer::send([
+            'to' => $email,
+            'subject' => 'Your Monthly Invoice - Family Calendar',
+            'html' => $html,
+            'attachments' => $attachments
+        ]);
+    }
 }

@@ -49,6 +49,13 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <small class="d-block d-lg-none" style="font-size: 10px;">Manage Families</small>
             </a>
 
+            <a href="<?php echo $path_prefix; ?>siteadmin/bills.php"
+                class="list-group-item list-group-item-action <?php echo $current_page == 'bills.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-file-list-3-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Bills & Invoices</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Bills & Invoices</small>
+            </a>
+
             <a href="<?php echo $path_prefix; ?>siteadmin/users.php"
                 class="list-group-item list-group-item-action <?php echo $current_page == 'users.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
                 <i class="ri-user-settings-line me-lg-3 fs-4 fs-lg-auto"></i>

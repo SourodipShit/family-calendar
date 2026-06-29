@@ -72,11 +72,12 @@ class Reward
         try {
             // Fetch reward to delete image if exists
             $sqlSelect = "SELECT image FROM rewards WHERE id = ? AND family_id = ?";
-            $reward = Database::runPrepared($sqlSelect, [$id, $familyId]);
+            $stmt = Database::runPrepared($sqlSelect, [$id, $familyId]);
+            $reward = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!empty($reward) && !empty($reward[0]['image'])) {
-                if (file_exists($reward[0]['image'])) {
-                    File::deleteFile($reward[0]['image']);
+            if (!empty($reward) && !empty($reward['image'])) {
+                if (file_exists($reward['image'])) {
+                    File::deleteFile($reward['image']);
                 }
             }
 

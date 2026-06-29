@@ -86,4 +86,32 @@ class Payment
             return ["status" => "error", "message" => "Failed to update PDF path", "data" => $e->getMessage()];
         }
     }
+
+    /**
+     * Get all payments with family and account details
+     */
+    public static function getAllPayments($accountNumber = null)
+    {
+        try {
+            $sql = "SELECT p.*, a.account_number, f.name as family_name 
+                    FROM payments p
+                    JOIN accounts a ON p.account_id = a.id
+                    JOIN families f ON a.family_id = f.id";
+            
+            $params = [];
+            if ($accountNumber) {
+                $sql .= " WHERE a.account_number = ?";
+                $params[] = $accountNumber;
+            }
+            
+            $sql .= " ORDER BY p.created_at DESC";
+            
+            $stmt = Database::runPrepared($sql, $params);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            return ["status" => "success", "data" => $result];
+        } catch (PDOException $e) {
+            return ["status" => "error", "message" => "Failed to fetch payments", "data" => $e->getMessage()];
+        }
+    }
 }

@@ -56,17 +56,26 @@ function resetAssets() {
             'event_reminders', 'event_members', 'events',
             'meal_favorites', 'meal_ratings', 'meals',
             'recipe_images', 'recipe_ingredients', 'recipe_nutrition', 'recipe_steps', 'recipe_access_requests', 'recipes',
-            'grocery_items', 'grocery_lists', 'photos'
+            'grocery_items', 'grocery_lists', 'photos',
+            'chore_instances', 'chores',
+            'point_transactions', 'redeemed_rewards', 'rewards'
         ];
         
         foreach ($tablesToEmpty as $table) {
             $pdo->exec("DELETE FROM `$table`");
         }
+
+        // Reset user point balances instead of deleting rows
+        $pdo->exec("UPDATE user_points SET balance = 0");
+
+        // Delete family specific theme rewards
+        $pdo->exec("DELETE FROM theme_rewards WHERE family_id IS NOT NULL");
         
         // Wipe physical files
         deleteFilesInDir(__DIR__ . '/../public/uploads/meals');
         deleteFilesInDir(__DIR__ . '/../public/uploads/recipes');
         deleteFilesInDir(__DIR__ . '/../public/uploads/photos');
+        deleteFilesInDir(__DIR__ . '/../public/uploads/rewards');
 
         $pdo->commit();
         echo json_encode(['status' => 'success', 'message' => 'All family assets have been successfully deleted.']);
@@ -88,7 +97,8 @@ function factoryReset() {
         
         // Delete the images from disk
         foreach ($userImages as $image) {
-            $file = __DIR__ . '/../public/uploads/users/' . $image;
+            $imagePath = str_replace('../', '', $image);
+            $file = __DIR__ . '/../' . $imagePath;
             if (file_exists($file) && is_file($file)) {
                 unlink($file);
             }
@@ -99,15 +109,20 @@ function factoryReset() {
             'event_reminders', 'event_members', 'events',
             'meal_favorites', 'meal_ratings', 'meals',
             'recipe_images', 'recipe_ingredients', 'recipe_nutrition', 'recipe_steps', 'recipe_access_requests', 'recipes',
-            'grocery_items', 'grocery_lists', 'photos'
+            'grocery_items', 'grocery_lists', 'photos',
+            'chore_instances', 'chores',
+            'point_transactions', 'redeemed_rewards', 'rewards', 'user_points',
+            'promo_codes',
+            'payments', 'accounts'
         ];
         foreach ($tablesToEmpty as $table) {
             $pdo->exec("DELETE FROM `$table`");
         }
         
-        // Delete non-default categories/types
+        // Delete non-default categories/types and family rewards
         $pdo->exec("DELETE FROM event_types WHERE family_id IS NOT NULL AND is_default = 0");
         $pdo->exec("DELETE FROM grocery_categories WHERE family_id IS NOT NULL AND is_default = 0");
+        $pdo->exec("DELETE FROM theme_rewards WHERE family_id IS NOT NULL");
 
         // Delete families and related
         $pdo->exec("DELETE FROM user_family");
@@ -126,6 +141,7 @@ function factoryReset() {
         deleteFilesInDir(__DIR__ . '/../public/uploads/meals');
         deleteFilesInDir(__DIR__ . '/../public/uploads/recipes');
         deleteFilesInDir(__DIR__ . '/../public/uploads/photos');
+        deleteFilesInDir(__DIR__ . '/../public/uploads/rewards');
 
         $pdo->commit();
         echo json_encode(['status' => 'success', 'message' => 'Factory reset completed successfully.']);
