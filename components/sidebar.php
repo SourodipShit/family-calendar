@@ -71,6 +71,12 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <span class="d-none d-lg-inline">Coaches</span>
                 <small class="d-block d-lg-none" style="font-size: 10px;">Coaches</small>
             </a>
+            <a href="<?php echo $path_prefix; ?>users/lists.php" 
+                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'lists.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-list-check-2 me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Lists</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Lists</small>
+            </a>
             <a href="<?php echo $path_prefix; ?>users/settings.php" 
                 class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
                 <i class="ri-settings-2-line me-lg-3 fs-4 fs-lg-auto"></i>
