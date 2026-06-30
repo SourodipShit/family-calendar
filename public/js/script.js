@@ -372,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         startHour: d.getHours() + (d.getMinutes() / 60),
                         startStr: startT,
                         endStr: endT,
+                        countdown: e.countdown,
                         member: e.member.toLowerCase()
                     };
                 });
@@ -502,6 +503,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (evt.endStr) {
             document.getElementById('editEventEndDate').value = evt.endStr.split('T')[0];
+        }
+        
+        const countdownEl = document.getElementById('editEventCountdown');
+        if (countdownEl) {
+            countdownEl.checked = (evt.countdown == 1 || evt.countdown === true);
         }
         
         if (!evt.is_all_day && !evt.isAllDay && evt.startHour !== undefined) {
@@ -666,6 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMealsWeek();
         renderTimedEventsWeek();
         renderAllDayEventsWeek();
+        renderCountdownEventsWeek();
         if (currentView === 'view-day') renderDayView(currentDate);
         if (window.calendarInstance) window.calendarInstance.refetchEvents();
         
@@ -906,6 +913,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 7.5 Render Countdown Events
+    function renderCountdownEventsWeek() {
+        const countdownContainer = document.getElementById('calendar-countdown-container');
+        const countdownRow = document.querySelector('.countdown-row');
+        if (!countdownContainer || !countdownRow) return;
+        countdownContainer.innerHTML = '';
+
+        const allEvents = [...events, ...allDayEvents];
+        const countdownEventsList = allEvents.filter(e => e.countdown == 1 || e.countdown === true);
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        const upcomingCountdowns = countdownEventsList.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            return startD >= now;
+        });
+
+        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+
+        if (upcomingCountdowns.length > 0) {
+            countdownRow.classList.remove('d-none');
+            countdownRow.classList.add('d-flex');
+            
+            upcomingCountdowns.forEach(evt => {
+                const div = document.createElement('div');
+                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 me-2 fs-8`;
+                
+                const baseColor = evt.colorCode || '#0d6efd';
+                div.style.backgroundColor = lightenColor(baseColor, 92);
+                div.style.color = baseColor;
+                div.style.borderLeft = `4px solid ${baseColor}`;
+                
+                const eventDate = new Date(evt.startStr.split('T')[0]);
+                eventDate.setHours(0, 0, 0, 0);
+                const diffTime = eventDate - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let dayText = diffDays === 0 ? 'Today' : (diffDays === 1 ? '1 day' : `${diffDays} days`);
+
+                div.innerHTML = `<span class="fw-bold me-2">${dayText}</span> <span style="opacity: 0.85;">| <i class="fa-solid fa-calendar-day mx-1"></i> ${evt.title}</span>`;
+                div.setAttribute('data-member', evt.member);
+                div.style.cursor = 'pointer';
+                div.addEventListener('click', () => openEventModal(evt));
+                countdownContainer.appendChild(div);
+            });
+        } else {
+            countdownRow.classList.remove('d-flex');
+            countdownRow.classList.add('d-none');
+        }
+    }
+
     // 6. View Toggling & Navigation State
     let savedView = localStorage.getItem('default_calendar_view');
     let currentView = savedView ? 'view-' + savedView : 'view-week';
@@ -1120,6 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         startHour: e.startHour,
                         duration: e.duration,
                         location: e.location,
+                        countdown: e.countdown,
                         isAllDay: false
                     }
                 }));
@@ -1136,6 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         member_nickname: e.member_nickname,
                         colorCode: e.colorCode,
                         location: e.location,
+                        countdown: e.countdown,
                         isAllDay: true
                     }
                 }));
@@ -1155,6 +1217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     duration: props.duration,
                     isAllDay: props.isAllDay,
                     created_by: props.created_by,
+                    countdown: props.countdown,
                     id: props.id,
                     startStr: info.event.startStr,
                     endStr: info.event.endStr

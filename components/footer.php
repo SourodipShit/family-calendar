@@ -16,7 +16,7 @@ $path_prefix = isset($path_prefix) ? $path_prefix : "";
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <!-- Custom JS -->
     <script src="<?php echo $path_prefix; ?>public/js/alert.js"></script>
-    <script src="<?php echo $path_prefix; ?>public/js/script.js"></script>
+    <script src="<?php echo $path_prefix; ?>public/js/script.js?v=<?php echo time(); ?>"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

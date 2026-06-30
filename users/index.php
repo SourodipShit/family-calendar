@@ -106,6 +106,17 @@ include $path_prefix . 'components/sidebar.php';
                                     <!-- Populated by JS -->
                                 </div>
                             </div>
+
+                            <!-- Countdown Events Row -->
+                            <div class="calendar-row countdown-row d-flex border-bottom bg-white">
+                                <div
+                                    class="time-col border-end p-2 d-flex align-items-center fw-bold text-dark fs-7">
+                                    <i class="fa-solid fa-hourglass-half text-primary me-2"></i> Countdowns
+                                </div>
+                                <div class="events-col flex-fill p-2 d-flex gap-2 overflow-x-auto" id="calendar-countdown-container" style="scrollbar-width: thin;">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Scheduled Events Row (List View) -->
@@ -441,6 +452,17 @@ include $path_prefix . 'components/sidebar.php';
                                 </label>
                             </div>
                         </div>
+                        <!-- Countdown -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7 d-block">&nbsp;</label>
+                            <div class="form-check mt-1">
+                                <input class="form-check-input bg-primary border-primary" type="checkbox" name="countdown" value="1"
+                                    id="eventCountdown">
+                                <label class="form-check-label text-dark fs-7 fw-medium" for="eventCountdown">
+                                    Countdown on or off
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0 d-flex justify-content-between px-4 pb-4">
@@ -609,6 +631,17 @@ include $path_prefix . 'components/sidebar.php';
                                     id="editNotificationCheck" checked>
                                 <label class="form-check-label text-dark fs-7 fw-medium" for="editNotificationCheck">
                                     Send notification to all selected
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Countdown -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark fs-7 d-block">&nbsp;</label>
+                            <div class="form-check mt-1">
+                                <input class="form-check-input bg-primary border-primary" type="checkbox" name="countdown" value="1"
+                                    id="editEventCountdown">
+                                <label class="form-check-label text-dark fs-7 fw-medium" for="editEventCountdown">
+                                    Countdown on or off
                                 </label>
                             </div>
                         </div>

@@ -35,7 +35,8 @@ function getEventsByDateRange()
                 'member' => $event['member'],
                 'member_nickname' => $event['member_nickname'],
                 'location' => $event['location'] ?? '',
-                'is_all_day' => (isset($event['is_all_day']) && $event['is_all_day']) ? true : false
+                'is_all_day' => (isset($event['is_all_day']) && $event['is_all_day']) ? true : false,
+                'countdown' => $event['countdown'] ?? 0
             ];
         }
         echo json_encode($filteredEvents);

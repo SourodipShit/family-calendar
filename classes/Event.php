@@ -32,8 +32,8 @@ class  Event
             $userId = $data['created_by'];
             $fId = $data['family_id'];
 
-            $sql = "INSERT INTO events (family_id, title, description, type_id, start_time, end_time, location, is_all_day, event_repeat, remainder, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO events (family_id, title, description, type_id, start_time, end_time, location, is_all_day, event_repeat, remainder, countdown, created_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             Database::runPrepared($sql, [
                 $fId,
@@ -46,6 +46,7 @@ class  Event
                 $data['is_all_day'] ?? 0,
                 $data['event_repeat'] ?? null,
                 $data['remainder'] ?? null,
+                $data['countdown'] ?? 0,
                 $userId
             ]);
 
@@ -80,11 +81,11 @@ class  Event
                 return ["msg" => "Unauthorized", "status" => "error"];
             }
 
-            $sql = "UPDATE events SET title = ?, description = ?, type_id = ?, start_time = ?, end_time = ?, location = ?, is_all_day = ?, event_repeat = ?, remainder = ? WHERE id = ?";
+            $sql = "UPDATE events SET title = ?, description = ?, type_id = ?, start_time = ?, end_time = ?, location = ?, is_all_day = ?, event_repeat = ?, remainder = ?, countdown = ? WHERE id = ?";
             $params = [
                 $data['title'], $data['description'] ?? null, $data['type_id'], $data['start_time'],
                 $data['end_time'] ?? null, $data['location'] ?? null, $data['is_all_day'] ?? 0,
-                $data['event_repeat'] ?? null, $data['remainder'] ?? null, $id
+                $data['event_repeat'] ?? null, $data['remainder'] ?? null, $data['countdown'] ?? 0, $id
             ];
             Database::runPrepared($sql, $params);
 
