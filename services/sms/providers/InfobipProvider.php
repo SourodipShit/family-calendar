@@ -10,7 +10,7 @@ class InfobipProvider
     {
         $nl = (php_sapi_name() === 'cli') ? "\n" : "<br>\n";
         try {
-            echo $nl . "[DEBUG] Infobip SMS: Starting send flow..." . $nl;
+            // echo $nl . "[DEBUG] Infobip SMS: Starting send flow..." . $nl;
 
             // Fetch API Key dynamically
             $apiKeyRes = GlobalSettings::getSetting('infobip_api_key');
@@ -35,12 +35,12 @@ class InfobipProvider
             }
 
             $obscuredKey = !empty($apiKey) ? (substr($apiKey, 0, 10) . '...' . substr($apiKey, -4)) : 'EMPTY';
-            echo "[DEBUG] Infobip SMS: API Key = " . $obscuredKey . $nl;
-            echo "[DEBUG] Infobip SMS: Base URL = " . (!empty($baseUrl) ? $baseUrl : 'EMPTY') . $nl;
-            echo "[DEBUG] Infobip SMS: Sender ID = " . $sender . $nl;
+            // echo "[DEBUG] Infobip SMS: API Key = " . $obscuredKey . $nl;
+            // echo "[DEBUG] Infobip SMS: Base URL = " . (!empty($baseUrl) ? $baseUrl : 'EMPTY') . $nl;
+            // echo "[DEBUG] Infobip SMS: Sender ID = " . $sender . $nl;
 
             if (empty($apiKey) || empty($baseUrl)) {
-                echo "[DEBUG] Infobip SMS: Error - missing API Key or Base URL." . $nl;
+                // echo "[DEBUG] Infobip SMS: Error - missing API Key or Base URL." . $nl;
                 return [
                     'success' => false,
                     'error' => 'Infobip provider is not configured properly. Missing API Key or Base URL in settings.'
@@ -53,7 +53,7 @@ class InfobipProvider
             }
 
             $url = $baseUrl . "/sms/3/messages";
-            echo "[DEBUG] Infobip SMS: Request URL = " . $url . $nl;
+            // echo "[DEBUG] Infobip SMS: Request URL = " . $url . $nl;
 
             $payload = [
                 "messages" => [
@@ -72,13 +72,13 @@ class InfobipProvider
             ];
 
             $payloadJson = json_encode($payload);
-            echo "[DEBUG] Infobip SMS: Payload = " . $payloadJson . $nl;
+            // echo "[DEBUG] Infobip SMS: Payload = " . $payloadJson . $nl;
 
             $response = false;
             $httpCode = 0;
 
             if (!function_exists('curl_init')) {
-                echo "[DEBUG] Infobip SMS: cURL is not available. Falling back to native PHP streams (file_get_contents)..." . $nl;
+                // echo "[DEBUG] Infobip SMS: cURL is not available. Falling back to native PHP streams (file_get_contents)..." . $nl;
 
                 $options = [
                     'http' => [
@@ -110,8 +110,8 @@ class InfobipProvider
                     }
                 }
 
-                echo "[DEBUG] Infobip SMS: HTTP Status Code = " . $httpCode . $nl;
-                echo "[DEBUG] Infobip SMS: Raw Response = " . ($response ? $response : 'EMPTY RESPONSE') . $nl . $nl;
+                // echo "[DEBUG] Infobip SMS: HTTP Status Code = " . $httpCode . $nl;
+                // echo "[DEBUG] Infobip SMS: Raw Response = " . ($response ? $response : 'EMPTY RESPONSE') . $nl . $nl;
 
                 if ($response === false) {
                     $errorMsg = error_get_last();
@@ -121,7 +121,7 @@ class InfobipProvider
                     ];
                 }
             } else {
-                echo "[DEBUG] Infobip SMS: Initiating cURL request..." . $nl;
+                // echo "[DEBUG] Infobip SMS: Initiating cURL request..." . $nl;
                 $ch = curl_init();
 
                 curl_setopt_array($ch, [
@@ -147,9 +147,9 @@ class InfobipProvider
 
                 curl_close($ch);
 
-                echo "[DEBUG] Infobip SMS: HTTP Status Code = " . $httpCode . $nl;
-                echo "[DEBUG] Infobip SMS: cURL Error = " . ($error ? $error : 'NONE') . $nl;
-                echo "[DEBUG] Infobip SMS: Raw Response = " . ($response ? $response : 'EMPTY RESPONSE') . $nl . $nl;
+                // echo "[DEBUG] Infobip SMS: HTTP Status Code = " . $httpCode . $nl;
+                // echo "[DEBUG] Infobip SMS: cURL Error = " . ($error ? $error : 'NONE') . $nl;
+                // echo "[DEBUG] Infobip SMS: Raw Response = " . ($response ? $response : 'EMPTY RESPONSE') . $nl . $nl;
 
                 if ($error) {
                     return [
@@ -171,7 +171,7 @@ class InfobipProvider
                 ];
             }
         } catch (Throwable $e) {
-            echo "[DEBUG] Infobip SMS: Exception caught = " . $e->getMessage() . $nl . $nl;
+            // echo "[DEBUG] Infobip SMS: Exception caught = " . $e->getMessage() . $nl . $nl;
             return [
                 'success' => false,
                 'error' => 'Exception occurred: ' . $e->getMessage()
