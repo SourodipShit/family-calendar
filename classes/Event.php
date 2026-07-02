@@ -14,13 +14,33 @@ class  Event
                     e.family_id = ? 
                     OR 
                     e.id IN (
+                        SELECT event_id 
+                        FROM event_members 
+                        WHERE user_id = ?
+                    )
+                    OR 
+                    e.id IN (
                         SELECT em2.event_id 
                         FROM event_members em2 
                         JOIN family_requests fr ON fr.receiver_id = em2.user_id 
                         WHERE fr.requester_id = ? AND fr.status = 'approved'
                     )
+                    OR 
+                    e.id IN (
+                        SELECT em3.event_id 
+                        FROM event_members em3 
+                        JOIN family_requests fr ON fr.requester_id = em3.user_id 
+                        WHERE fr.receiver_id = ? AND fr.status = 'approved'
+                    )
                 )";
-        $events = Database::runPrepared($sql, [$startDate, $endDate, $familyId, $userId])->fetchAll(PDO::FETCH_ASSOC);
+        $events = Database::runPrepared($sql, [
+            $startDate, 
+            $endDate, 
+            $familyId, 
+            $userId, 
+            $userId, 
+            $userId
+        ])->fetchAll(PDO::FETCH_ASSOC);
         return $events;
     }
 
