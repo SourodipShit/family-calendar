@@ -15,8 +15,19 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
     $locationName = isset($_GET['location']) ? htmlspecialchars($_GET['location']) : 'Custom Location';
     $timezone = 'auto'; // Let open-meteo auto-resolve timezone based on lat/lon
 } else {
-    // 1. Get current location based on IP address
-    $ipApiUrl = "http://ip-api.com/json/";
+    // 1. Get current location based on user's IP address (instead of server's IP)
+    $clientIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $clientIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+    }
+    
+    // If local, don't pass IP so ip-api uses the server's public IP for testing
+    $ipQuery = '';
+    if ($clientIp && !in_array($clientIp, ['127.0.0.1', '::1'])) {
+        $ipQuery = $clientIp;
+    }
+
+    $ipApiUrl = "http://ip-api.com/json/" . $ipQuery;
     
     // Suppress errors if API is unreachable
     $ipResponse = @file_get_contents($ipApiUrl);
