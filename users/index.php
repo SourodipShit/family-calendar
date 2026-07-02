@@ -224,17 +224,17 @@ include $path_prefix . 'components/sidebar.php';
                 <div class="card weather-card rounded-3 mb-4">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-3">Weather</h5>
-                        <p class="text-muted mb-2">Dallas, TX</p>
+                        <p class="text-muted mb-2" id="widget-weather-location">Loading...</p>
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h1 class="display-6 mt-3 mb-0">72°F</h1>
-                            <figure class="weather-img">
-                                <img src="<?php echo $path_prefix; ?>public/img/1163661.png" alt="waether" />
+                            <h1 class="display-6 mt-3 mb-0" id="widget-weather-temp">--°C</h1>
+                            <figure class="weather-img" id="widget-weather-icon">
+                                <img src="<?php echo $path_prefix; ?>public/img/1163661.png" alt="weather" />
                             </figure>
                         </div>
-                        <p class="text-muted mb-4">Partly Cloudy</p>
+                        <p class="text-muted mb-4" id="widget-weather-desc">--</p>
                         <div class="d-flex gap-4 text-muted">
-                            <span>H: 76°</span>
-                            <span>L: 58°</span>
+                            <span id="widget-weather-high">H: --°</span>
+                            <span id="widget-weather-low">L: --°</span>
                         </div>
                     </div>
                 </div>
