@@ -153,8 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.querySelectorAll('.event-block').forEach(block => {
-            const blockMember = block.getAttribute('data-member') || 'all';
-            if (memberId === 'all' || blockMember === memberId) {
+            const blockMembers = block.getAttribute('data-members') ? JSON.parse(block.getAttribute('data-members')) : ['all'];
+            if (memberId === 'all' || blockMembers.includes(memberId)) {
                 block.style.opacity = '1';
                 block.style.pointerEvents = 'auto';
                 block.classList.remove('filtered-out');
@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.querySelectorAll('.all-day-event').forEach(evt => {
-            const evtMember = evt.getAttribute('data-member') || 'all';
-            if (memberId === 'all' || evtMember === memberId) {
+            const evtMembers = evt.getAttribute('data-members') ? JSON.parse(evt.getAttribute('data-members')) : ['all'];
+            if (memberId === 'all' || evtMembers.includes(memberId)) {
                 evt.style.opacity = '1';
                 evt.style.display = 'inline-flex';
             } else {
@@ -196,22 +196,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function populateModalMembers(containerElement, inputId) {
+    function populateModalMembers(containerElement, inputsContainerId) {
         const modalMembersContainer = containerElement || document.getElementById('modal-members-container');
+        const hiddenInputsContainer = document.getElementById(inputsContainerId || 'hidden-member-inputs');
         if (!modalMembersContainer) return;
 
         modalMembersContainer.innerHTML = '';
+        if (hiddenInputsContainer) hiddenInputsContainer.innerHTML = ''; // Clear inputs
+
         familyMembers.forEach((member, index) => {
             const div = document.createElement('div');
-            div.className = `text-center position-relative cursor-pointer avatar-selector ${index === 0 ? 'selected opacity-100' : 'opacity-75 hover-opacity-100'}`;
+            // By default, select the first one, others unselected
+            const isSelected = index === 0;
+            div.className = `text-center position-relative cursor-pointer avatar-selector ${isSelected ? 'selected opacity-100' : 'opacity-75 hover-opacity-100'}`;
             div.setAttribute('data-member-id', member.id);
             div.setAttribute('data-id', member.id);
             div.classList.add('avatar-wrapper');
 
             const avatarUrl = member.avatar;
-            const borderClass = index === 0 ? 'border-primary' : 'border-transparent';
-            const checkIconClass = index === 0 ? '' : 'd-none';
-            const nameWeight = index === 0 ? 'fw-medium' : '';
+            const borderClass = isSelected ? 'border-primary' : 'border-transparent';
+            const checkIconClass = isSelected ? '' : 'd-none';
+            const nameWeight = isSelected ? 'fw-medium' : '';
 
             div.innerHTML = `
                 <img src="${avatarUrl}" class="rounded-circle border ${borderClass} border-2 p-1 avatar-img" width="44" height="44" alt="${member.name}">
@@ -220,33 +225,46 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             div.addEventListener('click', () => {
-                modalMembersContainer.querySelectorAll('.avatar-selector').forEach(a => {
-                    a.classList.remove('selected', 'opacity-100');
-                    a.classList.add('opacity-75');
-                    a.querySelector('.avatar-img').classList.remove('border-primary');
-                    a.querySelector('.avatar-img').classList.add('border-transparent');
-                    a.querySelector('.check-icon').classList.add('d-none');
-                    a.querySelector('.avatar-name').classList.remove('fw-medium');
-                });
-
-                div.classList.remove('opacity-75');
-                div.classList.add('selected', 'opacity-100');
-                div.querySelector('.avatar-img').classList.remove('border-transparent');
-                div.querySelector('.avatar-img').classList.add('border-primary');
-                div.querySelector('.check-icon').classList.remove('d-none');
-                div.querySelector('.avatar-name').classList.add('fw-medium');
-
-                // Set hidden input for form submission
-                const hiddenInput = document.getElementById(inputId || 'selectedMemberId');
-                if (hiddenInput) hiddenInput.value = member.id;
+                const wasSelected = div.classList.contains('selected');
+                
+                if (wasSelected) {
+                    // Unselect
+                    div.classList.remove('selected', 'opacity-100');
+                    div.classList.add('opacity-75');
+                    div.querySelector('.avatar-img').classList.remove('border-primary');
+                    div.querySelector('.avatar-img').classList.add('border-transparent');
+                    div.querySelector('.check-icon').classList.add('d-none');
+                    div.querySelector('.avatar-name').classList.remove('fw-medium');
+                } else {
+                    // Select
+                    div.classList.remove('opacity-75');
+                    div.classList.add('selected', 'opacity-100');
+                    div.querySelector('.avatar-img').classList.remove('border-transparent');
+                    div.querySelector('.avatar-img').classList.add('border-primary');
+                    div.querySelector('.check-icon').classList.remove('d-none');
+                    div.querySelector('.avatar-name').classList.add('fw-medium');
+                }
+                
+                updateHiddenInputs(modalMembersContainer, hiddenInputsContainer);
             });
 
-            if (index === 0) {
-                const hiddenInput = document.getElementById(inputId || 'selectedMemberId');
-                if (hiddenInput) hiddenInput.value = member.id;
-            }
-
             modalMembersContainer.appendChild(div);
+        });
+        
+        // Initial sync of hidden inputs
+        updateHiddenInputs(modalMembersContainer, hiddenInputsContainer);
+    }
+    
+    function updateHiddenInputs(modalMembersContainer, hiddenInputsContainer) {
+        if (!hiddenInputsContainer) return;
+        hiddenInputsContainer.innerHTML = '';
+        modalMembersContainer.querySelectorAll('.avatar-selector.selected').forEach(selectedDiv => {
+            const id = selectedDiv.getAttribute('data-id');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'member_ids[]';
+            input.value = id;
+            hiddenInputsContainer.appendChild(input);
         });
     }
 
@@ -356,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const start = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
         const end = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString().split('T')[0];
 
-        fetch(API_PATH + `events.php?action=getEvents&start=${start}&end=${end}`)
+        fetch(API_PATH + `events.php?action=getEvents&start=${start}&end=${end}&_=${new Date().getTime()}`)
             .then(res => res.json())
             .then(data => {
                 if (data.error) throw new Error(data.error);
@@ -372,8 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         startHour: d.getHours() + (d.getMinutes() / 60),
                         startStr: startT,
                         endStr: endT,
-                        countdown: e.countdown,
-                        member: e.member.toLowerCase()
+                        countdown: e.countdown
                     };
                 });
 
@@ -533,19 +550,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Populate members using the same function but different container
-        populateModalMembers(document.getElementById('edit-modal-members-container'), 'editSelectedMemberId');
+        populateModalMembers(document.getElementById('edit-modal-members-container'), 'edit-hidden-member-inputs');
         
         // Set the correct selected member visually
         setTimeout(() => {
-            document.getElementById('editSelectedMemberId').value = '';
             const memberAvatars = document.getElementById('edit-modal-members-container').querySelectorAll('.avatar-wrapper');
+            const eventMemberNames = evt.members ? evt.members.map(m => m.member.toLowerCase()) : [];
+            
             memberAvatars.forEach(av => {
-                av.classList.remove('selected');
-                if (av.querySelector('img').getAttribute('alt').toLowerCase() === evt.member.toLowerCase()) {
-                    av.classList.add('selected');
-                    document.getElementById('editSelectedMemberId').value = av.getAttribute('data-id');
+                const avatarName = av.querySelector('img').getAttribute('alt').toLowerCase();
+                if (eventMemberNames.includes(avatarName)) {
+                    av.classList.add('selected', 'opacity-100');
+                    av.classList.remove('opacity-75');
+                    av.querySelector('.avatar-img').classList.add('border-primary');
+                    av.querySelector('.avatar-img').classList.remove('border-transparent');
+                    av.querySelector('.check-icon').classList.remove('d-none');
+                    av.querySelector('.avatar-name').classList.add('fw-medium');
+                } else {
+                    av.classList.remove('selected', 'opacity-100');
+                    av.classList.add('opacity-75');
+                    av.querySelector('.avatar-img').classList.remove('border-primary');
+                    av.querySelector('.avatar-img').classList.add('border-transparent');
+                    av.querySelector('.check-icon').classList.add('d-none');
+                    av.querySelector('.avatar-name').classList.remove('fw-medium');
                 }
             });
+            
+            // Re-sync hidden inputs after changing selections
+            const modalContainer = document.getElementById('edit-modal-members-container');
+            const hiddenContainer = document.getElementById('edit-hidden-member-inputs');
+            if (typeof updateHiddenInputs === 'function') {
+                updateHiddenInputs(modalContainer, hiddenContainer);
+            }
         }, 100);
         
         // Show edit modal
@@ -619,7 +655,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Desktop behavior
         document.getElementById('viewEventTitle').textContent = evt.title;
         document.getElementById('viewEventLocation').textContent = evt.location || 'No location specified';
-        document.getElementById('viewEventMember').textContent = getDisplayName({name: evt.member, nickname: evt.member_nickname});
+        
+        // Handle multiple members
+        if (evt.members && evt.members.length > 0) {
+            const memberNames = evt.members.map(m => getDisplayName({name: m.member, nickname: m.member_nickname})).join(', ');
+            document.getElementById('viewEventMember').textContent = memberNames;
+        } else {
+            document.getElementById('viewEventMember').textContent = 'Unassigned';
+        }
         
         const dateEl = document.getElementById('viewEventDate');
         if (dateEl) dateEl.textContent = dateStr;
@@ -767,7 +810,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. Render Events (Week View)
     function createEventBlockHtml(evt, showLocation = true) {
         const startStr = formatTime(evt.startHour);
-        const baseColor = evt.colorCode || '#0d6efd';
+        
+        let baseColor = evt.colorCode || '#0d6efd';
+        let memberNames = 'Unassigned';
+        
+        if (evt.members && evt.members.length > 0) {
+            memberNames = evt.members.map(m => getDisplayName({name: m.member, nickname: m.member_nickname})).join(', ');
+            if (evt.members.length > 1) {
+                baseColor = '#6f42c1'; // Purple for shared events
+            }
+        }
+        
         const bgColor = lightenColor(baseColor, 92);
         const textColor = getContrastColor(bgColor);
 
@@ -775,7 +828,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="event-time" style="color: ${baseColor}"><i class="fa-regular fa-clock me-1"></i> ${startStr}</div>
             <div class="event-title" style="color: ${textColor === 'white' ? '#fff' : '#1a1a1a'}">${evt.title}</div>
             ${showLocation && evt.location ? `<div class="event-location"><i class="fa-solid fa-location-dot me-1"></i> ${evt.location}</div>` : ''}
-            <div class="event-assigned" style="color: ${baseColor}">${getDisplayName({name: evt.member, nickname: evt.member_nickname})}</div>
+            <div class="event-assigned" style="color: ${baseColor}">${memberNames}</div>
         `;
     }
 
@@ -841,9 +894,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayEvents.forEach(evt => {
                     const block = document.createElement('div');
                     block.className = `event-block position-relative rounded p-2 shadow-sm w-100 d-flex align-items-center justify-content-between`;
-                    block.setAttribute('data-member', evt.member);
+                    
+                    let baseColor = evt.colorCode || '#0d6efd';
+                    let memberNamesList = [];
+                    let initialStr = 'U';
+                    
+                    if (evt.members && evt.members.length > 0) {
+                        memberNamesList = evt.members.map(m => m.member.toLowerCase());
+                        initialStr = getDisplayName({name: evt.members[0].member, nickname: evt.members[0].member_nickname}).charAt(0).toUpperCase();
+                        if (evt.members.length > 1) {
+                            baseColor = '#6f42c1';
+                            initialStr = '' + evt.members.length; // Number of members
+                        }
+                    }
+                    
+                    block.setAttribute('data-members', JSON.stringify(memberNamesList));
 
-                    const baseColor = evt.colorCode || '#0d6efd';
                     const bgColor = lightenColor(baseColor, 92);
                     block.style.backgroundColor = bgColor;
                     block.style.borderLeft = `4px solid ${baseColor}`;
@@ -857,8 +923,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="text-muted mt-1" style="font-size: 0.75rem;">${startStr} - ${endStr}</span>
                         </div>
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
-                             style="width: 24px; height: 24px; background-color: ${baseColor}; font-size: 0.7rem;">
-                            ${getDisplayName({name: evt.member, nickname: evt.member_nickname}).charAt(0).toUpperCase()}
+                             style="width: 24px; height: 24px; background-color: ${baseColor}; font-size: 0.7rem;" title="Assigned: ${evt.members ? evt.members.map(m => m.member).join(', ') : 'Unassigned'}">
+                            ${initialStr}
                         </div>
                     `;
                     block.style.cursor = 'pointer';
@@ -900,13 +966,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `all-day-event`;
 
-            const baseColor = evt.colorCode || '#0d6efd';
+            let baseColor = evt.colorCode || '#0d6efd';
+            let memberNamesList = [];
+            if (evt.members && evt.members.length > 0) {
+                memberNamesList = evt.members.map(m => m.member.toLowerCase());
+                if (evt.members.length > 1) {
+                    baseColor = '#6f42c1';
+                }
+            }
+
             div.style.backgroundColor = lightenColor(baseColor, 92);
             div.style.color = baseColor;
             div.style.borderLeft = `4px solid ${baseColor}`;
 
             div.innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${evt.title}`;
-            div.setAttribute('data-member', evt.member);
+            div.setAttribute('data-members', JSON.stringify(memberNamesList));
             div.style.cursor = 'pointer';
             div.addEventListener('click', () => openEventModal(evt));
             allDayContainer.appendChild(div);
@@ -1072,7 +1146,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const allDayRow = document.createElement('div');
             allDayRow.className = 'day-view-row d-flex align-items-center p-3 border-bottom bg-light bg-opacity-25';
 
-            const baseColor = evt.colorCode || '#0d6efd';
+            let baseColor = evt.colorCode || '#0d6efd';
+            if (evt.members && evt.members.length > 1) {
+                baseColor = '#6f42c1';
+            }
             const bgColor = lightenColor(baseColor, 92);
 
             allDayRow.innerHTML = `
@@ -1082,12 +1159,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="row-time" style="width: 100px;"></div>
                 <div class="row-content flex-grow-1 d-flex gap-2">
-                    <div class="all-day-event" data-member="${evt.member}" style="background-color: ${bgColor}; color: ${baseColor}; border-left: 4px solid ${baseColor};">
+                    <div class="all-day-event" data-members='${JSON.stringify(evt.members ? evt.members.map(m => m.member.toLowerCase()) : [])}' style="background-color: ${bgColor}; color: ${baseColor}; border-left: 4px solid ${baseColor};">
                         <i class="fa-solid fa-calendar-day me-1"></i> ${evt.title}
                     </div>
                 </div>
                 <div class="row-meta text-muted fs-7 ps-3 d-flex align-items-center">
-                    <i class="fa-solid fa-user me-1"></i> ${getDisplayName({name: evt.member, nickname: evt.member_nickname})}
+                    <i class="fa-solid fa-user me-1"></i> ${evt.members && evt.members.length > 0 ? evt.members.map(m => getDisplayName({name: m.member, nickname: m.member_nickname})).join(', ') : 'Unassigned'}
                 </div>
             `;
             const eventDiv = allDayRow.querySelector('.all-day-event');
@@ -1119,8 +1196,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.className = 'day-view-row d-flex align-items-center p-3 border-bottom';
 
                 const startStr = formatTime(evt.startHour);
-                const baseColor = evt.colorCode || '#0d6efd';
+                let baseColor = evt.colorCode || '#0d6efd';
+                if (evt.members && evt.members.length > 1) {
+                    baseColor = '#6f42c1';
+                }
                 const bgColor = lightenColor(baseColor, 92);
+
+                let memberMetaHtml = '';
+                if (evt.members && evt.members.length > 1) {
+                    memberMetaHtml = `<span class="me-2 fw-medium text-dark">${evt.members.length} Members</span>`;
+                } else if (evt.members && evt.members.length === 1) {
+                    const memberName = getDisplayName({name: evt.members[0].member, nickname: evt.members[0].member_nickname});
+                    memberMetaHtml = `<span class="me-2 fw-medium text-dark">${memberName}</span>
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(memberName)}&background=random" class="rounded-circle shadow-sm border border-2 border-white" width="32" height="32" title="${memberName}">`;
+                } else {
+                    memberMetaHtml = `<span class="me-2 fw-medium text-dark">Unassigned</span>`;
+                }
 
                 row.innerHTML = `
                     <div class="row-left d-flex align-items-center" style="width: 150px;">
@@ -1128,14 +1219,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="fw-bold text-muted">${startStr}</span>
                     </div>
                     <div class="row-content flex-grow-1">
-                        <div class="event-block position-relative" data-member="${evt.member}" style="background-color: ${bgColor}; border-left: 4px solid ${baseColor};">
+                        <div class="event-block position-relative" data-members='${JSON.stringify(evt.members ? evt.members.map(m => m.member.toLowerCase()) : [])}' style="background-color: ${bgColor}; border-left: 4px solid ${baseColor};">
                             ${createEventBlockHtml(evt, true)}
                         </div>
                     </div>
                     <div class="row-meta text-muted fs-7 d-flex align-items-center justify-content-end" style="width: 200px;">
                         <div class="avatar-stack d-flex align-items-center">
-                            <span class="me-2 fw-medium text-dark">${evt.member.charAt(0).toUpperCase() + evt.member.slice(1)}</span>
-                            <img src="https://ui-avatars.com/api/?name=${evt.member}&background=random" class="rounded-circle shadow-sm border border-2 border-white" width="32" height="32" title="${evt.member}">
+                            ${memberMetaHtml}
                         </div>
                     </div>
                 `;
@@ -1158,6 +1248,111 @@ document.addEventListener('DOMContentLoaded', () => {
     const y = today.getFullYear();
     const m = String(today.getMonth() + 1).padStart(2, '0');
 
+    function showMobileDayDetails(dateStr) {
+        const targetDate = new Date(dateStr);
+        targetDate.setHours(0, 0, 0, 0);
+        
+        const options = { weekday: 'short', month: 'short', day: 'numeric' };
+        document.getElementById('mobileMonthDayTitle').textContent = targetDate.toLocaleDateString(undefined, options);
+
+        const container = document.getElementById('mobileMonthDayEventsList');
+        container.innerHTML = ''; 
+
+        const dayAllDayEvents = allDayEvents.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            endD.setHours(0, 0, 0, 0);
+            return targetDate >= startD && targetDate <= endD;
+        });
+
+        const dayEvents = events.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            endD.setHours(0, 0, 0, 0);
+            return targetDate >= startD && targetDate <= endD;
+        }).sort((a, b) => a.startHour - b.startHour);
+
+        const filteredAllDay = dayAllDayEvents.filter(e => {
+            if (activeMemberFilter === 'all') return true;
+            if (e.members) {
+                return e.members.some(m => m.member.toLowerCase() === activeMemberFilter);
+            }
+            return false;
+        });
+
+        const filteredTimed = dayEvents.filter(e => {
+            if (activeMemberFilter === 'all') return true;
+            if (e.members) {
+                return e.members.some(m => m.member.toLowerCase() === activeMemberFilter);
+            }
+            return false;
+        });
+
+        if (filteredAllDay.length === 0 && filteredTimed.length === 0) {
+            const noEvents = document.createElement('div');
+            noEvents.className = 'p-4 text-center text-muted';
+            noEvents.innerHTML = '<i class="fa-regular fa-calendar-xmark fs-3 mb-2 d-block opacity-50"></i> <span style="font-size:0.9rem">No events scheduled</span>';
+            container.appendChild(noEvents);
+        } else {
+            filteredAllDay.forEach(evt => {
+                const allDayRow = document.createElement('div');
+                allDayRow.className = 'd-flex align-items-center p-3 border-bottom bg-light bg-opacity-25';
+
+                let baseColor = evt.colorCode || '#0d6efd';
+                if (evt.members && evt.members.length > 1) {
+                    baseColor = '#6f42c1';
+                }
+                const bgColor = lightenColor(baseColor, 92);
+
+                allDayRow.innerHTML = `
+                    <div class="row-content flex-grow-1 d-flex gap-2">
+                        <div class="all-day-event w-100 m-0" style="background-color: ${bgColor}; color: ${baseColor}; border-left: 4px solid ${baseColor};">
+                            <i class="fa-solid fa-calendar-day me-1"></i> ${evt.title}
+                        </div>
+                    </div>
+                `;
+                const eventDiv = allDayRow.querySelector('.all-day-event');
+                if (eventDiv) {
+                    eventDiv.style.cursor = 'pointer';
+                    eventDiv.addEventListener('click', () => openEventModal(evt));
+                }
+                container.appendChild(allDayRow);
+            });
+
+            filteredTimed.forEach(evt => {
+                const row = document.createElement('div');
+                row.className = 'd-flex align-items-center p-3 border-bottom';
+
+                let baseColor = evt.colorCode || '#0d6efd';
+                if (evt.members && evt.members.length > 1) {
+                    baseColor = '#6f42c1';
+                }
+                const bgColor = lightenColor(baseColor, 92);
+
+                row.innerHTML = `
+                    <div class="row-content flex-grow-1 w-100">
+                        <div class="event-block position-relative m-0" style="background-color: ${bgColor}; border-left: 4px solid ${baseColor};">
+                            ${createEventBlockHtml(evt, true)}
+                        </div>
+                    </div>
+                `;
+                const eventDiv = row.querySelector('.event-block');
+                if (eventDiv) {
+                    eventDiv.style.cursor = 'pointer';
+                    eventDiv.addEventListener('click', () => openEventModal(evt));
+                }
+                container.appendChild(row);
+            });
+        }
+
+        const detailsContainer = document.getElementById('mobileMonthDayDetailsContainer');
+        detailsContainer.classList.remove('d-none');
+        
+        detailsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     // 8. Initialize FullCalendar for Month View
     const calendarEl = document.getElementById('full-calendar-container');
     if (calendarEl) {
@@ -1176,6 +1371,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         created_by: e.created_by,
                         member: e.member,
                         member_nickname: e.member_nickname,
+                        members: e.members,
                         colorCode: e.colorCode,
                         startHour: e.startHour,
                         duration: e.duration,
@@ -1195,6 +1391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         created_by: e.created_by,
                         member: e.member,
                         member_nickname: e.member_nickname,
+                        members: e.members,
                         colorCode: e.colorCode,
                         location: e.location,
                         countdown: e.countdown,
@@ -1203,16 +1400,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 }));
 
                 const combined = [...timed, ...allDay];
-                const filtered = combined.filter(e => activeMemberFilter === 'all' || e.extendedProps.member === activeMemberFilter);
+                const filtered = combined.filter(e => {
+                    if (activeMemberFilter === 'all') return true;
+                    if (e.extendedProps.members) {
+                        return e.extendedProps.members.some(m => m.member.toLowerCase() === activeMemberFilter);
+                    }
+                    return false;
+                });
                 successCallback(filtered);
             },
             eventClick: function(info) {
+                if (window.innerWidth < 992) {
+                    return; // Handled by dateClick due to pointer-events: none on mobile month events
+                }
                 const props = info.event.extendedProps;
                 openEventModal({
                     title: info.event.title,
                     location: props.location,
                     member: props.member,
                     member_nickname: props.member_nickname,
+                    members: props.members,
                     startHour: props.startHour,
                     duration: props.duration,
                     isAllDay: props.isAllDay,
@@ -1223,9 +1430,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     endStr: info.event.endStr
                 });
             },
+            dateClick: function(info) {
+                if (window.innerWidth < 992) {
+                    showMobileDayDetails(info.dateStr);
+                }
+            },
             eventContent: function (info) {
                 const props = info.event.extendedProps;
-                const baseColor = props.colorCode || '#0d6efd';
+                let baseColor = props.colorCode || '#0d6efd';
+                if (props.members && props.members.length > 1) {
+                    baseColor = '#6f42c1';
+                }
                 const bgColor = lightenColor(baseColor, 92);
 
                 if (props.isAllDay) {
@@ -1243,6 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     startHour: props.startHour,
                     title: info.event.title,
                     member: props.member,
+                    members: props.members,
                     colorCode: props.colorCode,
                     location: props.location
                 };
@@ -1433,6 +1649,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.querySelector('.rounded-circle').classList.remove('bg-white');
                 }
             });
+        });
+    }
+
+    // Mobile Month View Details Close Button
+    const closeMobileMonthDayBtn = document.getElementById('closeMobileMonthDayBtn');
+    if (closeMobileMonthDayBtn) {
+        closeMobileMonthDayBtn.addEventListener('click', () => {
+            document.getElementById('mobileMonthDayDetailsContainer').classList.add('d-none');
         });
     }
 

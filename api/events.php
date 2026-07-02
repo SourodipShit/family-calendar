@@ -3,6 +3,8 @@ session_start();
 require_once __DIR__ . '/../classes/Event.php';
 
 header('Content-Type: application/json');
+header('Cache-Control: no-cache, must-revalidate');
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 $action = $_GET['action'];
 
 switch ($action) {
@@ -20,26 +22,30 @@ function getEventsByDateRange()
         $familyId = $_SESSION['user']['active_family_id'];
         $userId = $_SESSION['user']['id'];
         $events = Event::getEventsByDateRange($_GET['start'], $_GET['end'], $familyId, $userId);
-        $filteredEvents = [];
-        foreach ($events as $key => $event) {
+        
+        $processedEvents = [];
+        foreach ($events as $event) {
             $duration = calculateDuration($event['start_time'], $event['end_time']);
-            $filteredEvents[$key] = [
+            
+            // Fetch members for this specific event
+            $members = Event::getEventMembers($event['id']);
+            
+            $processedEvents[] = [
+                'id' => $event['id'],
                 'title' => $event['title'],
                 'startHour' => $event['start_time'],
                 'endHour' => $event['end_time'],
                 'duration' => $duration,
                 'colorCode' => $event['color'],
-                'id' => $event['id'],
-                'user_id' => $event['user_id'],
                 'created_by' => $event['created_by'],
-                'member' => $event['member'],
-                'member_nickname' => $event['member_nickname'],
                 'location' => $event['location'] ?? '',
                 'is_all_day' => (isset($event['is_all_day']) && $event['is_all_day']) ? true : false,
-                'countdown' => $event['countdown'] ?? 0
+                'countdown' => $event['countdown'] ?? 0,
+                'members' => $members
             ];
         }
-        echo json_encode($filteredEvents);
+        
+        echo json_encode($processedEvents);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);
     }

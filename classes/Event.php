@@ -6,11 +6,9 @@ class  Event
 {
     public static function getEventsByDateRange($startDate, $endDate, $familyId, $userId = null)
     {
-        $sql = "SELECT e.*, e.created_by, et.name AS type, et.colour AS color, em.user_id, u.name as member, u.nickname as member_nickname
+        $sql = "SELECT e.*, e.created_by, et.name AS type, et.colour AS color
                 FROM events AS e 
                 INNER JOIN event_types AS et ON e.type_id = et.id 
-                INNER JOIN event_members AS em ON e.id = em.event_id 
-                INNER JOIN users u ON em.user_id = u.id
                 WHERE e.start_time BETWEEN ? AND ? 
                 AND (
                     e.family_id = ? 
@@ -24,6 +22,15 @@ class  Event
                 )";
         $events = Database::runPrepared($sql, [$startDate, $endDate, $familyId, $userId])->fetchAll(PDO::FETCH_ASSOC);
         return $events;
+    }
+
+    public static function getEventMembers($eventId)
+    {
+        $sql = "SELECT em.user_id, u.name as member, u.nickname as member_nickname
+                FROM event_members AS em 
+                INNER JOIN users u ON em.user_id = u.id
+                WHERE em.event_id = ?";
+        return Database::runPrepared($sql, [$eventId])->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function add($data)

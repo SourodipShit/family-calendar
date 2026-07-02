@@ -22,6 +22,12 @@ include $path_prefix . 'components/sidebar.php';
                         -ms-overflow-style: none;  /* IE and Edge */
                         scrollbar-width: none;  /* Firefox */
                     }
+                    @media (max-width: 991px) {
+                        /* Disable pointer events on month view events so they pass through to dateClick */
+                        .fc-dayGridMonth-view .fc-event {
+                            pointer-events: none !important;
+                        }
+                    }
                 </style>
                 <div class="d-flex flex-nowrap align-items-center gap-0 mb-4 family-members-list overflow-x-auto">
                     <!-- Populated by JS -->
@@ -134,8 +140,21 @@ include $path_prefix . 'components/sidebar.php';
                     </div>
 
                     <!-- Month View (FullCalendar) -->
-                    <div id="view-month" class="d-none bg-white border rounded-3 p-3">
+                    <div id="view-month" class="d-none bg-white border rounded-3 p-3 position-relative">
                         <div id="full-calendar-container"></div>
+                        
+                        <!-- Mobile Month Day Details Container -->
+                        <div id="mobileMonthDayDetailsContainer" class="d-lg-none mt-3 d-none">
+                            <div class="card border rounded-4 shadow-sm bg-white overflow-hidden">
+                                <div class="card-header bg-light border-bottom p-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold text-dark" id="mobileMonthDayTitle">Events</h6>
+                                    <button type="button" class="btn-close" id="closeMobileMonthDayBtn" aria-label="Close"></button>
+                                </div>
+                                <div class="card-body p-0" id="mobileMonthDayEventsList">
+                                    <!-- Events will be populated here -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div> <!-- End Calendar Views Container -->
@@ -314,7 +333,8 @@ include $path_prefix . 'components/sidebar.php';
                     </div>
 
                     <!-- Form Grid -->
-                    <input type="hidden" name="member_id" id="selectedMemberId">
+                    <!-- Member IDs are dynamically generated -->
+                    <div id="hidden-member-inputs"></div>
                     <div class="row g-4 mb-4">
                         <!-- Title -->
                         <div class="col-md-12">
@@ -496,7 +516,8 @@ include $path_prefix . 'components/sidebar.php';
                     </div>
 
                     <!-- Form Grid -->
-                    <input type="hidden" name="member_id" id="editSelectedMemberId">
+                    <!-- Member IDs are dynamically generated -->
+                    <div id="edit-hidden-member-inputs"></div>
                     <div class="row g-4 mb-4">
                         <!-- Title -->
                         <div class="col-md-12">

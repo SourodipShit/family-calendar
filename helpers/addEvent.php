@@ -53,7 +53,7 @@ if (isset($_POST['save'])) {
         'remainder' => !empty($_POST['remainder']) ? $_POST['remainder'] : null,
         'countdown' => (isset($_POST['countdown']) && $_POST['countdown'] == '1') ? 1 : 0,
         'created_by' => $user_id,
-        'members' => !empty($_POST['member_id']) ? [$_POST['member_id']] : []
+        'members' => !empty($_POST['member_ids']) ? $_POST['member_ids'] : []
     ];
 
     // Call the updated Event::add method which now handles members too

@@ -49,7 +49,7 @@ if (isset($_POST['save']) && isset($_POST['event_id'])) {
         'event_repeat' => !empty($_POST['event_repeat']) ? $_POST['event_repeat'] : null,
         'remainder' => !empty($_POST['remainder']) ? $_POST['remainder'] : null,
         'countdown' => (isset($_POST['countdown']) && $_POST['countdown'] == '1') ? 1 : 0,
-        'members' => !empty($_POST['member_id']) ? [$_POST['member_id']] : []
+        'members' => !empty($_POST['member_ids']) ? $_POST['member_ids'] : []
     ];
 
     $result = Event::update($event_id, $data, $user_id);
