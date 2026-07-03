@@ -1,4 +1,5 @@
 <?php
+
 /**
  * API Endpoint: Get Current Weather
  * 
@@ -20,7 +21,7 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
     if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $clientIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
     }
-    
+
     // If local, don't pass IP so ip-api uses the server's public IP for testing
     $ipQuery = '';
     if ($clientIp && !in_array($clientIp, ['127.0.0.1', '::1'])) {
@@ -28,7 +29,7 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
     }
 
     $ipApiUrl = "http://ip-api.com/json/" . $ipQuery;
-    
+
     // Suppress errors if API is unreachable
     $ipResponse = @file_get_contents($ipApiUrl);
 
@@ -51,35 +52,68 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
 }
 
 // Function to map WMO weather codes to text descriptions and OpenWeatherMap PNG icon URLs
-function getWeatherDetails($code, $isDay) {
+function getWeatherDetails($code, $isDay)
+{
     $dayNight = $isDay ? 'd' : 'n'; // 'd' for day, 'n' for night
-    
+
     // Map WMO codes to OpenWeatherMap icon prefixes
     $iconMap = [
-        0 => '01', 1 => '02', 2 => '02', 3 => '04',
-        45 => '50', 48 => '50',
-        51 => '09', 53 => '09', 55 => '09',
-        61 => '10', 63 => '10', 65 => '10',
-        71 => '13', 73 => '13', 75 => '13', 77 => '13',
-        80 => '09', 81 => '09', 82 => '09',
-        85 => '13', 86 => '13',
-        95 => '11', 96 => '11', 99 => '11',
+        0 => '01',
+        1 => '02',
+        2 => '02',
+        3 => '04',
+        45 => '50',
+        48 => '50',
+        51 => '09',
+        53 => '09',
+        55 => '09',
+        61 => '10',
+        63 => '10',
+        65 => '10',
+        71 => '13',
+        73 => '13',
+        75 => '13',
+        77 => '13',
+        80 => '09',
+        81 => '09',
+        82 => '09',
+        85 => '13',
+        86 => '13',
+        95 => '11',
+        96 => '11',
+        99 => '11',
     ];
 
     $textMap = [
-        0 => 'Clear sky', 1 => 'Mainly clear', 2 => 'Partly cloudy', 3 => 'Overcast',
-        45 => 'Fog', 48 => 'Depositing rime fog',
-        51 => 'Light drizzle', 53 => 'Moderate drizzle', 55 => 'Dense drizzle',
-        61 => 'Slight rain', 63 => 'Moderate rain', 65 => 'Heavy rain',
-        71 => 'Slight snow fall', 73 => 'Moderate snow fall', 75 => 'Heavy snow fall', 77 => 'Snow grains',
-        80 => 'Slight rain showers', 81 => 'Moderate rain showers', 82 => 'Violent rain showers',
-        85 => 'Slight snow showers', 86 => 'Heavy snow showers',
-        95 => 'Thunderstorm', 96 => 'Thunderstorm with slight hail', 99 => 'Thunderstorm with heavy hail',
+        0 => 'Clear sky',
+        1 => 'Mainly clear',
+        2 => 'Partly cloudy',
+        3 => 'Overcast',
+        45 => 'Fog',
+        48 => 'Depositing rime fog',
+        51 => 'Light drizzle',
+        53 => 'Moderate drizzle',
+        55 => 'Dense drizzle',
+        61 => 'Slight rain',
+        63 => 'Moderate rain',
+        65 => 'Heavy rain',
+        71 => 'Slight snow fall',
+        73 => 'Moderate snow fall',
+        75 => 'Heavy snow fall',
+        77 => 'Snow grains',
+        80 => 'Slight rain showers',
+        81 => 'Moderate rain showers',
+        82 => 'Violent rain showers',
+        85 => 'Slight snow showers',
+        86 => 'Heavy snow showers',
+        95 => 'Thunderstorm',
+        96 => 'Thunderstorm with slight hail',
+        99 => 'Thunderstorm with heavy hail',
     ];
-    
+
     $iconPrefix = isset($iconMap[$code]) ? $iconMap[$code] : '01';
     $text = isset($textMap[$code]) ? $textMap[$code] : 'Unknown';
-    
+
     // Construct the public icon URL (using standard 2x size from OpenWeatherMap)
     $iconUrl = "https://openweathermap.org/img/wn/{$iconPrefix}{$dayNight}@2x.png";
 
@@ -94,12 +128,12 @@ curl_setopt($ch, CURLOPT_URL, $apiUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 10 second timeout
+curl_setopt($ch, CURLOPT_USERAGENT, 'FamilyCalendarApp/1.0 (Contact: admin@ascinate.in)'); // Add User-Agent
 
 $response = curl_exec($ch);
 $curlError = curl_error($ch);
-curl_close($ch);
 
-if($curlError){
+if ($curlError) {
     echo json_encode(['error' => 'Weather API Request Error: ' . $curlError]);
     exit;
 }
@@ -117,7 +151,7 @@ $weatherDetails = getWeatherDetails($data['current_weather']['weathercode'], $is
 
 // Extract only the details we want
 $widgetData = [
-    'location' => $locationName, 
+    'location' => $locationName,
     'current_temperature' => round($data['current_weather']['temperature']) . '°C',
     'condition_icon_url' => $weatherDetails['icon_url'],
     'condition_text' => $weatherDetails['text'],
@@ -127,4 +161,3 @@ $widgetData = [
 
 // Return JSON
 echo json_encode($widgetData);
-?>
