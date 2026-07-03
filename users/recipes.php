@@ -187,6 +187,7 @@ require_once $path_prefix . 'classes/Recipe.php';
                             <span class="recipe-badge ${difficultyClass}">${recipe.difficulty}</span>
                             <span class="recipe-badge recipe-category">${recipe.category}</span>
                             ${isApproved && recipe.visibility === 'private' ? `<span class="recipe-badge bg-success text-white">Approved</span>` : ''}
+                            ${isOwner && recipe.status === 'pending' ? `<span class="recipe-badge bg-warning text-dark"><i class="fa-solid fa-clock me-1"></i> Pending</span>` : ''}
                         </div>
                         ` : `
                         <div class="recipe-badge-group">

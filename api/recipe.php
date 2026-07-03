@@ -14,7 +14,8 @@ switch ($action) {
         $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
         $filter = isset($_GET['filter']) ? $_GET['filter'] : [];
         $userFamilyId = $_SESSION['user']['active_family_id'] ?? 0;
-        $result = Recipe::getRecipies($count, $offset, $filter, $userFamilyId);
+        $userId = $_SESSION['user']['id'] ?? 0;
+        $result = Recipe::getRecipies($count, $offset, $filter, $userFamilyId, $userId);
         echo json_encode($result);
         exit;
 

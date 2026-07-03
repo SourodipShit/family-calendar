@@ -133,10 +133,10 @@ class Recipe
         Database::runPrepared($sql, $params);
     }
 
-    public static function getRecipies($count, $offset = 0, $filter = [], $userFamilyId = 0)
+    public static function getRecipies($count, $offset = 0, $filter = [], $userFamilyId = 0, $userId = 0)
     {
         try {
-            $params = [$userFamilyId, $userFamilyId];
+            $params = [$userFamilyId, $userFamilyId, $userId];
             $sql = "SELECT r.*, u.name as user_name, u.image as user_image, ri.image_path as image_url, rn.calories,
                     CASE 
                         WHEN r.family_id = ? THEN 'approved'
@@ -148,7 +148,7 @@ class Recipe
                 LEFT JOIN recipe_images ri ON ri.recipe_id = r.id AND ri.is_main = 1
                 LEFT JOIN recipe_nutrition rn ON rn.recipe_id = r.id
                 LEFT JOIN recipe_access_requests rar ON rar.recipe_id = r.id AND rar.requester_family_id = ?
-                WHERE r.status = 'approved'";
+                WHERE (r.status = 'approved' OR r.user_id = ?)";
 
             if (!empty($filter['category'])) {
                 $sql .= " AND r.category = ?";
