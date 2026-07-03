@@ -716,6 +716,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTimedEventsWeek();
         renderAllDayEventsWeek();
         renderCountdownEventsWeek();
+        renderCountdownEventsMonth();
+        renderTop3Countdowns();
         if (currentView === 'view-day') renderDayView(currentDate);
         if (window.calendarInstance) window.calendarInstance.refetchEvents();
         
@@ -1021,14 +1023,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.style.color = baseColor;
                 div.style.borderLeft = `4px solid ${baseColor}`;
                 
-                const eventDate = new Date(evt.startStr.split('T')[0]);
-                eventDate.setHours(0, 0, 0, 0);
-                const diffTime = eventDate - now;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const eventDate = new Date(evt.startStr.replace(' ', 'T'));
+                const actualNow = new Date().getTime();
+                const diffTime = eventDate.getTime() - actualNow;
                 
-                let dayText = diffDays === 0 ? 'Today' : (diffDays === 1 ? '1 day' : `${diffDays} days`);
+                let dayText = '';
+                if (diffTime > 0 && diffTime <= 48 * 60 * 60 * 1000) {
+                    dayText = `<span class="live-countdown-timer fw-bold me-2" data-target="${eventDate.getTime()}">--:--:--</span>`;
+                } else {
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    dayText = `<span class="fw-bold me-2">${diffDays <= 0 ? 'Today' : (diffDays === 1 ? '1 day' : diffDays + ' days')}</span>`;
+                }
 
-                div.innerHTML = `<span class="fw-bold me-2">${dayText}</span> <span style="opacity: 0.85;">| <i class="fa-solid fa-calendar-day mx-1"></i> ${evt.title}</span>`;
+                div.innerHTML = `${dayText} <span style="opacity: 0.85;">| <i class="fa-solid fa-calendar-day mx-1"></i> ${evt.title}</span>`;
                 div.setAttribute('data-member', evt.member);
                 div.style.cursor = 'pointer';
                 div.addEventListener('click', () => openEventModal(evt));
@@ -1038,6 +1045,147 @@ document.addEventListener('DOMContentLoaded', () => {
             countdownRow.classList.remove('d-flex');
             countdownRow.classList.add('d-none');
         }
+    }
+
+    function renderCountdownEventsMonth() {
+        const countdownContainer = document.getElementById('month-countdown-container');
+        const countdownRow = document.querySelector('.countdown-row-month');
+        if (!countdownContainer || !countdownRow) return;
+        countdownContainer.innerHTML = '';
+
+        const allEvents = [...events, ...allDayEvents];
+        const countdownEventsList = allEvents.filter(e => e.countdown == 1 || e.countdown === true);
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        const upcomingCountdowns = countdownEventsList.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            return startD >= now;
+        });
+
+        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+
+        if (upcomingCountdowns.length > 0) {
+            countdownRow.classList.remove('d-none');
+            countdownRow.classList.add('d-flex');
+            
+            upcomingCountdowns.forEach(evt => {
+                const div = document.createElement('div');
+                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 me-2 fs-8`;
+                
+                const baseColor = evt.colorCode || '#0d6efd';
+                div.style.backgroundColor = lightenColor(baseColor, 92);
+                div.style.color = baseColor;
+                div.style.borderLeft = `4px solid ${baseColor}`;
+                
+                const eventDate = new Date(evt.startStr.replace(' ', 'T'));
+                const actualNow = new Date().getTime();
+                const diffTime = eventDate.getTime() - actualNow;
+                
+                let dayText = '';
+                if (diffTime > 0 && diffTime <= 48 * 60 * 60 * 1000) {
+                    dayText = `<span class="live-countdown-timer fw-bold me-2" data-target="${eventDate.getTime()}">--:--:--</span>`;
+                } else {
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    dayText = `<span class="fw-bold me-2">${diffDays <= 0 ? 'Today' : (diffDays === 1 ? '1 day' : diffDays + ' days')}</span>`;
+                }
+
+                div.innerHTML = `${dayText} <span style="opacity: 0.85;">| <i class="fa-solid fa-calendar-day mx-1"></i> ${evt.title}</span>`;
+                div.setAttribute('data-member', evt.member);
+                div.style.cursor = 'pointer';
+                div.addEventListener('click', () => openEventModal(evt));
+                countdownContainer.appendChild(div);
+            });
+        } else {
+            countdownRow.classList.remove('d-flex');
+            countdownRow.classList.add('d-none');
+        }
+    }
+
+    function renderTop3Countdowns() {
+        const countdownLists = document.querySelectorAll('.countdown-list');
+        if (countdownLists.length === 0) return;
+
+        const allEvents = [...events, ...allDayEvents];
+        const countdownEventsList = allEvents.filter(e => e.countdown == 1 || e.countdown === true);
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        const upcomingCountdowns = countdownEventsList.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            return startD >= now;
+        });
+
+        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+        const top3 = upcomingCountdowns.slice(0, 3);
+
+        countdownLists.forEach(list => {
+            list.innerHTML = '';
+            if (top3.length === 0) {
+                list.innerHTML = '<div class="text-muted text-center fs-7 py-3">No upcoming countdowns</div>';
+                return;
+            }
+
+            top3.forEach((evt, idx) => {
+                const eventDate = new Date(evt.startStr.replace(' ', 'T'));
+                const actualNow = new Date().getTime();
+                const diffTime = eventDate.getTime() - actualNow;
+                
+                let timeDisplayHTML = '';
+                if (diffTime > 0 && diffTime <= 48 * 60 * 60 * 1000) {
+                    timeDisplayHTML = `
+                        <h4 class="mb-0 fw-bold live-countdown-timer fs-5" data-target="${eventDate.getTime()}">--:--:--</h4>
+                        <small class="text-muted" style="font-size: 0.7rem;">Time Left</small>
+                    `;
+                } else {
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    timeDisplayHTML = `
+                        <h4 class="mb-0 fw-bold">${diffDays <= 0 ? 0 : diffDays}</h4>
+                        <small class="text-muted" style="font-size: 0.7rem;">${diffDays <= 1 ? 'Day' : 'Days'}</small>
+                    `;
+                }
+
+                // Give different icons based on index
+                const icons = ['fa-car-side text-primary', 'fa-cake-candles text-danger', 'fa-suitcase-rolling text-success'];
+                const bgColors = ['bg-primary bg-opacity-10', 'bg-danger bg-opacity-10', 'bg-success bg-opacity-10'];
+                
+                const iconClass = icons[idx % icons.length];
+                const bgClass = bgColors[idx % bgColors.length];
+                
+                const dateOpts = { month: 'short', day: 'numeric', year: 'numeric' };
+                const formattedDate = eventDate.toLocaleDateString('en-US', dateOpts);
+
+                const itemHTML = `
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="rounded p-2 me-3 fs-3 d-flex align-items-center justify-content-center ${bgClass}" style="width: 45px; height: 45px;">
+                            <i class="fa-solid ${iconClass} fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-bold text-truncate" style="max-width: 140px;">${evt.title}</h6>
+                            <small class="text-muted">${formattedDate}</small>
+                        </div>
+                        <div class="text-end ps-2">
+                            ${timeDisplayHTML}
+                        </div>
+                    </div>
+                `;
+                
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = itemHTML.trim();
+                const element = wrapper.firstElementChild;
+                element.style.cursor = 'pointer';
+                element.addEventListener('click', () => {
+                    // if it's the index page, open modal
+                    if (typeof openEventModal === 'function') openEventModal(evt);
+                });
+                
+                list.appendChild(element);
+            });
+        });
     }
 
     // 6. View Toggling & Navigation State
@@ -1099,6 +1247,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Get day of week (0-6)
         const dayIndex = date.getDay();
+
+        // 0. Render Countdowns (Upcoming)
+        const allEventsList = [...events, ...allDayEvents];
+        const countdownEventsList = allEventsList.filter(e => e.countdown == 1 || e.countdown === true);
+        const todayAtMidnight = new Date();
+        todayAtMidnight.setHours(0, 0, 0, 0);
+
+        const upcomingCountdowns = countdownEventsList.filter(e => {
+            const startD = new Date(e.startStr.split('T')[0]);
+            startD.setHours(0, 0, 0, 0);
+            return startD >= todayAtMidnight;
+        });
+
+        if (upcomingCountdowns.length > 0) {
+            upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+            
+            const countdownRow = document.createElement('div');
+            countdownRow.className = 'day-view-row d-flex align-items-center p-3 border-bottom bg-white';
+            
+            countdownRow.innerHTML = `
+                <div class="row-left d-flex align-items-center" style="width: 150px;">
+                    <i class="fa-solid fa-hourglass-half text-primary fs-5 me-3"></i>
+                    <span class="fw-bold text-dark">Countdowns</span>
+                </div>
+                <div class="row-content flex-grow-1 d-flex flex-wrap gap-2 countdown-badges-container">
+                    <!-- Badges populated dynamically -->
+                </div>
+            `;
+            container.appendChild(countdownRow);
+            
+            const badgesContainer = countdownRow.querySelector('.countdown-badges-container');
+            
+            upcomingCountdowns.forEach(evt => {
+                const div = document.createElement('div');
+                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 fs-8`;
+                
+                const baseColor = evt.colorCode || '#0d6efd';
+                div.style.backgroundColor = lightenColor(baseColor, 92);
+                div.style.color = baseColor;
+                div.style.borderLeft = `4px solid ${baseColor}`;
+                
+                const eventDate = new Date(evt.startStr.replace(' ', 'T'));
+                const actualNow = new Date().getTime();
+                const diffTime = eventDate.getTime() - actualNow;
+                
+                let dayText = '';
+                if (diffTime > 0 && diffTime <= 48 * 60 * 60 * 1000) {
+                    dayText = `<span class="live-countdown-timer fw-bold me-2" data-target="${eventDate.getTime()}">--:--:--</span>`;
+                } else {
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    dayText = `<span class="fw-bold me-2">${diffDays <= 0 ? 'Today' : (diffDays === 1 ? '1 day' : diffDays + ' days')}</span>`;
+                }
+
+                div.innerHTML = `${dayText} <span style="opacity: 0.85;">| <i class="fa-solid fa-calendar-day mx-1"></i> ${evt.title}</span>`;
+                div.setAttribute('data-member', evt.member);
+                div.style.cursor = 'pointer';
+                div.addEventListener('click', () => openEventModal(evt));
+                badgesContainer.appendChild(div);
+            });
+        }
 
         // 1. Render Meals for the Day
         const mealsForRow = mealsData.map(m => ({
@@ -1678,5 +1886,23 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTimedEventsWeek();
     renderAllDayEventsWeek();
     updateActiveView(currentView);
+
+    // Timer to update live countdowns
+    setInterval(() => {
+        const now = new Date().getTime();
+        document.querySelectorAll('.live-countdown-timer').forEach(el => {
+            const targetTime = parseInt(el.getAttribute('data-target'), 10);
+            if (isNaN(targetTime)) return;
+            const diff = targetTime - now;
+            if (diff > 0 && diff <= 48 * 60 * 60 * 1000) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                el.textContent = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            } else if (diff <= 0) {
+                el.textContent = '00:00:00';
+            }
+        });
+    }, 1000);
 
 });

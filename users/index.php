@@ -141,6 +141,16 @@ include $path_prefix . 'components/sidebar.php';
 
                     <!-- Month View (FullCalendar) -->
                     <div id="view-month" class="d-none bg-white border rounded-3 p-3 position-relative">
+                        <!-- Countdown Events Row for Month -->
+                        <div class="calendar-row countdown-row-month d-none border-bottom bg-white mb-3">
+                            <div class="time-col border-end p-2 d-flex align-items-center fw-bold text-dark fs-7">
+                                <i class="fa-solid fa-hourglass-half text-primary me-2"></i> Countdowns
+                            </div>
+                            <div class="events-col flex-fill p-2 d-flex gap-2 overflow-x-auto" id="month-countdown-container" style="scrollbar-width: thin;">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
                         <div id="full-calendar-container"></div>
                         
                         <!-- Mobile Month Day Details Container -->
@@ -245,51 +255,7 @@ include $path_prefix . 'components/sidebar.php';
                         <h6 class="fw-bold ts-titels mb-4">Countdown Events (Top 3)</h6>
 
                         <div class="countdown-list">
-                            <!-- Event 1 -->
-                            <div class="d-flex align-items-center mb-4">
-                                <div class=" me-2 fs-3">
-                                    <img src="<?php echo $path_prefix; ?>public/img/wishlist012.png" alt="wishlist012" />
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1 fw-bold">Memorial Day Trip</h6>
-                                    <small class="text-muted">May 27, 2024</small>
-                                </div>
-                                <div class="text-end">
-                                    <h4 class="mb-0 fw-bold">12</h4>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Days</small>
-                                </div>
-                            </div>
-
-                            <!-- Event 2 -->
-                            <div class="d-flex align-items-center mb-4">
-                                <div class=" me-2 fs-3">
-                                    <img src="<?php echo $path_prefix; ?>public/img/wishlist02.png" alt="wishlist012" />
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1 fw-bold">Emma's Birthday</h6>
-                                    <small class="text-muted">Jun 3, 2024</small>
-                                </div>
-                                <div class="text-end">
-                                    <h4 class="mb-0 fw-bold">19</h4>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Days</small>
-                                </div>
-                            </div>
-
-                            <!-- Event 3 -->
-                            <div class="d-flex align-items-center mb-4">
-                                <div class=" me-2 fs-3">
-                                    <img src="<?php echo $path_prefix; ?>public/img/gifts.png" alt="wishlist012" />
-
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1 fw-bold">Summer Vacation</h6>
-                                    <small class="text-muted">Jun 15, 2024</small>
-                                </div>
-                                <div class="text-end">
-                                    <h4 class="mb-0 fw-bold">31</h4>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Days</small>
-                                </div>
-                            </div>
+                            <!-- Populated by JS -->
                         </div>
                         <hr />
 
