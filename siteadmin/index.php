@@ -19,7 +19,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">Total Families</h6>
-                            <h3 class="fw-bold mb-0">124</h3>
+                            <h3 class="fw-bold mb-0" id="total-families-count">--</h3>
                         </div>
                     </div>
                     <div class="mt-3">
@@ -36,7 +36,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">Active Users</h6>
-                            <h3 class="fw-bold mb-0">842</h3>
+                            <h3 class="fw-bold mb-0" id="active-users-count">--</h3>
                         </div>
                     </div>
                     <div class="mt-3">
@@ -53,7 +53,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">Events Today</h6>
-                            <h3 class="fw-bold mb-0">45</h3>
+                            <h3 class="fw-bold mb-0" id="events-today-count">--</h3>
                         </div>
                     </div>
                     <div class="mt-3">
@@ -70,7 +70,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         </div>
                         <div>
                             <h6 class="text-muted mb-1">DB Storage</h6>
-                            <h3 class="fw-bold mb-0">1.2GB</h3>
+                            <h3 class="fw-bold mb-0" id="db-storage-count">--</h3>
                         </div>
                     </div>
                     <div class="mt-3">
@@ -100,58 +100,7 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                         <th class="text-end pe-4 border-0">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-secondary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">JD</div>
-                                                <div>
-                                                    <span class="fw-bold d-block">John Doe</span>
-                                                    <small class="text-muted">john@example.com</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>The Johnsons</td>
-                                        <td><span class="badge bg-success-subtle text-success px-2 py-1">Active</span></td>
-                                        <td>May 10, 2024</td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-icon"><i class="ri-more-2-fill"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-info text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">AS</div>
-                                                <div>
-                                                    <span class="fw-bold d-block">Alice Smith</span>
-                                                    <small class="text-muted">alice@example.com</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Smith Household</td>
-                                        <td><span class="badge bg-warning-subtle text-warning px-2 py-1">Pending</span></td>
-                                        <td>May 11, 2024</td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-icon"><i class="ri-more-2-fill"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">RW</div>
-                                                <div>
-                                                    <span class="fw-bold d-block">Robert White</span>
-                                                    <small class="text-muted">robert@example.com</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>White Family</td>
-                                        <td><span class="badge bg-success-subtle text-success px-2 py-1">Active</span></td>
-                                        <td>May 11, 2024</td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-icon"><i class="ri-more-2-fill"></i></button>
-                                        </td>
-                                    </tr>
+                                <tbody id="recent-signups-tbody">
                                 </tbody>
                             </table>
                         </div>
@@ -159,36 +108,14 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 </div>
             </div>
 
-            <!-- Quick Actions / System Health -->
+            <!-- Daily Logins Graph -->
             <div class="col-lg-4">
                 <div class="card admin-card border-0 mb-4">
                     <div class="card-header bg-white border-0 py-3">
-                        <h6 class="fw-bold mb-0">System Status</h6>
+                        <h6 class="fw-bold mb-0">Daily Logins</h6>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="small">API Response Time</span>
-                            <span class="badge bg-success">124ms</span>
-                        </div>
-                        <div class="progress mb-4" style="height: 6px;">
-                            <div class="progress-bar bg-success" style="width: 90%;"></div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="small">Database Load</span>
-                            <span class="badge bg-warning">42%</span>
-                        </div>
-                        <div class="progress mb-4" style="height: 6px;">
-                            <div class="progress-bar bg-warning" style="width: 42%;"></div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="small">Email Queue</span>
-                            <span class="badge bg-info">0 pending</span>
-                        </div>
-                        <div class="progress mb-0" style="height: 6px;">
-                            <div class="progress-bar bg-info" style="width: 100%;"></div>
-                        </div>
+                        <canvas id="loginChart" style="width: 100%; height: 250px;"></canvas>
                     </div>
                 </div>
 
@@ -196,5 +123,88 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    fetch('../api/admin/stats.php')
+        .then(response => response.json())
+        .then(res => {
+            if (res.status === 'success' && res.data) {
+                const data = res.data;
+                document.getElementById('total-families-count').textContent = data.total_families;
+                document.getElementById('active-users-count').textContent = data.total_users;
+                document.getElementById('events-today-count').textContent = data.events_today;
+                document.getElementById('db-storage-count').textContent = data.db_space_mb + 'MB';
+
+                // Populate recent signups
+                if (data.recent_signups) {
+                    const tbody = document.getElementById('recent-signups-tbody');
+                    tbody.innerHTML = '';
+                    data.recent_signups.forEach(user => {
+                        const dateStr = new Date(user.created_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'});
+                        const initials = user.name ? user.name.substring(0, 2).toUpperCase() : 'U';
+                        const familyName = user.family_name || 'No Family';
+                        const statusBadge = user.family_approved == 1 ? '<span class="badge bg-success-subtle text-success px-2 py-1">Active</span>' : '<span class="badge bg-warning-subtle text-warning px-2 py-1">Pending</span>';
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-secondary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">${initials}</div>
+                                    <div>
+                                        <span class="fw-bold d-block">${user.name}</span>
+                                        <small class="text-muted">${user.email}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${familyName}</td>
+                            <td>${statusBadge}</td>
+                            <td>${dateStr}</td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-icon"><i class="ri-more-2-fill"></i></button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                // Chart setup
+                if (data.login_graph && data.login_graph.length > 0) {
+                    const ctx = document.getElementById('loginChart').getContext('2d');
+                    const labels = data.login_graph.map(row => row.date);
+                    const counts = data.login_graph.map(row => row.count);
+                    
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Logins',
+                                data: counts,
+                                borderColor: '#0d6efd',
+                                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { precision: 0 } }
+                            }
+                        }
+                    });
+                }
+            }
+        })
+        .catch(error => console.error('Error fetching admin stats:', error));
+});
+</script>
 
 <?php require_once $path_prefix . 'components/admin-footer.php'; ?>
