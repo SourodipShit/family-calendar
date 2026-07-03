@@ -13,14 +13,15 @@ class User
         }
 
         try {
-            $result = Database::runPrepared("INSERT INTO users(name, nickname, email, phone, role, image, password) VALUES(?, ?, ?, ?, ?, ?, ?)", [
+            $result = Database::runPrepared("INSERT INTO users(name, nickname, email, phone, role, image, password, color) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", [
                 $data['name'],
                 $data['nickname'] ?? null,
                 $data['email'],
                 $data['phone'],
                 $data['role'],
                 $data['image'],
-                $data['password']
+                $data['password'],
+                $data['color'] ?? '#0d6efd'
             ]);
 
             $user_id = Database::runPrepared("SELECT id FROM users WHERE email = ?", [$data['email']]);

@@ -14,6 +14,7 @@ if (isset($_POST['submit'])) {
     $email = $_POST['email'];
     $phone = $_POST['phone'];
     $role = $_POST['role'];
+    $color = $_POST['color'] ?? '#0d6efd';
     $image = $_FILES['member_image'];
     $password = $_POST['password'];
 
@@ -37,6 +38,7 @@ if (isset($_POST['submit'])) {
             'email' => $email,
             'phone' => $phone,
             'role' => $role,
+            'color' => $color,
             'image' => $image_path,
             'password' => $hashed_password,
             'family_id' => $_SESSION['user']['active_family_id']
@@ -138,15 +140,24 @@ if (isset($_SESSION['error_msg'])) {
                                 </div>
 
                                 <!-- Role -->
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <label for="role" class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
                                     <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-users"></i></span>
                                         <select class="form-select border-0 py-2" id="role" name="role" required>
-                                            <option value="" disabled>Select a role</option>
+                                            <option value="" disabled selected>Select a role</option>
                                             <option value="family-head">Family Head</option>
-                                            <option value="member" selected>Member</option>
+                                            <option value="member">Member</option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                <!-- Color -->
+                                <div class="col-md-6">
+                                    <label for="color" class="form-label fw-semibold">Event Color <span class="text-danger">*</span></label>
+                                    <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                        <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-palette"></i></span>
+                                        <input type="color" class="form-control form-control-color border-0 w-100" id="color" name="color" value="#0d6efd" required style="height: calc(3.5rem + 2px); padding: 0.375rem 0.75rem;">
                                     </div>
                                 </div>
 

@@ -46,7 +46,7 @@ class  Event
 
     public static function getEventMembers($eventId)
     {
-        $sql = "SELECT em.user_id, u.name as member, u.nickname as member_nickname
+        $sql = "SELECT em.user_id, u.name as member, u.nickname as member_nickname, u.color
                 FROM event_members AS em 
                 INNER JOIN users u ON em.user_id = u.id
                 WHERE em.event_id = ?";

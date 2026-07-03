@@ -817,6 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let memberNames = 'Unassigned';
         
         if (evt.members && evt.members.length > 0) {
+            baseColor = evt.members[0].color || evt.colorCode || '#0d6efd';
             memberNames = evt.members.map(m => getDisplayName({name: m.member, nickname: m.member_nickname})).join(', ');
             if (evt.members.length > 1) {
                 baseColor = '#6f42c1'; // Purple for shared events
@@ -826,11 +827,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const bgColor = lightenColor(baseColor, 92);
         const textColor = getContrastColor(bgColor);
 
+        const categoryHTML = evt.categoryName && evt.categoryColor ? `<div class="mt-1"><span class="badge" style="background-color:${evt.categoryColor}; color:${getContrastColor(evt.categoryColor)}; font-size: 0.65rem; font-weight: normal; vertical-align: middle;">${evt.categoryName}</span></div>` : '';
+
         return `
             <div class="event-time" style="color: ${baseColor}"><i class="fa-regular fa-clock me-1"></i> ${startStr}</div>
             <div class="event-title" style="color: ${textColor === 'white' ? '#fff' : '#1a1a1a'}">${evt.title}</div>
             ${showLocation && evt.location ? `<div class="event-location"><i class="fa-solid fa-location-dot me-1"></i> ${evt.location}</div>` : ''}
-            <div class="event-assigned" style="color: ${baseColor}">${memberNames}</div>
+            ${categoryHTML}
         `;
     }
 
@@ -902,6 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let initialStr = 'U';
                     
                     if (evt.members && evt.members.length > 0) {
+                        baseColor = evt.members[0].color || evt.colorCode || '#0d6efd';
                         memberNamesList = evt.members.map(m => m.member.toLowerCase());
                         initialStr = getDisplayName({name: evt.members[0].member, nickname: evt.members[0].member_nickname}).charAt(0).toUpperCase();
                         if (evt.members.length > 1) {
@@ -918,14 +922,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const startStr = formatTime(evt.startHour);
                     const endStr = formatTime(evt.startHour + evt.duration);
+                    
+                    const categoryHTML = evt.categoryName && evt.categoryColor ? `<span class="badge ms-2" style="background-color:${evt.categoryColor}; color:${getContrastColor(evt.categoryColor)}; font-size: 0.65rem; font-weight: normal; vertical-align: middle;">${evt.categoryName}</span>` : '';
 
                     block.innerHTML = `
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold text-dark fs-7" style="line-height: 1.2;">${evt.title}</span>
+                        <div class="d-flex flex-column" style="z-index: 1;">
+                            <span class="fw-bold text-dark fs-7" style="line-height: 1.2;">${evt.title}${categoryHTML}</span>
                             <span class="text-muted mt-1" style="font-size: 0.75rem;">${startStr} - ${endStr}</span>
                         </div>
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0" 
-                             style="width: 24px; height: 24px; background-color: ${baseColor}; font-size: 0.7rem;" title="Assigned: ${evt.members ? evt.members.map(m => m.member).join(', ') : 'Unassigned'}">
+                             style="width: 24px; height: 24px; background-color: ${baseColor}; font-size: 0.7rem; z-index: 1;" title="Assigned: ${evt.members ? evt.members.map(m => m.member).join(', ') : 'Unassigned'}">
                             ${initialStr}
                         </div>
                     `;
@@ -971,6 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let baseColor = evt.colorCode || '#0d6efd';
             let memberNamesList = [];
             if (evt.members && evt.members.length > 0) {
+                baseColor = evt.members[0].color || evt.colorCode || '#0d6efd';
                 memberNamesList = evt.members.map(m => m.member.toLowerCase());
                 if (evt.members.length > 1) {
                     baseColor = '#6f42c1';
@@ -980,8 +987,11 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.backgroundColor = lightenColor(baseColor, 92);
             div.style.color = baseColor;
             div.style.borderLeft = `4px solid ${baseColor}`;
+            
+            div.style.position = 'relative';
+            const categoryHTML = evt.categoryName && evt.categoryColor ? `<span class="badge ms-2" style="background-color:${evt.categoryColor}; color:${getContrastColor(evt.categoryColor)}; font-size: 0.65rem; font-weight: normal; vertical-align: middle;">${evt.categoryName}</span>` : '';
 
-            div.innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${evt.title}`;
+            div.innerHTML = `<div class="text-truncate" style="position:relative; z-index:1;"><i class="fa-solid fa-calendar-day"></i> ${evt.title} ${categoryHTML}</div>`;
             div.setAttribute('data-members', JSON.stringify(memberNamesList));
             div.style.cursor = 'pointer';
             div.addEventListener('click', () => openEventModal(evt));
@@ -1018,7 +1028,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const div = document.createElement('div');
                 div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 flex-shrink-0 me-2 fs-8`;
                 
-                const baseColor = evt.colorCode || '#0d6efd';
+                let baseColor = evt.colorCode || '#0d6efd';
+                if (evt.members && evt.members.length > 0) {
+                    baseColor = evt.members[0].color || evt.colorCode || '#0d6efd';
+                    if (evt.members.length > 1) {
+                        baseColor = '#6f42c1';
+                    }
+                }
+                
                 div.style.backgroundColor = lightenColor(baseColor, 92);
                 div.style.color = baseColor;
                 div.style.borderLeft = `4px solid ${baseColor}`;
@@ -1075,7 +1092,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const div = document.createElement('div');
                 div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 flex-shrink-0 me-2 fs-8`;
                 
-                const baseColor = evt.colorCode || '#0d6efd';
+                let baseColor = evt.colorCode || '#0d6efd';
+                if (evt.members && evt.members.length > 0) {
+                    baseColor = evt.members[0].color || evt.colorCode || '#0d6efd';
+                    if (evt.members.length > 1) {
+                        baseColor = '#6f42c1';
+                    }
+                }
+                
                 div.style.backgroundColor = lightenColor(baseColor, 92);
                 div.style.color = baseColor;
                 div.style.borderLeft = `4px solid ${baseColor}`;
@@ -1581,6 +1605,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         member_nickname: e.member_nickname,
                         members: e.members,
                         colorCode: e.colorCode,
+                        categoryName: e.categoryName,
+                        categoryColor: e.categoryColor,
                         startHour: e.startHour,
                         duration: e.duration,
                         location: e.location,
@@ -1601,6 +1627,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         member_nickname: e.member_nickname,
                         members: e.members,
                         colorCode: e.colorCode,
+                        categoryName: e.categoryName,
+                        categoryColor: e.categoryColor,
                         location: e.location,
                         countdown: e.countdown,
                         isAllDay: true
@@ -1646,16 +1674,20 @@ document.addEventListener('DOMContentLoaded', () => {
             eventContent: function (info) {
                 const props = info.event.extendedProps;
                 let baseColor = props.colorCode || '#0d6efd';
+                if (props.members && props.members.length > 0) {
+                    baseColor = props.members[0].color || baseColor;
+                }
                 if (props.members && props.members.length > 1) {
                     baseColor = '#6f42c1';
                 }
                 const bgColor = lightenColor(baseColor, 92);
 
                 if (props.isAllDay) {
+                    const categoryHTML = props.categoryName && props.categoryColor ? `<span class="badge ms-2" style="background-color:${props.categoryColor}; color:${getContrastColor(props.categoryColor)}; font-size: 0.6rem; font-weight: normal; vertical-align: middle; padding: 2px 4px;">${props.categoryName}</span>` : '';
                     return {
                         html: `
                             <div class="all-day-event" style="background-color: ${bgColor}; color: ${baseColor}; border-left: 4px solid ${baseColor}; box-shadow:none; padding: 2px 8px;">
-                                <i class="fa-solid fa-calendar-day me-1"></i> ${info.event.title}
+                                <i class="fa-solid fa-calendar-day me-1"></i> ${info.event.title}${categoryHTML}
                             </div>
                         `
                     };
@@ -1668,7 +1700,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     member: props.member,
                     members: props.members,
                     colorCode: props.colorCode,
-                    location: props.location
+                    location: props.location,
+                    categoryName: props.categoryName,
+                    categoryColor: props.categoryColor
                 };
 
                 return {

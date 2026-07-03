@@ -37,6 +37,8 @@ function getEventsByDateRange()
                 'endHour' => $event['end_time'],
                 'duration' => $duration,
                 'colorCode' => $event['color'],
+                'categoryColor' => $event['color'],
+                'categoryName' => $event['type'],
                 'created_by' => $event['created_by'],
                 'location' => $event['location'] ?? '',
                 'is_all_day' => (isset($event['is_all_day']) && $event['is_all_day']) ? true : false,
