@@ -72,6 +72,17 @@ if ($action === 'approve') {
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "Failed to unlock family: " . $e->getMessage()]);
     }
+} elseif ($action === 'update_monthly_amount') {
+    $family_id = $_POST['id'] ?? null;
+    $amount = $_POST['amount'] ?? null;
+    if (!$family_id || $amount === null) {
+        echo json_encode(["status" => "error", "message" => "Family ID and amount are required."]);
+        exit;
+    }
+
+    require_once __DIR__ . '/../../classes/Family.php';
+    $result = Family::updateMonthlyAmount($family_id, $amount);
+    echo json_encode($result);
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action."]);
 }

@@ -40,6 +40,8 @@ require_once $path_prefix . 'classes/Family.php';
                                 <th class="border-0">Account Number</th>
                                 <th class="border-0">Location</th>
                                 <th class="border-0">Timezone</th>
+                                <th class="border-0">Promo Code</th>
+                                <th class="border-0">Monthly Amount</th>
                                 <th class="border-0">Members</th>
                                 <th class="border-0">Status</th>
                                 <th class="text-end pe-4 border-0">Actions</th>
@@ -66,6 +68,27 @@ require_once $path_prefix . 'classes/Family.php';
                                 </td>
                                 <td class="small"><?php echo htmlspecialchars(!empty($family['location']) ? $family['location'] : 'N/A'); ?></td>
                                 <td class="small text-muted"><?php echo htmlspecialchars(!empty($family['timezone']) ? $family['timezone'] : 'N/A'); ?></td>
+                                <td class="small"><?php echo htmlspecialchars(!empty($family['promo_code']) ? $family['promo_code'] : '-'); ?></td>
+                                <td class="small">
+                                    <div class="d-flex align-items-center">
+                                        <span class="monthly-amount-text" id="amount-text-<?php echo $family['id']; ?>">
+                                            $<?php echo number_format((float)($family['monthly_amount'] ?? 0), 2); ?>
+                                        </span>
+                                        <button class="btn btn-sm btn-link text-primary ms-2 p-0 edit-amount-btn" data-id="<?php echo $family['id']; ?>" data-amount="<?php echo htmlspecialchars($family['monthly_amount'] ?? '0.00'); ?>">
+                                            <i class="ri-edit-line"></i>
+                                        </button>
+                                    </div>
+                                    <div class="input-group input-group-sm d-none amount-edit-container" id="amount-edit-<?php echo $family['id']; ?>">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" class="form-control amount-input" value="<?php echo htmlspecialchars($family['monthly_amount'] ?? '0.00'); ?>">
+                                        <button class="btn btn-success save-amount-btn" data-id="<?php echo $family['id']; ?>">
+                                            <i class="ri-check-line"></i>
+                                        </button>
+                                        <button class="btn btn-danger cancel-amount-btn" data-id="<?php echo $family['id']; ?>">
+                                            <i class="ri-close-line"></i>
+                                        </button>
+                                    </div>
+                                </td>
                                 <td>
                                     <div class="avatar-group d-flex">
                                         <?php for($i=0; $i<min($members_count, 3); $i++): ?>
@@ -144,13 +167,69 @@ $(document).ready(function() {
             }
         },
         "columnDefs": [
-            { "orderable": false, "targets": 7 } // Disable ordering on Actions column
+            { "orderable": false, "targets": 9 } // Disable ordering on Actions column
         ]
     });
 
     // Custom search logic
     $('#familySearch').on('keyup', function() {
         table.search(this.value).draw();
+    });
+
+    // Quick Edit Monthly Amount Logic
+    $('.edit-amount-btn').on('click', function() {
+        const id = $(this).data('id');
+        $('#amount-text-' + id).parent().addClass('d-none');
+        $('#amount-edit-' + id).removeClass('d-none');
+    });
+
+    $('.cancel-amount-btn').on('click', function() {
+        const id = $(this).data('id');
+        $('#amount-edit-' + id).addClass('d-none');
+        $('#amount-text-' + id).parent().removeClass('d-none');
+    });
+
+    $('.save-amount-btn').on('click', function() {
+        const id = $(this).data('id');
+        const container = $('#amount-edit-' + id);
+        const input = container.find('.amount-input');
+        const amount = input.val();
+
+        $.ajax({
+            url: '../api/admin/family.php',
+            type: 'POST',
+            data: {
+                action: 'update_monthly_amount',
+                id: id,
+                amount: amount
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    if (typeof showAlert === 'function') {
+                        showAlert(response.message, 'success');
+                    } else {
+                        alert(response.message);
+                    }
+                    // Update text and toggle back
+                    $('#amount-text-' + id).text('$' + parseFloat(amount).toFixed(2));
+                    // Update data-amount on edit button
+                    $('#amount-text-' + id).siblings('.edit-amount-btn').data('amount', amount);
+                    
+                    container.addClass('d-none');
+                    $('#amount-text-' + id).parent().removeClass('d-none');
+                } else {
+                    if (typeof showAlert === 'function') {
+                        showAlert(response.message, 'error');
+                    } else {
+                        alert(response.message);
+                    }
+                }
+            },
+            error: function() {
+                alert('An error occurred while updating the monthly amount.');
+            }
+        });
     });
 
 });

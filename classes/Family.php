@@ -66,7 +66,8 @@ class Family
 
     public static function getAllFamilies()
     {
-        $sql = "SELECT f.*, COUNT(uf.user_id) as member_count, a.account_number 
+        $sql = "SELECT f.*, COUNT(uf.user_id) as member_count, a.account_number,
+                       (SELECT promo_code FROM used_promocodes up WHERE up.family_id = f.id ORDER BY up.entered_at DESC LIMIT 1) as promo_code
                 FROM families f 
                 LEFT JOIN user_family uf ON f.id = uf.family_id 
                 LEFT JOIN accounts a ON f.id = a.family_id
@@ -167,6 +168,19 @@ class Family
             return ['status' => 'success', 'message' => 'Family settings updated successfully'];
         } catch (PDOException $e) {
             return ['status' => 'error', 'message' => 'Failed to update family settings: ' . $e->getMessage()];
+        }
+    }
+
+    public static function updateMonthlyAmount($familyId, $amount)
+    {
+        try {
+            Database::runPrepared("UPDATE families SET monthly_amount = ? WHERE id = ?", [
+                $amount,
+                $familyId
+            ]);
+            return ['status' => 'success', 'message' => 'Monthly amount updated successfully'];
+        } catch (PDOException $e) {
+            return ['status' => 'error', 'message' => 'Failed to update monthly amount: ' . $e->getMessage()];
         }
     }
 }

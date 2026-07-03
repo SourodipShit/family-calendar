@@ -80,6 +80,13 @@ class Auth
                 require_once __DIR__ . '/Account.php';
                 $promoCode = isset($data['promo_code']) ? $data['promo_code'] : null;
                 Account::create($lastFamilyId, $promoCode);
+                
+                if (!empty($promoCode)) {
+                    Database::runPrepared(
+                        "INSERT INTO used_promocodes (family_id, promo_code, status) VALUES (?, ?, 'failed')",
+                        [$lastFamilyId, $promoCode]
+                    );
+                }
 
                 $allocatedData = SharedEmails::getFamilyEmail($lastFamilyId);
                 $allocatedEmail = ($allocatedData && $allocatedData['status'] === 'success') ? $allocatedData['email'] : null;

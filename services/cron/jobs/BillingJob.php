@@ -52,6 +52,15 @@ class BillingJob
             $invoiceDate = date('Y-m-d');
 
             try {
+                // Fetch family details for monthly_amount and emailing
+                $familyRes = Family::getFamily($familyId);
+                if (!$familyRes) {
+                    continue; // Skip if family not found
+                }
+                
+                $familyMonthlyAmount = isset($familyRes['monthly_amount']) ? (float)$familyRes['monthly_amount'] : 0;
+                $billingAmount = ($familyMonthlyAmount > 0) ? $familyMonthlyAmount : $monthlyCost;
+
                 // Generate a Stripe Checkout Session for this family
                 $checkout_session = \Stripe\Checkout\Session::create([
                     'payment_method_types' => ['card'],
@@ -61,7 +70,7 @@ class BillingJob
                             'product_data' => [
                                 'name' => 'Family Calendar Monthly Subscription - ' . $accountNumber,
                             ],
-                            'unit_amount' => (int)($monthlyCost * 100), // Stripe expects cents
+                            'unit_amount' => (int)($billingAmount * 100), // Stripe expects cents
                         ],
                         'quantity' => 1,
                     ]],
@@ -75,56 +84,51 @@ class BillingJob
                 $paymentUrl = $checkout_session->url;
 
                 // Create the Payment record (unpaid) in our database
-                $paymentRes = Payment::create($accountId, $monthlyCost, $stripeSessionId, $invoiceDate);
+                $paymentRes = Payment::create($accountId, $billingAmount, $stripeSessionId, $invoiceDate);
 
                 if ($paymentRes['status'] === 'success') {
                     $paymentId = $paymentRes['data']['id'];
 
-                    // Fetch family details for emailing and PDF
-                    $familyRes = Family::getFamily($familyId);
-                    if ($familyRes) {
-                        $familyName = $familyRes['name'];
+                    // Family details are already fetched above, we just need to use them
+                    // Get all family heads
+                    $headsQuery = Database::runPrepared("
+                        SELECT users.email, users.name 
+                        FROM users 
+                        INNER JOIN user_family ON users.id = user_family.user_id 
+                        WHERE user_family.family_id = ? AND users.role = 'family-head'
+                    ", [$familyId]);
+                    $familyHeads = $headsQuery->fetchAll(PDO::FETCH_ASSOC);
 
-                        // Get all family heads
-                        $headsQuery = Database::runPrepared("
-                            SELECT users.email, users.name 
-                            FROM users 
-                            INNER JOIN user_family ON users.id = user_family.user_id 
-                            WHERE user_family.family_id = ? AND users.role = 'family-head'
-                        ", [$familyId]);
-                        $familyHeads = $headsQuery->fetchAll(PDO::FETCH_ASSOC);
-
-                        // Generate PDF Invoice
-                        require_once __DIR__ . '/../../../classes/PDF.php';
-                        $pdfData = [
-                            'family_name' => $familyName,
-                            'account_number' => $accountNumber,
-                            'invoice_date' => $invoiceDate,
-                            'amount' => $monthlyCost,
-                            'stripe_link' => $paymentUrl
-                        ];
-                        
-                        $pdfRes = PDF::generateBill($pdfData);
-                        $pdfPath = '';
-                        if ($pdfRes['status'] === 'success') {
-                            $pdfPath = $pdfRes['file_path'];
-                            Payment::updatePdfPath($paymentId, $pdfPath);
-                        }
-
-                        // Send Email
-                        require_once __DIR__ . '/../../mail/Mail.php';
-                        if (!empty($familyHeads)) {
-                            foreach ($familyHeads as $head) {
-                                Mail::sendInvoice($head['email'], $head['name'], $paymentUrl, $pdfPath, $invoiceDate, $monthlyCost);
-                            }
-                        } else {
-                            // Fallback to family email
-                            $familyEmail = $familyRes['email'];
-                            Mail::sendInvoice($familyEmail, $familyName, $paymentUrl, $pdfPath, $invoiceDate, $monthlyCost);
-                        }
-
-                        echo "Created invoice for Account: $accountNumber | Session ID: $stripeSessionId<br>\n";
+                    // Generate PDF Invoice
+                    require_once __DIR__ . '/../../../classes/PDF.php';
+                    $pdfData = [
+                        'family_name' => $familyName,
+                        'account_number' => $accountNumber,
+                        'invoice_date' => $invoiceDate,
+                        'amount' => $billingAmount,
+                        'stripe_link' => $paymentUrl
+                    ];
+                    
+                    $pdfRes = PDF::generateBill($pdfData);
+                    $pdfPath = '';
+                    if ($pdfRes['status'] === 'success') {
+                        $pdfPath = $pdfRes['file_path'];
+                        Payment::updatePdfPath($paymentId, $pdfPath);
                     }
+
+                    // Send Email
+                    require_once __DIR__ . '/../../mail/Mail.php';
+                    if (!empty($familyHeads)) {
+                        foreach ($familyHeads as $head) {
+                            Mail::sendInvoice($head['email'], $head['name'], $paymentUrl, $pdfPath, $invoiceDate, $billingAmount);
+                        }
+                    } else {
+                        // Fallback to family email
+                        $familyEmail = $familyRes['email'];
+                        Mail::sendInvoice($familyEmail, $familyName, $paymentUrl, $pdfPath, $invoiceDate, $billingAmount);
+                    }
+
+                    echo "Created invoice for Account: $accountNumber | Session ID: $stripeSessionId<br>\n";
                 }
             } catch (\Stripe\Exception\ApiErrorException $e) {
                 echo "Stripe Error for account $accountNumber: " . $e->getMessage() . "<br>\n";
