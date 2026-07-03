@@ -69,7 +69,7 @@ include $path_prefix . 'components/sidebar.php';
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-secondary mb-0">Available Rewards</h5>
                     <?php if ($isHead): ?>
-                        <button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-plus"></i> Create Reward</button>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createRewardModal"><i class="fa-solid fa-plus"></i> Create Reward</button>
                     <?php endif; ?>
                 </div>
                 <div class="row g-3" id="store-rewards-container">
@@ -144,6 +144,39 @@ include $path_prefix . 'components/sidebar.php';
         background-color: transparent;
     }
 </style>
+<?php if ($isHead): ?>
+<!-- Create Reward Modal -->
+<div class="modal fade" id="createRewardModal" tabindex="-1" aria-labelledby="createRewardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="createRewardModalLabel">Create New Reward</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createRewardForm">
+                    <div class="mb-3">
+                        <label for="rewardTitle" class="form-label fw-medium">Title</label>
+                        <input type="text" class="form-control" id="rewardTitle" name="title" required placeholder="e.g., Extra TV Time">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rewardPrice" class="form-label fw-medium">Price (Points)</label>
+                        <input type="number" class="form-control" id="rewardPrice" name="price" required min="1" placeholder="e.g., 50">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rewardImage" class="form-label fw-medium">Image (Optional)</label>
+                        <input type="file" class="form-control" id="rewardImage" name="image" accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="createReward()">Create Reward</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <script>
     let userPoints = <?php echo $myPoints; ?>;
@@ -379,6 +412,36 @@ include $path_prefix . 'components/sidebar.php';
                     showAlert(res.message || 'Failed to fulfill reward', 'error');
                 }
             });
+    }
+
+    function createReward() {
+        const form = document.getElementById('createRewardForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        fetch('../api/rewards.php?action=create', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === 'success') {
+                showAlert('Reward created successfully!', 'success');
+                fetchStoreRewards();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createRewardModal'));
+                if (modal) modal.hide();
+                form.reset();
+            } else {
+                showAlert(res.message || 'Failed to create reward', 'error');
+            }
+        })
+        .catch(() => {
+            showAlert('A network error occurred. Please try again.', 'error');
+        });
     }
 
     // Init
