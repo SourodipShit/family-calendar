@@ -38,10 +38,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         </div>
                         <div>
                             <h6 class="text-muted mb-0">DB Load</h6>
-                            <h4 class="fw-bold mb-0">34%</h4>
+                            <h4 class="fw-bold mb-0" id="db-load">--</h4>
                         </div>
                     </div>
-                    <div class="mt-2 text-muted small">124 Active Connections</div>
+                    <div class="mt-2 text-muted small" id="db-connections">-- Active Connections</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -66,10 +66,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         </div>
                         <div>
                             <h6 class="text-muted mb-0">Email Queue</h6>
-                            <h4 class="fw-bold mb-0">0</h4>
+                            <h4 class="fw-bold mb-0" id="email-queue">--</h4>
                         </div>
                     </div>
-                    <div class="mt-2 text-muted small">Last processed: 2 mins ago</div>
+                    <div class="mt-2 text-muted small" id="email-queue-time">Last processed: --</div>
                 </div>
             </div>
         </div>
@@ -85,30 +85,37 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                     <div class="card-body">
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-medium">CPU Usage</span>
-                                <span class="badge bg-success">18%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 18%;"></div>
+                                <span class="fw-medium">OS Version</span>
+                                <span class="badge bg-success" id="server-os">--</span>
                             </div>
                         </div>
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-medium">RAM Usage (4GB / 8GB)</span>
-                                <span class="badge bg-warning">50%</span>
+                                <span class="fw-medium">PHP Version</span>
+                                <span class="badge bg-warning" id="php-version">--</span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-medium" id="disk-space-label">Disk Space (-- / --)</span>
+                                <span class="badge bg-info" id="disk-space-percent">--%</span>
                             </div>
                             <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-warning" style="width: 50%;"></div>
+                                <div class="progress-bar bg-info" id="disk-space-bar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-medium">Uploads Folder Size</span>
+                                <span class="badge bg-primary" id="uploads-size">-- MB</span>
                             </div>
                         </div>
                         <div class="mb-0">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-medium">Disk Space (42GB / 100GB)</span>
-                                <span class="badge bg-info">42%</span>
+                                <span class="fw-medium">Database Size</span>
+                                <span class="badge bg-secondary" id="db-size">-- MB</span>
                             </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-info" style="width: 42%;"></div>
-                            </div>
+                            <div class="text-muted small mt-1">Version: <span id="db-version">--</span></div>
                         </div>
                     </div>
                 </div>
@@ -120,3 +127,42 @@ require_once $path_prefix . 'components/admin-sidebar.php';
 </div>
 
 <?php require_once $path_prefix . 'components/admin-footer.php'; ?>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function fetchSystemHealth() {
+        fetch('../api/admin/system_health.php')
+            .then(response => response.json())
+            .then(res => {
+                if (res.status === 'success' && res.data) {
+                    const data = res.data;
+                    document.getElementById('db-load').textContent = data.db_connections > 0 ? "Normal" : "Low";
+                    document.getElementById('db-connections').textContent = data.db_connections + " Active Connections";
+                    document.getElementById('email-queue').textContent = data.email_queue;
+                    document.getElementById('email-queue-time').textContent = "Real-time";
+                    
+                    document.getElementById('server-os').textContent = data.server_os;
+                    document.getElementById('php-version').textContent = data.php_version;
+                    
+                    document.getElementById('disk-space-label').textContent = `Disk Space (${data.disk_used_gb}GB / ${data.disk_total_gb}GB)`;
+                    document.getElementById('disk-space-percent').textContent = data.disk_used_percent + '%';
+                    document.getElementById('disk-space-bar').style.width = data.disk_used_percent + '%';
+                    
+                    document.getElementById('uploads-size').textContent = data.uploads_size_mb + ' MB';
+                    document.getElementById('db-size').textContent = data.db_size_mb + ' MB';
+                    document.getElementById('db-version').textContent = data.db_version;
+                }
+            })
+            .catch(error => console.error('Error fetching system health:', error));
+    }
+
+    // Fetch immediately on load
+    fetchSystemHealth();
+
+    // Attach to refresh button if needed
+    const refreshBtn = document.querySelector('.btn-primary');
+    if(refreshBtn) {
+        refreshBtn.addEventListener('click', fetchSystemHealth);
+    }
+});
+</script>
