@@ -16,4 +16,9 @@ class SmsTemplates
     {
         return $message;
     }
+
+    public static function accountApproved($userName)
+    {
+        return "Hi {$userName}, your Family Account has been successfully approved! You can now log in.";
+    }
 }
