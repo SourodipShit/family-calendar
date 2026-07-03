@@ -78,16 +78,6 @@ require_once $path_prefix . 'classes/Family.php';
                                             <i class="ri-edit-line"></i>
                                         </button>
                                     </div>
-                                    <div class="input-group input-group-sm d-none amount-edit-container" id="amount-edit-<?php echo $family['id']; ?>">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" step="0.01" class="form-control amount-input" value="<?php echo htmlspecialchars($family['monthly_amount'] ?? '0.00'); ?>">
-                                        <button class="btn btn-success save-amount-btn" data-id="<?php echo $family['id']; ?>">
-                                            <i class="ri-check-line"></i>
-                                        </button>
-                                        <button class="btn btn-danger cancel-amount-btn" data-id="<?php echo $family['id']; ?>">
-                                            <i class="ri-close-line"></i>
-                                        </button>
-                                    </div>
                                 </td>
                                 <td>
                                     <div class="avatar-group d-flex">
@@ -152,6 +142,29 @@ require_once $path_prefix . 'classes/Family.php';
     </div>
 </div>
 
+<!-- Monthly Amount Edit Modal -->
+<div class="modal fade" id="editAmountModal" tabindex="-1" aria-labelledby="editAmountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fs-6" id="editAmountModalLabel">Edit Monthly Amount</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit_family_id">
+        <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" step="0.01" class="form-control" id="edit_monthly_amount">
+        </div>
+      </div>
+      <div class="modal-footer p-2">
+        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" id="saveAmountModalBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php require_once $path_prefix . 'components/admin-footer.php'; ?>
 
 <script>
@@ -176,24 +189,24 @@ $(document).ready(function() {
         table.search(this.value).draw();
     });
 
-    // Quick Edit Monthly Amount Logic
+    // Modal Edit Monthly Amount Logic
     $('.edit-amount-btn').on('click', function() {
         const id = $(this).data('id');
-        $('#amount-text-' + id).parent().addClass('d-none');
-        $('#amount-edit-' + id).removeClass('d-none');
+        const amount = $(this).data('amount');
+        
+        $('#edit_family_id').val(id);
+        $('#edit_monthly_amount').val(parseFloat(amount).toFixed(2));
+        
+        const modal = new bootstrap.Modal(document.getElementById('editAmountModal'));
+        modal.show();
     });
 
-    $('.cancel-amount-btn').on('click', function() {
-        const id = $(this).data('id');
-        $('#amount-edit-' + id).addClass('d-none');
-        $('#amount-text-' + id).parent().removeClass('d-none');
-    });
-
-    $('.save-amount-btn').on('click', function() {
-        const id = $(this).data('id');
-        const container = $('#amount-edit-' + id);
-        const input = container.find('.amount-input');
-        const amount = input.val();
+    $('#saveAmountModalBtn').on('click', function() {
+        const id = $('#edit_family_id').val();
+        const amount = $('#edit_monthly_amount').val();
+        const btn = $(this);
+        
+        btn.prop('disabled', true).html('<i class="ri-loader-4-line ri-spin"></i> Saving...');
 
         $.ajax({
             url: '../api/admin/family.php',
@@ -211,13 +224,14 @@ $(document).ready(function() {
                     } else {
                         alert(response.message);
                     }
-                    // Update text and toggle back
+                    // Update text
                     $('#amount-text-' + id).text('$' + parseFloat(amount).toFixed(2));
                     // Update data-amount on edit button
                     $('#amount-text-' + id).siblings('.edit-amount-btn').data('amount', amount);
                     
-                    container.addClass('d-none');
-                    $('#amount-text-' + id).parent().removeClass('d-none');
+                    const modalEl = document.getElementById('editAmountModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
                 } else {
                     if (typeof showAlert === 'function') {
                         showAlert(response.message, 'error');
@@ -228,6 +242,9 @@ $(document).ready(function() {
             },
             error: function() {
                 alert('An error occurred while updating the monthly amount.');
+            },
+            complete: function() {
+                btn.prop('disabled', false).text('Save');
             }
         });
     });
