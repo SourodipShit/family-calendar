@@ -88,18 +88,40 @@ class Chore
     /**
      * Fetch chores by date range for the calendar
      */
-    public static function getByDateRange($startDate, $endDate, $familyId)
+    public static function getByDateRange($startDate, $endDate, $familyId, $userId = null)
     {
+        // Fallback to active session user if userId is not provided
+        if (!$userId && isset($_SESSION['user']['id'])) {
+            $userId = $_SESSION['user']['id'];
+        }
+
         $sql = "SELECT ci.id as instance_id, ci.due_date, ci.status as instance_status, 
-                       c.id as chore_id, c.title, c.recurrence, c.reward_id, c.assigned_to as assigned_to_id,
+                       c.id as chore_id, c.title, c.recurrence, c.reward_id, c.assigned_to as assigned_to_id, c.created_by,
                        u.name as assigned_member, u.nickname as assigned_nickname, u.image as assigned_image,
                        tr.name as reward_name, tr.level as reward_level, tr.points as reward_points
                 FROM chore_instances ci
                 INNER JOIN chores c ON ci.chore_id = c.id
                 INNER JOIN users u ON c.assigned_to = u.id
                 LEFT JOIN theme_rewards tr ON c.reward_id = tr.id
-                WHERE c.family_id = ? AND ci.due_date BETWEEN ? AND ?";
-        return Database::runPrepared($sql, [$familyId, $startDate, $endDate])->fetchAll(PDO::FETCH_ASSOC);
+                WHERE ci.due_date BETWEEN ? AND ?
+                AND (
+                    c.family_id = ?
+                    OR c.assigned_to = ? 
+                    OR c.created_by = ?
+                    OR c.assigned_to IN (
+                        SELECT receiver_id FROM family_requests WHERE requester_id = ? AND status = 'approved'
+                    )
+                    OR c.assigned_to IN (
+                        SELECT requester_id FROM family_requests WHERE receiver_id = ? AND status = 'approved'
+                    )
+                    OR c.created_by IN (
+                        SELECT receiver_id FROM family_requests WHERE requester_id = ? AND status = 'approved'
+                    )
+                    OR c.created_by IN (
+                        SELECT requester_id FROM family_requests WHERE receiver_id = ? AND status = 'approved'
+                    )
+                )";
+        return Database::runPrepared($sql, [$startDate, $endDate, $familyId, $userId, $userId, $userId, $userId, $userId, $userId])->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -125,20 +147,39 @@ class Chore
     }
 
     /**
-     * Head of Family approves a completed chore
+     * Head of Family or Creator (for external users) approves a completed chore
      */
-    public static function approve($instanceId, $userId)
+    public static function approve($instanceId, $userId, $userRole = 'member')
     {
         try {
             // Get the chore details and points
-            $sqlInfo = "SELECT c.assigned_to, c.title, tr.points 
+            $sqlInfo = "SELECT c.assigned_to, c.title, tr.points, c.created_by, c.family_id 
                         FROM chore_instances ci 
                         JOIN chores c ON ci.chore_id = c.id 
                         LEFT JOIN theme_rewards tr ON c.reward_id = tr.id 
                         WHERE ci.id = ?";
             $info = Database::runPrepared($sqlInfo, [$instanceId])->fetch(PDO::FETCH_ASSOC);
 
-            // Note: Ideally, we should verify that $userId is the Head of Family for this chore's family
+            if (!$info) {
+                return ["msg" => "Chore not found", "status" => "error"];
+            }
+
+            // Check if assignee is external
+            $sqlExternal = "SELECT COUNT(*) FROM user_family WHERE user_id = ? AND family_id = ?";
+            $isInternal = Database::runPrepared($sqlExternal, [$info['assigned_to'], $info['family_id']])->fetchColumn() > 0;
+            $isExternal = !$isInternal;
+
+            $canApprove = false;
+            if ($userRole === 'family-head') {
+                $canApprove = true;
+            } elseif ($isExternal && $info['created_by'] == $userId) {
+                $canApprove = true;
+            }
+
+            if (!$canApprove) {
+                return ["msg" => "Unauthorized to approve this chore", "status" => "error"];
+            }
+
             $sql = "UPDATE chore_instances SET status = 'complete', approved_by = ?, approved_at = NOW() WHERE id = ?";
             Database::runPrepared($sql, [$userId, $instanceId]);
 

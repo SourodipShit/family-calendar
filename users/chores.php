@@ -611,6 +611,15 @@ include $path_prefix . 'components/sidebar.php';
     const CURRENT_USER_ID = <?= json_encode($_SESSION['user']['id']) ?>;
     const CURRENT_USER_ROLE = <?= json_encode($_SESSION['user']['role'] ?? 'member') ?>;
     const TODAY_STR = '<?= date('Y-m-d') ?>';
+    <?php
+    $externalIds = [];
+    foreach ($familyMembers as $m) {
+        if (isset($m['is_external']) && $m['is_external']) {
+            $externalIds[] = (int)$m['id'];
+        }
+    }
+    ?>
+    const EXTERNAL_MEMBERS = <?= json_encode($externalIds) ?>;
 
     function submitChore() {
         let form = document.getElementById('addChoreForm');
@@ -667,7 +676,7 @@ include $path_prefix . 'components/sidebar.php';
         document.getElementById('choreAssignedTo').value = memberId;
     }
 
-    function openChoreActionModal(instanceId, status, assignedToId, choreTitle, dateStr) {
+    function openChoreActionModal(instanceId, status, assignedToId, choreTitle, dateStr, createdBy) {
         // Format date string nicely (e.g. YYYY-MM-DD -> Month DD, YYYY)
         let d = new Date(dateStr + 'T00:00:00');
         let options = {
@@ -682,7 +691,11 @@ include $path_prefix . 'components/sidebar.php';
         let buttonsHtml = `<div class="mb-3 text-muted small"><i class="fa-regular fa-calendar me-1"></i> ${formattedDate}</div>`;
         buttonsHtml += `<div class="d-flex gap-2 justify-content-center">`;
 
-        if (CURRENT_USER_ROLE === 'family-head') {
+        let isExternal = EXTERNAL_MEMBERS.includes(parseInt(assignedToId));
+        let isCreator = (parseInt(CURRENT_USER_ID) === parseInt(createdBy));
+        let canApprove = (CURRENT_USER_ROLE === 'family-head') || (isExternal && isCreator);
+
+        if (canApprove) {
             if (status === 'pending' || status === 'requested') {
                 buttonsHtml += `<button class="btn btn-success flex-fill" onclick="handleChoreAction('approveChore', ${instanceId})">Mark Complete</button>`;
             }
@@ -794,6 +807,7 @@ include $path_prefix . 'components/sidebar.php';
                             choresMap[instance.chore_id] = {
                                 title: instance.title,
                                 assigned_to_id: instance.assigned_to_id,
+                                created_by: instance.created_by,
                                 assigned: instance.assigned_nickname || instance.assigned_member,
                                 avatar: instance.assigned_image ? instance.assigned_image : `https://ui-avatars.com/api/?name=${instance.assigned_nickname || instance.assigned_member}&background=random&color=fff`,
                                 points: instance.reward_points || 0,
@@ -845,7 +859,7 @@ include $path_prefix . 'components/sidebar.php';
 
                                 if (canInteract && (instance.instance_status === 'pending' || instance.instance_status === 'requested')) {
                                     let safeTitle = chore.title.replace(/'/g, "\\'");
-                                    tbodyHtml += `<td style="cursor:pointer;" onclick="openChoreActionModal(${instance.instance_id}, '${instance.instance_status}', ${chore.assigned_to_id}, '${safeTitle}', '${dateStr}')" title="Click for actions">${statusIcon}</td>`;
+                                    tbodyHtml += `<td style="cursor:pointer;" onclick="openChoreActionModal(${instance.instance_id}, '${instance.instance_status}', ${chore.assigned_to_id}, '${safeTitle}', '${dateStr}', ${chore.created_by})" title="Click for actions">${statusIcon}</td>`;
                                 } else {
                                     tbodyHtml += `<td>${statusIcon}</td>`;
                                 }

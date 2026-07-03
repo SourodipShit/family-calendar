@@ -45,10 +45,11 @@ function getChoresByDateRange()
 {
     try {
         $familyId = $_SESSION['user']['active_family_id'];
+        $userId = $_SESSION['user']['id'];
         $start = $_GET['start'] ?? date('Y-m-01');
         $end = $_GET['end'] ?? date('Y-m-t');
 
-        $chores = Chore::getByDateRange($start, $end, $familyId);
+        $chores = Chore::getByDateRange($start, $end, $familyId, $userId);
         echo json_encode($chores);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);
@@ -131,14 +132,9 @@ function approveChore()
         }
 
         $userId = $_SESSION['user']['id'];
+        $userRole = $_SESSION['user']['role'] ?? 'member';
         
-        // Security check to ensure only the family head can approve
-        if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] !== 'family-head') {
-            echo json_encode(['error' => 'Only the head of family can approve chores', 'status' => 'error']);
-            return;
-        }
-
-        $result = Chore::approve($instanceId, $userId);
+        $result = Chore::approve($instanceId, $userId, $userRole);
         echo json_encode($result);
     } catch (Exception $e) {
         echo json_encode(['error' => $e->getMessage(), 'status' => 'error']);
