@@ -1016,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             upcomingCountdowns.forEach(evt => {
                 const div = document.createElement('div');
-                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 me-2 fs-8`;
+                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 flex-shrink-0 me-2 fs-8`;
                 
                 const baseColor = evt.colorCode || '#0d6efd';
                 div.style.backgroundColor = lightenColor(baseColor, 92);
@@ -1073,7 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             upcomingCountdowns.forEach(evt => {
                 const div = document.createElement('div');
-                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 me-2 fs-8`;
+                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 flex-shrink-0 me-2 fs-8`;
                 
                 const baseColor = evt.colorCode || '#0d6efd';
                 div.style.backgroundColor = lightenColor(baseColor, 92);
@@ -1271,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa-solid fa-hourglass-half text-primary fs-5 me-3"></i>
                     <span class="fw-bold text-dark">Countdowns</span>
                 </div>
-                <div class="row-content flex-grow-1 d-flex flex-wrap gap-2 countdown-badges-container">
+                <div class="row-content flex-grow-1 d-flex overflow-x-auto gap-2 countdown-badges-container" style="scrollbar-width: thin;">
                     <!-- Badges populated dynamically -->
                 </div>
             `;
@@ -1281,7 +1281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             upcomingCountdowns.forEach(evt => {
                 const div = document.createElement('div');
-                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 fs-8`;
+                div.className = `countdown-event-badge d-inline-flex align-items-center rounded px-2 py-1 flex-shrink-0 fs-8`;
                 
                 const baseColor = evt.colorCode || '#0d6efd';
                 div.style.backgroundColor = lightenColor(baseColor, 92);
