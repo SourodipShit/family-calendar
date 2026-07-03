@@ -26,30 +26,31 @@ if ($action == 'upload') {
             'metadata' => $_POST['metadata'] ?? null,
             'uploaded_by' => $_SESSION['user']['id']
         ];
-        $result = Photo::uploadPhoto($data);
+        $storageDetails = Photo::getPhotoStorageDetails($family_id);
+        if ($storageDetails['status'] === 'success') {
+            $total = (float)$storageDetails['data']['total_storage'];
+            $allocated = (float)$storageDetails['data']['allocated_storage'];
+            $uploadSizeMB = $_FILES['file']['size'] / (1024 * 1024);
 
-        if ($result['status'] === 'success') {
-            $storageDetails = Photo::getPhotoStorageDetails($family_id);
-            if ($storageDetails['status'] === 'success') {
-                $total = $storageDetails['data']['total_storage'];
-                $allocated = $storageDetails['data']['allocated_storage'];
+            if (($total + $uploadSizeMB) > $allocated) {
+                $heads = Database::runPrepared("
+                    SELECT u.email, u.name 
+                    FROM users u
+                    JOIN user_family uf ON u.id = uf.user_id
+                    WHERE uf.family_id = ? AND u.role = 'family-head'
+                ", [$family_id])->fetchAll(PDO::FETCH_ASSOC);
                 
-                if ($total > $allocated) {
-                    $heads = Database::runPrepared("
-                        SELECT u.email, u.name 
-                        FROM users u
-                        JOIN user_family uf ON u.id = uf.user_id
-                        WHERE uf.family_id = ? AND u.role = 'family-head'
-                    ", [$family_id])->fetchAll(PDO::FETCH_ASSOC);
-                    
-                    require_once __DIR__ . "/../services/mail/Mail.php";
-                    foreach ($heads as $head) {
-                        Mail::sendStorageLimitExceeded($head['email'], $head['name'], $storageDetails['data']);
-                    }
+                require_once __DIR__ . "/../services/mail/Mail.php";
+                foreach ($heads as $head) {
+                    Mail::sendStorageLimitExceeded($head['email'], $head['name'], $storageDetails['data']);
                 }
+                
+                echo json_encode(["status" => "error", "message" => "Storage limit exceeded. Please delete some photos to free up space."]);
+                exit;
             }
         }
 
+        $result = Photo::uploadPhoto($data);
         echo json_encode($result);
     } else {
         echo json_encode(["status" => "error", "message" => "No file uploaded or upload error"]);
