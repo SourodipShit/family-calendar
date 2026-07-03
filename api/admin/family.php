@@ -22,8 +22,8 @@ if ($action === 'approve') {
         // Ensure the approved column exists in the families table
         Database::runPrepared("UPDATE families SET approved = 1 WHERE id = ?", [$family_id]);
         
-        // Fetch family head details to send email and SMS
-        $stmt = Database::runPrepared("SELECT u.name, u.email, u.phone FROM users u JOIN user_family uf ON u.id = uf.user_id WHERE uf.family_id = ? AND u.role = 'family-head'", [$family_id]);
+        // Fetch family head details and the family email to send email and SMS
+        $stmt = Database::runPrepared("SELECT u.name, u.email, u.phone, f.email AS family_email FROM users u JOIN user_family uf ON u.id = uf.user_id JOIN families f ON f.id = uf.family_id WHERE uf.family_id = ? AND u.role = 'family-head'", [$family_id]);
         $heads = $stmt->fetchAll(PDO::FETCH_ASSOC);
         if ($heads) {
             require_once __DIR__ . '/../../services/mail/Mail.php';
@@ -32,7 +32,7 @@ if ($action === 'approve') {
 
             foreach ($heads as $head) {
                 if (!empty($head['email'])) {
-                    Mail::sendAccountApproved($head['email'], $head['name']);
+                    Mail::sendAccountApproved($head['email'], $head['name'], $head['family_email']);
                 }
                 
                 if (!empty($head['phone'])) {

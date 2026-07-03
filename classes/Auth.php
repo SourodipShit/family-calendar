@@ -90,7 +90,7 @@ class Auth
 
                 // Send signup success email
                 require_once __DIR__ . '/../services/mail/Mail.php';
-                Mail::sendSignupSuccess($user['email'], $user['name'], $allocatedEmail);
+                Mail::sendSignupSuccess($user['email'], $user['name']);
 
                 if (Database::runPrepared("INSERT INTO user_family (user_id, family_id) VALUES (?, ?)", [$lastUserId, $lastFamilyId])) {
                     return ["status" => "success", "message" => "User and family registered successfully."];

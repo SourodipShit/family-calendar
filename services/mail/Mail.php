@@ -61,10 +61,13 @@ class Mail
         ]);
     }
 
-    public static function sendAccountApproved($email, $name)
+    public static function sendAccountApproved($email, $name, $familyEmail)
     {
         require_once __DIR__ . '/Mailer.php';
-        $html = Mailer::render('account_approved', ['name' => $name]);
+        $html = Mailer::render('account_approved', [
+            'name' => $name,
+            'familyEmail' => $familyEmail
+        ]);
         return Mailer::send([
             'to' => $email,
             'subject' => 'Your Family Account has been Approved',
@@ -128,12 +131,11 @@ class Mail
         ]);
     }
 
-    public static function sendSignupSuccess($email, $name, $familyEmail)
+    public static function sendSignupSuccess($email, $name)
     {
         require_once __DIR__ . '/Mailer.php';
         $html = Mailer::render('signup_success', [
-            'name' => $name,
-            'familyEmail' => $familyEmail
+            'name' => $name
         ]);
         return Mailer::send([
             'to' => $email,
