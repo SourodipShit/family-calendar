@@ -6,7 +6,6 @@
  */
 
 require_once __DIR__ . '/../../config/Database.php';
-require_once __DIR__ . '/jobs/ChoresCreateJob.php';
 require_once __DIR__ . '/jobs/BillingJob.php';
 
 // Set default timezone for server output
@@ -22,9 +21,6 @@ $indiaTime = new DateTime('now', $indiaTz);
 echo "Indian Time:       " . $indiaTime->format('Y-m-d H:i:s') . "<br>\n";
 echo "----------------------------------------<br><br>\n";
 
-// Run the Chores Create Job
-echo "Running daily chore instance generation...<br>\n";
-ChoresCreateJob::run();
 
 echo "<br>Running daily billing cycle...<br>\n";
 BillingJob::run();

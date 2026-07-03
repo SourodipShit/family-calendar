@@ -526,11 +526,11 @@ include $path_prefix . 'components/sidebar.php';
                         <input type="text" name="title" class="form-control rounded-3" placeholder="e.g. Set the Table" required>
                     </div>
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold text-dark fs-7">Start Date <span class="text-danger">*</span></label>
                             <input type="date" name="start_date" class="form-control rounded-3" value="<?= date('Y-m-d') ?>" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold text-dark fs-7">Recurrence</label>
                             <select name="recurrence" class="form-select rounded-3">
                                 <option value="once">Once</option>
@@ -540,6 +540,10 @@ include $path_prefix . 'components/sidebar.php';
                                 <option value="quarterly">Quarterly</option>
                                 <option value="yearly">Yearly</option>
                             </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-dark fs-7">Repeat Until</label>
+                            <input type="date" name="repeat_until" class="form-control rounded-3" value="">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -584,8 +588,8 @@ include $path_prefix . 'components/sidebar.php';
                 <button type="button" class="btn btn-primary px-4 py-2 fw-medium rounded-3 shadow-sm" onclick="submitChore()">Save Chore</button>
             </div>
         </div>
-</div>
     </div>
+</div>
 </div>
 
 <!-- Chore Action Modal -->
@@ -666,11 +670,15 @@ include $path_prefix . 'components/sidebar.php';
     function openChoreActionModal(instanceId, status, assignedToId, choreTitle, dateStr) {
         // Format date string nicely (e.g. YYYY-MM-DD -> Month DD, YYYY)
         let d = new Date(dateStr + 'T00:00:00');
-        let options = { month: 'short', day: 'numeric', year: 'numeric' };
+        let options = {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        };
         let formattedDate = d.toLocaleDateString('en-US', options);
 
         document.getElementById('choreActionTitle').innerHTML = choreTitle;
-        
+
         let buttonsHtml = `<div class="mb-3 text-muted small"><i class="fa-regular fa-calendar me-1"></i> ${formattedDate}</div>`;
         buttonsHtml += `<div class="d-flex gap-2 justify-content-center">`;
 
@@ -686,12 +694,14 @@ include $path_prefix . 'components/sidebar.php';
             if (status === 'pending') {
                 buttonsHtml += `<button class="btn btn-primary flex-fill" onclick="handleChoreAction('requestComplete', ${instanceId})">Request Complete</button>`;
                 buttonsHtml += `<button class="btn btn-outline-secondary flex-fill" onclick="handleChoreAction('skipChore', ${instanceId})">Skip</button>`;
+            } else if (status === 'requested') {
+                buttonsHtml += `<div class="alert alert-warning mb-0 fs-7 w-100">Awaiting approval from Family Head</div>`;
             }
         }
-        
+
         buttonsHtml += `</div>`;
-        
-        if (buttonsHtml.indexOf('<button') === -1) return;
+
+        if (buttonsHtml.trim() === '') return;
 
         document.getElementById('choreActionButtons').innerHTML = buttonsHtml;
         var myModal = new bootstrap.Modal(document.getElementById('choreActionModal'));
@@ -704,28 +714,28 @@ include $path_prefix . 'components/sidebar.php';
         formData.append('instance_id', instanceId);
 
         fetch('../api/chore.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                var modalEl = document.getElementById('choreActionModal');
-                var modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-                if (typeof window.renderTable === 'function') {
-                    window.renderTable();
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    var modalEl = document.getElementById('choreActionModal');
+                    var modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    if (typeof window.renderTable === 'function') {
+                        window.renderTable();
+                    } else {
+                        location.reload();
+                    }
                 } else {
-                    location.reload();
+                    alert(data.error || data.msg || 'Error processing chore action');
                 }
-            } else {
-                alert(data.error || data.msg || 'Error processing chore action');
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('An error occurred');
-        });
+            })
+            .catch(err => {
+                console.error(err);
+                alert('An error occurred');
+            });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -823,15 +833,15 @@ include $path_prefix . 'components/sidebar.php';
                                     statusIcon = '<div class="chore-checkbox-indicator mx-auto bg-secondary border-secondary text-white"><i class="fa-solid fa-minus" style="display: block; font-size: 1rem;"></i></div>';
                                 }
 
-                                let isToday = (dateStr === TODAY_STR);
+                                // let isToday = (dateStr === TODAY_STR);
                                 let canInteract = false;
-                                if (isToday) {
-                                    if (CURRENT_USER_ROLE === 'family-head') {
-                                        canInteract = true;
-                                    } else if (chore.assigned_to_id == CURRENT_USER_ID) {
-                                        canInteract = true;
-                                    }
+
+                                if (CURRENT_USER_ROLE === 'family-head') {
+                                    canInteract = true;
+                                } else if (chore.assigned_to_id == CURRENT_USER_ID) {
+                                    canInteract = true;
                                 }
+
 
                                 if (canInteract && (instance.instance_status === 'pending' || instance.instance_status === 'requested')) {
                                     let safeTitle = chore.title.replace(/'/g, "\\'");

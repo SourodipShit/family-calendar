@@ -9,8 +9,8 @@ class Chore
     public static function add($data)
     {
         try {
-            $sql = "INSERT INTO chores (family_id, title, assigned_to, reward_id, recurrence, start_date, created_by, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO chores (family_id, title, assigned_to, reward_id, recurrence, repeat_until, start_date, created_by, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             Database::runPrepared($sql, [
                 $data['family_id'],
@@ -18,6 +18,7 @@ class Chore
                 $data['assigned_to'],
                 !empty($data['reward_id']) ? $data['reward_id'] : null,
                 $data['recurrence'] ?? 'once',
+                !empty($data['repeat_until']) ? $data['repeat_until'] : null,
                 $data['start_date'],
                 $data['created_by'],
                 $data['status'] ?? 'active'
@@ -25,8 +26,8 @@ class Chore
 
             $choreId = Database::getLastInsertId();
 
-            // Generate initial instances for the next 30 days
-            self::generateInstancesForChore($choreId, $data['start_date'], $data['recurrence']);
+            // Generate instances up to repeat_until
+            self::generateInstancesForChore($choreId, $data['start_date'], $data['recurrence'], $data['repeat_until'] ?? null);
 
             return ["msg" => "Chore added successfully", "status" => "success", "id" => $choreId];
         } catch (Exception $e) {
@@ -45,19 +46,20 @@ class Chore
                 return ["msg" => "Unauthorized", "status" => "error"];
             }
 
-            $sql = "UPDATE chores SET title = ?, assigned_to = ?, reward_id = ?, recurrence = ?, start_date = ?, status = ? WHERE id = ?";
+            $sql = "UPDATE chores SET title = ?, assigned_to = ?, reward_id = ?, recurrence = ?, repeat_until = ?, start_date = ?, status = ? WHERE id = ?";
             Database::runPrepared($sql, [
                 $data['title'],
                 $data['assigned_to'],
                 !empty($data['reward_id']) ? $data['reward_id'] : null,
                 $data['recurrence'] ?? 'once',
+                !empty($data['repeat_until']) ? $data['repeat_until'] : null,
                 $data['start_date'],
                 $data['status'] ?? 'active',
                 $id
             ]);
 
             // Re-generate instances in case recurrence or start date changed
-            self::generateInstancesForChore($id, $data['start_date'], $data['recurrence'] ?? 'once');
+            self::generateInstancesForChore($id, $data['start_date'], $data['recurrence'] ?? 'once', $data['repeat_until'] ?? null);
 
             return ["msg" => "Chore updated successfully", "status" => "success"];
         } catch (Exception $e) {
@@ -176,21 +178,32 @@ class Chore
     }
 
     /**
-     * Generate future instances of a chore up to $daysAhead
+     * Generate future instances of a chore up to $repeatUntil
      */
-    private static function generateInstancesForChore($choreId, $startDate, $recurrence, $daysAhead = 30)
+    private static function generateInstancesForChore($choreId, $startDate, $recurrence, $repeatUntil)
     {
         $dates = [];
         $start = new DateTime($startDate);
-        $end = new DateTime();
-        $end->modify("+$daysAhead days");
+        
+        // If it's a one-time chore, just do start date
+        if ($recurrence == 'once' || empty($repeatUntil)) {
+            $end = clone $start;
+        } else {
+            $end = new DateTime($repeatUntil);
+        }
 
-        // If the start date is in the future past our window, just generate the first one
+        // Failsafe in case end date is before start date
         if ($start > $end) {
             $end = clone $start; 
         }
 
         $current = clone $start;
+        // Limit to max 5 years ahead to prevent infinite loops or huge inserts if user selects a crazy date
+        $maxEnd = (clone $start)->modify('+5 years');
+        if ($end > $maxEnd) {
+            $end = $maxEnd;
+        }
+
         while ($current <= $end) {
             $dates[] = $current->format('Y-m-d');
 
@@ -218,30 +231,6 @@ class Chore
                 $sql = "INSERT INTO chore_instances (chore_id, due_date, status) VALUES (?, ?, 'pending')";
                 Database::runPrepared($sql, [$choreId, $date]);
             }
-        }
-    }
-
-    /**
-     * Cron Job function to keep chore instances updated and mark missed chores as overdue
-     */
-    public static function runCronJob()
-    {
-        try {
-            // 1. Generate new instances for all active recurring chores
-            $chores = Database::runPrepared("SELECT id, start_date, recurrence FROM chores WHERE status = 'active'")->fetchAll(PDO::FETCH_ASSOC);
-            
-            foreach ($chores as $chore) {
-                // We always look ahead 30 days from the original start date matching the recurrence pattern
-                self::generateInstancesForChore($chore['id'], $chore['start_date'], $chore['recurrence'], 30);
-            }
-            
-            // 2. Mark any past pending chores as skipped (acting as overdue)
-            $sql = "UPDATE chore_instances SET status = 'skipped' WHERE due_date < CURDATE() AND status = 'pending'";
-            Database::runPrepared($sql, []);
-            
-            return ["msg" => "Cron job ran successfully", "status" => "success"];
-        } catch (Exception $e) {
-            return ["msg" => $e->getMessage(), "status" => "error"];
         }
     }
 }
