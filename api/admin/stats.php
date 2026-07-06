@@ -9,6 +9,9 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'siteadmin') {
     exit;
 }
 
+// Release session lock to prevent blocking concurrent requests
+session_write_close();
+
 try {
     // Total Users
     $totalUsers = Database::run("SELECT COUNT(*) FROM users WHERE role != 'siteadmin'")->fetchColumn();
@@ -23,8 +26,8 @@ try {
     // Convert to MB
     $dbSizeMB = round($dbSizeResult / (1024 * 1024), 2);
 
-    // Events Today
-    $eventsToday = Database::run("SELECT COUNT(*) FROM events WHERE DATE(start_time) = CURDATE()")->fetchColumn();
+    // Events Today (optimized to be sargable)
+    $eventsToday = Database::run("SELECT COUNT(*) FROM events WHERE start_time >= CURDATE() AND start_time < CURDATE() + INTERVAL 1 DAY")->fetchColumn();
 
     $stats = [
         "total_users" => (int) $totalUsers,
@@ -32,7 +35,8 @@ try {
         "db_space_bytes" => (int) $dbSizeResult,
         "db_space_mb" => $dbSizeMB,
         "events_today" => (int) $eventsToday,
-        "login_graph" => Database::run("SELECT DATE(login_time) as date, COUNT(*) as count FROM login_logs GROUP BY DATE(login_time) ORDER BY date ASC LIMIT 30")->fetchAll(PDO::FETCH_ASSOC),
+        // Login graph optimized to scan only last 30 days
+        "login_graph" => Database::run("SELECT DATE(login_time) as date, COUNT(*) as count FROM login_logs WHERE login_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY DATE(login_time) ORDER BY date ASC")->fetchAll(PDO::FETCH_ASSOC),
         "recent_signups" => Database::run("SELECT u.id, u.name, u.email, u.created_at, f.name as family_name, f.approved as family_approved FROM users u LEFT JOIN user_family uf ON u.id = uf.user_id LEFT JOIN families f ON uf.family_id = f.id WHERE u.role != 'siteadmin' ORDER BY u.created_at DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC)
     ];
 
