@@ -58,6 +58,7 @@ class BillingJob
                     continue; // Skip if family not found
                 }
                 
+                $familyName = isset($familyRes['name']) ? $familyRes['name'] : ('Family ' . $familyId);
                 $familyMonthlyAmount = isset($familyRes['monthly_amount']) ? (float)$familyRes['monthly_amount'] : 0;
                 $billingAmount = ($familyMonthlyAmount > 0) ? $familyMonthlyAmount : $monthlyCost;
 
