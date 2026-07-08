@@ -64,6 +64,7 @@ if (isset($_POST['signup'])) {
         'user' => [
             'name' => $_POST['head_name'],
             'email' => $_POST['email'],
+            'phone' => $_POST['phone'] ?? '',
             'password' => $_POST['password'],
             'image' => $imagePath
         ],
@@ -193,6 +194,15 @@ if (isset($_POST['signup'])) {
                             <div class="input-group-custom">
                                 <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
                                 <input type="email" class="form-control" id="email" name="email" placeholder="youremail@email.com" required>
+                            </div>
+                        </div>
+
+                        <!-- Phone Input -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label fw-medium">Mobile Number</label>
+                            <div class="input-group-custom">
+                                <span class="input-icon"><i class="fa-solid fa-phone"></i></span>
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="Your mobile number" required>
                             </div>
                         </div>
 

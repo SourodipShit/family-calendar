@@ -19,10 +19,15 @@ require_once __DIR__ . '/jobs/FetchFamilyEmailsJob.php';
 // Set default timezone for server output
 date_default_timezone_set('UTC');
 
-$scriptStartTime = time();
-$maxExecutionTime = 29 * 60; // Run for up to 29 minutes before exiting (allows cron to restart)
+// Set time limit to prevent 500 errors if loop runs long
+set_time_limit(0);
 
-while ((time() - $scriptStartTime) < $maxExecutionTime) {
+$scriptStartTime = time();
+$isCli = (php_sapi_name() === 'cli' || empty($_SERVER['REMOTE_ADDR']));
+// If triggered via browser/web cron, just run once. If via CLI long-running process, run for 29 mins.
+$maxExecutionTime = $isCli ? (29 * 60) : 0; 
+
+do {
     $loopStartTime = time();
 
     echo "========================================<br>\n";
@@ -50,10 +55,13 @@ while ((time() - $scriptStartTime) < $maxExecutionTime) {
     flush();
 
     // Calculate sleep time to ensure the loop runs exactly once every 60 seconds
-    $elapsed = time() - $loopStartTime;
-    $sleepTime = 60 - $elapsed;
-    
-    if ($sleepTime > 0) {
-        sleep($sleepTime);
+    if ($maxExecutionTime > 0) {
+        $elapsed = time() - $loopStartTime;
+        $sleepTime = 60 - $elapsed;
+        
+        if ($sleepTime > 0) {
+            sleep($sleepTime);
+        }
     }
-}
+
+} while ((time() - $scriptStartTime) < $maxExecutionTime);

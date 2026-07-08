@@ -1618,6 +1618,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const allDay = allDayEvents.map(e => ({
                     title: e.title,
                     start: e.startStr.split('T')[0],
+                    end: e.endStr ? e.endStr.split('T')[0] : null,
                     allDay: true,
                     className: `fc-event-dynamic`,
                     extendedProps: {
