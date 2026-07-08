@@ -12,6 +12,57 @@ $page_title = "Chores";
 $familyId = $_SESSION['user']['active_family_id'] ?? null;
 $familyMembers = $familyId ? Family::getMembersByFamilyId($familyId) : [];
 
+require_once __DIR__ . '/../classes/Chore.php';
+require_once __DIR__ . '/../classes/Points.php';
+
+$startOfWeek = date('Y-m-d', strtotime('monday this week'));
+$endOfWeek = date('Y-m-d', strtotime('sunday this week'));
+$weeklyChores = [];
+if ($familyId) {
+    $weeklyChores = Chore::getByDateRange($startOfWeek, $endOfWeek, $familyId);
+}
+
+$weeklyPointsEarned = 0;
+$weeklyPointsTotal = 0;
+$completedWeeklyChores = 0;
+$totalWeeklyChores = count($weeklyChores);
+
+foreach ($weeklyChores as $chore) {
+    $pts = !empty($chore['reward_points']) ? (int)$chore['reward_points'] : 0;
+    $weeklyPointsTotal += $pts;
+    if ($chore['instance_status'] === 'complete') {
+        $weeklyPointsEarned += $pts;
+        $completedWeeklyChores++;
+    }
+}
+
+if ($weeklyPointsTotal == 0 && $totalWeeklyChores > 0) {
+    $weeklyProgressPercent = round(($completedWeeklyChores / $totalWeeklyChores) * 100);
+    $progressText = "$completedWeeklyChores / $totalWeeklyChores chores";
+} else {
+    $weeklyProgressPercent = $weeklyPointsTotal > 0 ? round(($weeklyPointsEarned / $weeklyPointsTotal) * 100) : 0;
+    $progressText = "$weeklyPointsEarned / $weeklyPointsTotal points";
+}
+$dashOffset = 263.89 - (263.89 * $weeklyProgressPercent / 100);
+
+$leaderboard = [];
+if ($familyId) {
+    foreach ($familyMembers as $member) {
+        $ptsRes = Points::getPoints($member['id']);
+        $points = ($ptsRes['status'] === 'success' && $ptsRes['data']) ? (int)$ptsRes['data']['balance'] : 0;
+        $leaderboard[] = [
+            'id' => $member['id'],
+            'name' => $member['name'] ?? $member['nickname'] ?? 'Unknown',
+            'points' => $points,
+            'image' => !empty($member['image']) ? $member['image'] : "https://ui-avatars.com/api/?name=" . urlencode($member['name'] ?? $member['nickname'] ?? 'U') . "&background=random&color=fff"
+        ];
+    }
+    usort($leaderboard, function($a, $b) {
+        return $b['points'] <=> $a['points'];
+    });
+    $leaderboard = array_slice($leaderboard, 0, 5);
+}
+
 $rewardsGrouped = [];
 if ($familyId) {
     $res = json_decode(ThemeReward::getByFamily($familyId), true);
@@ -155,16 +206,16 @@ include $path_prefix . 'components/sidebar.php';
                                     <circle class="progress-ring__circle" stroke="#f0f0f0" stroke-width="8"
                                         fill="transparent" r="42" cx="50" cy="50" />
                                     <circle class="progress-ring__circle" stroke="#43a047" stroke-width="8"
-                                        stroke-dasharray="263.89" stroke-dashoffset="58.06" fill="transparent"
+                                        stroke-dasharray="263.89" stroke-dashoffset="<?= $dashOffset ?>" fill="transparent"
                                         r="42" cx="50" cy="50" />
                                 </svg>
-                                <div class="progress-text">78%</div>
+                                <div class="progress-text"><?= $weeklyProgressPercent ?>%</div>
                             </div>
                             <div class="flex-grow-1">
                                 <div class="fw-bold text-dark">Great job, family!</div>
                                 <div class="text-muted small">You're almost there.</div>
-                                <div class="mt-1 fw-bold text-success">125 <span class="text-muted fw-normal">/
-                                        160 points</span></div>
+                                <div class="mt-1 fw-bold text-success"><?= explode(' / ', $progressText)[0] ?> <span class="text-muted fw-normal">/
+                                        <?= explode(' / ', $progressText)[1] ?? '' ?></span></div>
                             </div>
                         </div>
                     </div>
@@ -176,46 +227,20 @@ include $path_prefix . 'components/sidebar.php';
                         <h5 class="fw-bold mb-3">Points Leaderboard</h5>
 
                         <div class="leaderboard-list">
-                            <div class="leaderboard-item">
-                                <span class="rank-number">1</span>
-                                <img src="https://ui-avatars.com/api/?name=Emma&background=random&color=fff"
-                                    alt="Emma">
-                                <span class="name">Emma</span>
-                                <span class="points text-dark">38</span>
-                                <i class="fa-solid fa-star star-icon"></i>
-                            </div>
-                            <div class="leaderboard-item">
-                                <span class="rank-number">2</span>
-                                <img src="https://ui-avatars.com/api/?name=Liam&background=random&color=fff"
-                                    alt="Liam">
-                                <span class="name">Liam</span>
-                                <span class="points text-dark">32</span>
-                                <i class="fa-solid fa-star star-icon"></i>
-                            </div>
-                            <div class="leaderboard-item">
-                                <span class="rank-number">3</span>
-                                <img src="https://ui-avatars.com/api/?name=Dad&background=random&color=fff"
-                                    alt="Dad">
-                                <span class="name">Dad</span>
-                                <span class="points text-dark">28</span>
-                                <i class="fa-solid fa-star star-icon"></i>
-                            </div>
-                            <div class="leaderboard-item">
-                                <span class="rank-number">4</span>
-                                <img src="https://ui-avatars.com/api/?name=Ava&background=random&color=fff"
-                                    alt="Ava">
-                                <span class="name">Ava</span>
-                                <span class="points text-dark">17</span>
-                                <i class="fa-solid fa-star star-icon"></i>
-                            </div>
-                            <div class="leaderboard-item border-0">
-                                <span class="rank-number">5</span>
-                                <img src="https://ui-avatars.com/api/?name=Mom&background=random&color=fff"
-                                    alt="Mom">
-                                <span class="name">Mom</span>
-                                <span class="points text-dark">10</span>
-                                <i class="fa-solid fa-star star-icon"></i>
-                            </div>
+                            <?php if (empty($leaderboard)): ?>
+                                <div class="text-muted small text-center my-3">No members found.</div>
+                            <?php else: ?>
+                                <?php foreach ($leaderboard as $index => $lbUser): ?>
+                                    <div class="leaderboard-item <?= $index === count($leaderboard) - 1 ? 'border-0' : '' ?>">
+                                        <span class="rank-number"><?= $index + 1 ?></span>
+                                        <img src="<?= htmlspecialchars($lbUser['image']) ?>"
+                                            alt="<?= htmlspecialchars($lbUser['name']) ?>">
+                                        <span class="name"><?= htmlspecialchars($lbUser['name']) ?></span>
+                                        <span class="points text-dark"><?= $lbUser['points'] ?></span>
+                                        <i class="fa-solid fa-star star-icon"></i>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
 
                         <div class="text-center mt-3">

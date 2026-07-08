@@ -9,13 +9,47 @@
 
 header('Content-Type: application/json');
 
-// Check if latitude and longitude are provided via GET, otherwise use IP auto-detect
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once __DIR__ . '/../config/Database.php';
+
+// Check if latitude and longitude are provided via GET
 if (isset($_GET['lat']) && isset($_GET['lon'])) {
     $latitude = (float)$_GET['lat'];
     $longitude = (float)$_GET['lon'];
     $locationName = isset($_GET['location']) ? htmlspecialchars($_GET['location']) : 'Custom Location';
     $timezone = 'auto'; // Let open-meteo auto-resolve timezone based on lat/lon
 } else {
+    $geocoded = false;
+    
+    // Check if user is logged in and has an active family
+    if (isset($_SESSION['user']['active_family_id'])) {
+        $familyId = $_SESSION['user']['active_family_id'];
+        try {
+            $family = Database::runPrepared("SELECT location FROM families WHERE id = ?", [$familyId])->fetch(PDO::FETCH_ASSOC);
+            if ($family && !empty($family['location'])) {
+                $locationQuery = urlencode($family['location']);
+                $geoApiUrl = "https://geocoding-api.open-meteo.com/v1/search?name={$locationQuery}&count=1&language=en&format=json";
+                $geoResponse = @file_get_contents($geoApiUrl);
+                
+                if ($geoResponse) {
+                    $geoData = json_decode($geoResponse, true);
+                    if (isset($geoData['results']) && count($geoData['results']) > 0) {
+                        $latitude = $geoData['results'][0]['latitude'];
+                        $longitude = $geoData['results'][0]['longitude'];
+                        $locationName = $family['location'];
+                        $timezone = urlencode($geoData['results'][0]['timezone']);
+                        $geocoded = true;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore DB errors and fallback to IP
+        }
+    }
+
+    if (!$geocoded) {
     // 1. Get current location based on user's IP address (instead of server's IP)
     $clientIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
     if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -49,6 +83,7 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
     $longitude = $ipData['lon'];
     $locationName = $ipData['city'] . ', ' . $ipData['region'];
     $timezone = urlencode($ipData['timezone']);
+    }
 }
 
 // Function to map WMO weather codes to text descriptions and OpenWeatherMap PNG icon URLs
