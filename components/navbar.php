@@ -120,12 +120,12 @@ if (isset($_SESSION['user']['id'])) {
         $avatar = $_SESSION['user']['image'] ?? 'https://ui-avatars.com/api/?name=' . $_SESSION['user']['name'] . '&background=random';
         ?>
 
-        <div class="dropdown d-none d-md-inline">
+        <div class="dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
                 data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="<?php echo $avatar; ?>" class="rounded-circle me-2"
                     alt="<?php echo $_SESSION['user']['name']; ?>" width="32" height="32">
-                <span class="fw-bold"><?php echo $_SESSION['user']['name']; ?></span>
+                <span class="fw-bold d-none d-sm-block"><?php echo $_SESSION['user']['name']; ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-2 rounded-3" style="min-width: 180px;">
                 <li>

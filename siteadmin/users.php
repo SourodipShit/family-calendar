@@ -40,7 +40,7 @@ require_once $path_prefix . 'classes/User.php';
                 </div>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="table-responsive" style="overflow: visible;">
                     <table id="usersTable" class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
                             <tr>
@@ -96,7 +96,7 @@ require_once $path_prefix . 'classes/User.php';
                                     <td><span class="badge bg-light text-dark border"><?php echo ucfirst(htmlspecialchars(!empty($user['role']) ? $user['role'] : 'Unknown')); ?></span></td>
                                     <td class="text-end pe-4">
                                         <div class="dropdown">
-                                            <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                                            <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown" data-bs-boundary="window"><i class="ri-more-2-fill"></i></button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                                 <li><a class="dropdown-item" href="edit-user.php?id=<?php echo $user['id']; ?>"><i class="ri-edit-line me-2"></i>Edit User</a></li>
                                                 <li><a class="dropdown-item" href="#"><i class="ri-key-2-line me-2"></i>Reset Password</a></li>

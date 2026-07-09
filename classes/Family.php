@@ -66,12 +66,13 @@ class Family
 
     public static function getAllFamilies()
     {
-        $sql = "SELECT f.*, COUNT(uf.user_id) as member_count, a.account_number,
-                       (SELECT promo_code FROM used_promocodes up WHERE up.family_id = f.id ORDER BY up.entered_at DESC LIMIT 1) as promo_code
+        $sql = "SELECT f.*, COUNT(uf.user_id) as member_count, a.account_number, a.account_status,
+                       (SELECT promo_code FROM used_promocodes up WHERE up.family_id = f.id ORDER BY up.entered_at DESC LIMIT 1) as promo_code,
+                       (SELECT COALESCE(SUM(file_size), 0) FROM photos WHERE family_id = f.id) as storage_used
                 FROM families f 
                 LEFT JOIN user_family uf ON f.id = uf.family_id 
                 LEFT JOIN accounts a ON f.id = a.family_id
-                GROUP BY f.id, a.account_number 
+                GROUP BY f.id, a.account_number, a.account_status
                 ORDER BY f.name ASC";
         $stmt = Database::run($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

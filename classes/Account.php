@@ -137,4 +137,18 @@ class Account
             return ["status" => "error", "message" => "Failed to update billing date", "data" => $e->getMessage()];
         }
     }
+    /**
+     * Update account details (status and next billing date)
+     */
+    public static function update($accountId, $nextBillingDate, $accountStatus)
+    {
+        try {
+            $sql = "UPDATE accounts SET next_billing_date = ?, account_status = ? WHERE id = ?";
+            Database::runPrepared($sql, [$nextBillingDate, $accountStatus, $accountId]);
+            
+            return ["status" => "success", "message" => "Account updated successfully"];
+        } catch (PDOException $e) {
+            return ["status" => "error", "message" => "Failed to update account", "data" => $e->getMessage()];
+        }
+    }
 }

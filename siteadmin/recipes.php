@@ -26,7 +26,7 @@ require_once $path_prefix . 'classes/Recipe.php';
                 </div>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="table-responsive" style="overflow: visible;">
                     <table id="recipesTable" class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
                             <tr>
@@ -71,7 +71,7 @@ require_once $path_prefix . 'classes/Recipe.php';
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="dropdown">
-                                            <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                                            <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown" data-bs-boundary="window"><i class="ri-more-2-fill"></i></button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                                 <li><a class="dropdown-item" href="#" onclick="viewRecipeModal(<?php echo $recipe['id']; ?>); return false;"><i class="ri-eye-line me-2"></i>View Recipe</a></li>
                                                 <?php if ($recipe['status'] !== 'approved'): ?>

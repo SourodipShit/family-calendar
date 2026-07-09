@@ -83,6 +83,29 @@ if ($action === 'approve') {
     require_once __DIR__ . '/../../classes/Family.php';
     $result = Family::updateMonthlyAmount($family_id, $amount);
     echo json_encode($result);
+} elseif ($action === 'get_account') {
+    $family_id = $_GET['id'] ?? $_POST['id'] ?? null;
+    if (!$family_id) {
+        echo json_encode(["status" => "error", "message" => "Family ID is required."]);
+        exit;
+    }
+
+    require_once __DIR__ . '/../../classes/Account.php';
+    $result = Account::getByFamilyId($family_id);
+    echo json_encode($result);
+} elseif ($action === 'update_account') {
+    $account_id = $_POST['account_id'] ?? null;
+    $next_billing_date = $_POST['next_billing_date'] ?? null;
+    $account_status = $_POST['account_status'] ?? null;
+    
+    if (!$account_id || !$next_billing_date || !$account_status) {
+        echo json_encode(["status" => "error", "message" => "Account ID, billing date, and status are required."]);
+        exit;
+    }
+
+    require_once __DIR__ . '/../../classes/Account.php';
+    $result = Account::update($account_id, $next_billing_date, $account_status);
+    echo json_encode($result);
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action."]);
 }

@@ -52,6 +52,22 @@ class BillingJob
             $invoiceDate = date('Y-m-d');
 
             try {
+                // Check if there is already an unpaid invoice for this account to prevent multiple emails
+                $existingPayments = Payment::getByAccountId($accountId);
+                if ($existingPayments['status'] === 'success') {
+                    $hasUnpaid = false;
+                    foreach ($existingPayments['data'] as $p) {
+                        if ($p['status'] === 'unpaid') {
+                            $hasUnpaid = true;
+                            break;
+                        }
+                    }
+                    if ($hasUnpaid) {
+                        echo "Skipping account $accountNumber: Already has an unpaid invoice.<br>\n";
+                        continue;
+                    }
+                }
+
                 // Fetch family details for monthly_amount and emailing
                 $familyRes = Family::getFamily($familyId);
                 if (!$familyRes) {

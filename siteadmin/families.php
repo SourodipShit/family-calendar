@@ -31,17 +31,16 @@ require_once $path_prefix . 'classes/Family.php';
                 </div>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="table-responsive" style="overflow: visible;">
                     <table id="familiesTable" class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
                             <tr>
                                 <th class="ps-4 border-0">Family Name</th>
-                                <th class="border-0">Email</th>
                                 <th class="border-0">Account Number</th>
-                                <th class="border-0">Location</th>
                                 <th class="border-0">Timezone</th>
                                 <th class="border-0">Promo Code</th>
                                 <th class="border-0">Monthly Amount</th>
+                                <th class="border-0">Storage</th>
                                 <th class="border-0">Members</th>
                                 <th class="border-0">Status</th>
                                 <th class="text-end pe-4 border-0">Actions</th>
@@ -55,18 +54,38 @@ require_once $path_prefix . 'classes/Family.php';
                                 $members_count = $family['member_count'];
                             ?>
                             <tr id="family-row-<?php echo $family['id']; ?>">
-                                <td class="ps-4 fw-bold"><?php echo htmlspecialchars(!empty($family['name']) ? $family['name'] : 'N/A'); ?></td>
-                                <td class="small text-muted"><?php echo htmlspecialchars(!empty($family['email']) ? $family['email'] : 'N/A'); ?></td>
-                                <td class="small">
-                                    <?php if (!empty($family['account_number'])): ?>
-                                        <a href="bills.php?account=<?php echo htmlspecialchars($family['account_number']); ?>" class="text-primary text-decoration-none fw-medium">
-                                            <?php echo htmlspecialchars($family['account_number']); ?>
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="text-muted">N/A</span>
-                                    <?php endif; ?>
+                                <td class="ps-4">
+                                    <div class="fw-bold"><?php echo htmlspecialchars(!empty($family['name']) ? $family['name'] : 'N/A'); ?></div>
+                                    <div class="small text-muted" style="font-size: 0.8em;">
+                                        <?php echo htmlspecialchars(!empty($family['email']) ? $family['email'] : ''); ?>
+                                        <?php if (!empty($family['location'])): ?>
+                                            &bull; <?php echo htmlspecialchars($family['location']); ?>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
-                                <td class="small"><?php echo htmlspecialchars(!empty($family['location']) ? $family['location'] : 'N/A'); ?></td>
+                                <td class="small">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <?php if (!empty($family['account_number'])): ?>
+                                            <a href="bills.php?account=<?php echo htmlspecialchars($family['account_number']); ?>" class="text-primary text-decoration-none fw-medium">
+                                                <?php echo htmlspecialchars($family['account_number']); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-muted">N/A</span>
+                                        <?php endif; ?>
+                                        
+                                        <?php 
+                                        $acStatus = $family['account_status'] ?? 'N/A';
+                                        $badgeClass = 'secondary';
+                                        if ($acStatus === 'active') $badgeClass = 'success';
+                                        elseif ($acStatus === 'suspended') $badgeClass = 'danger';
+                                        elseif ($acStatus === 'trial') $badgeClass = 'info';
+                                        
+                                        if ($acStatus !== 'N/A'):
+                                        ?>
+                                            <span class="badge bg-<?php echo $badgeClass; ?> text-capitalize px-2 py-1" style="font-size: 0.75em;"><?php echo htmlspecialchars($acStatus); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
                                 <td class="small text-muted"><?php echo htmlspecialchars(!empty($family['timezone']) ? $family['timezone'] : 'N/A'); ?></td>
                                 <td class="small"><?php echo htmlspecialchars(!empty($family['promo_code']) ? $family['promo_code'] : '-'); ?></td>
                                 <td class="small">
@@ -77,6 +96,20 @@ require_once $path_prefix . 'classes/Family.php';
                                         <button class="btn btn-sm btn-link text-primary ms-2 p-0 edit-amount-btn" data-id="<?php echo $family['id']; ?>" data-amount="<?php echo htmlspecialchars($family['monthly_amount'] ?? '0.00'); ?>">
                                             <i class="ri-edit-line"></i>
                                         </button>
+                                    </div>
+                                </td>
+                                <td class="small text-muted">
+                                    <?php 
+                                    $usedMb = round(($family['storage_used'] ?? 0) / (1024 * 1024), 2);
+                                    $alloc = $family['storage_allocated'] ?? 500;
+                                    $percent = $alloc > 0 ? min(100, round(($usedMb / $alloc) * 100)) : 0;
+                                    $color = $percent > 90 ? 'danger' : ($percent > 75 ? 'warning' : 'primary');
+                                    ?>
+                                    <div class="d-flex flex-column" style="width: 80px;">
+                                        <span class="mb-1" style="font-size: 0.8em;"><?php echo $usedMb; ?> / <?php echo $alloc; ?> MB</span>
+                                        <div class="progress" style="height: 4px;">
+                                            <div class="progress-bar bg-<?php echo $color; ?>" role="progressbar" style="width: <?php echo $percent; ?>%;"></div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
@@ -102,11 +135,13 @@ require_once $path_prefix . 'classes/Family.php';
                                         <span class="badge bg-warning text-dark mt-1"><i class="ri-lock-line"></i> Locked</span>
                                     <?php endif; ?>
                                 </td>
+
                                 <td class="text-end pe-4">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                                        <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown" data-bs-boundary="window"><i class="ri-more-2-fill"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                             <li><a class="dropdown-item" href="edit-family.php?id=<?php echo $family['id']; ?>"><i class="ri-edit-line me-2"></i>Edit Family</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openUpdateAccountModal(<?php echo $family['id']; ?>); return false;"><i class="ri-bank-card-line me-2"></i>Update Account</a></li>
                                             <li><a class="dropdown-item" href="#"><i class="ri-group-line me-2"></i>Manage Members</a></li>
                                             <li>
                                                 <a class="dropdown-item <?php echo !empty($family['approved']) ? 'disabled' : ''; ?>" href="#" onclick="approveFamily(<?php echo $family['id']; ?>); return false;" <?php echo !empty($family['approved']) ? 'tabindex="-1" aria-disabled="true"' : ''; ?>>
@@ -165,6 +200,37 @@ require_once $path_prefix . 'classes/Family.php';
   </div>
 </div>
 
+<!-- Update Account Modal -->
+<div class="modal fade" id="updateAccountModal" tabindex="-1" aria-labelledby="updateAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fs-6" id="updateAccountModalLabel">Update Account Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="update_account_id">
+        <div class="mb-3">
+            <label class="form-label fw-medium">Next Billing Date</label>
+            <input type="date" class="form-control" id="update_next_billing_date">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-medium">Account Status</label>
+            <select class="form-select" id="update_account_status">
+                <option value="trial">Trial</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+            </select>
+        </div>
+      </div>
+      <div class="modal-footer p-2">
+        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" id="saveAccountModalBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php require_once $path_prefix . 'components/admin-footer.php'; ?>
 
 <script>
@@ -180,7 +246,7 @@ $(document).ready(function() {
             }
         },
         "columnDefs": [
-            { "orderable": false, "targets": 9 } // Disable ordering on Actions column
+            { "orderable": false, "targets": 8 } // Disable ordering on Actions column
         ]
     });
 
@@ -334,4 +400,86 @@ function unlockFamily(id) {
         });
     }
 }
+</script>
+
+<script>
+function openUpdateAccountModal(familyId) {
+    // Show loading state or clear fields
+    $('#update_account_id').val('');
+    $('#update_next_billing_date').val('');
+    $('#update_account_status').val('active');
+
+    $.ajax({
+        url: '../api/admin/family.php',
+        type: 'GET',
+        data: { action: 'get_account', id: familyId },
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success' && response.data) {
+                $('#update_account_id').val(response.data.id);
+                $('#update_next_billing_date').val(response.data.next_billing_date);
+                $('#update_account_status').val(response.data.account_status);
+                
+                const modal = new bootstrap.Modal(document.getElementById('updateAccountModal'));
+                modal.show();
+            } else {
+                if (typeof showAlert === 'function') {
+                    showAlert('Account not found for this family', 'error');
+                } else {
+                    alert('Account not found for this family');
+                }
+            }
+        },
+        error: function() {
+            alert('Failed to fetch account details.');
+        }
+    });
+}
+
+$(document).ready(function() {
+    $('#saveAccountModalBtn').on('click', function() {
+        const accountId = $('#update_account_id').val();
+        const nextBillingDate = $('#update_next_billing_date').val();
+        const accountStatus = $('#update_account_status').val();
+        const btn = $(this);
+        
+        btn.prop('disabled', true).html('<i class="ri-loader-4-line ri-spin"></i> Saving...');
+
+        $.ajax({
+            url: '../api/admin/family.php',
+            type: 'POST',
+            data: {
+                action: 'update_account',
+                account_id: accountId,
+                next_billing_date: nextBillingDate,
+                account_status: accountStatus
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    if (typeof showAlert === 'function') {
+                        showAlert(response.message, 'success');
+                    } else {
+                        alert(response.message);
+                    }
+                    const modalEl = document.getElementById('updateAccountModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                } else {
+                    if (typeof showAlert === 'function') {
+                        showAlert(response.message, 'error');
+                    } else {
+                        alert(response.message);
+                    }
+                }
+            },
+            error: function() {
+                alert('An error occurred while updating the account.');
+            },
+            complete: function() {
+                btn.prop('disabled', false).text('Save Changes');
+            }
+        });
+    });
+});
 </script>
