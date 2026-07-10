@@ -189,8 +189,8 @@ class FetchFamilyEmailsJob
                     $description = trim(str_replace(['\\n', '\\N', '\\,'], ["\n", "\n", ','], $m[1]));
                 }
                 if (preg_match('/LOCATION:(.*)/i', $eventStr, $m)) $location = trim($m[1]);
-                if (preg_match('/DTSTART[A-Z0-9;=]*:(.*)/i', $eventStr, $m)) $startTimeStr = trim($m[1]);
-                if (preg_match('/DTEND[A-Z0-9;=]*:(.*)/i', $eventStr, $m)) $endTimeStr = trim($m[1]);
+                if (preg_match('/DTSTART[^:]*:(.*)/i', $eventStr, $m)) $startTimeStr = trim($m[1]);
+                if (preg_match('/DTEND[^:]*:(.*)/i', $eventStr, $m)) $endTimeStr = trim($m[1]);
 
                 $startTime = self::parseIcsDate($startTimeStr);
                 $endTime = self::parseIcsDate($endTimeStr);
