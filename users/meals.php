@@ -208,9 +208,12 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                     .family-members-list::-webkit-scrollbar {
                         display: none;
                     }
+
                     .family-members-list {
-                        -ms-overflow-style: none;  /* IE and Edge */
-                        scrollbar-width: none;  /* Firefox */
+                        -ms-overflow-style: none;
+                        /* IE and Edge */
+                        scrollbar-width: none;
+                        /* Firefox */
                     }
                 </style>
                 <!-- Family Members Row -->
@@ -270,10 +273,12 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                             data-bs-toggle="modal" data-bs-target="#groceryListModal">
                             <i class="fa-solid fa-plus me-2"></i> New List
                         </button>
-                        <button
-                            class="btn btn-white border rounded-3 px-4 py-2 fw-medium shadow-sm d-flex align-items-center">
-                            <i class="fa-solid fa-gear me-2"></i> Meal Settings
-                        </button>
+                        <?php if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'family-head'): ?>
+                            <button
+                                class="btn btn-white border rounded-3 px-4 py-2 fw-medium shadow-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#mealRequestsModal" onclick="fetchPendingFamilyMeals()">
+                                <i class="fa-solid fa-code-pull-request me-2"></i> Meal Requests
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -482,39 +487,15 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                     </div>
                 </div>
 
-                <!-- Meal Ideas Widget -->
+                <!-- Pending Meals Widget -->
                 <div class="card border rounded-4 mb-4">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold mb-0">Meal Ideas</h5>
-                            <a href="#" class="text-primary text-decoration-none small fw-bold">View All</a>
+                            <h5 class="fw-bold mb-0">My Pending Meals</h5>
                         </div>
 
-                        <div class="meal-ideas-list">
-                            <div class="meal-idea-card">
-                                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=100&h=100&auto=format&fit=crop"
-                                    alt="Fajitas">
-                                <div class="idea-info">
-                                    <div class="idea-name">Sheet Pan Chicken Fajitas</div>
-                                    <div class="idea-meta">30 min</div>
-                                </div>
-                            </div>
-                            <div class="meal-idea-card">
-                                <img src="https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=100&h=100&auto=format&fit=crop"
-                                    alt="Rice">
-                                <div class="idea-info">
-                                    <div class="idea-name">Veggie Fried Rice</div>
-                                    <div class="idea-meta">25 min</div>
-                                </div>
-                            </div>
-                            <div class="meal-idea-card">
-                                <img src="https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=100&h=100&auto=format&fit=crop"
-                                    alt="Pasta">
-                                <div class="idea-info">
-                                    <div class="idea-name">Chicken Pesto Pasta</div>
-                                    <div class="idea-meta">20 min</div>
-                                </div>
-                            </div>
+                        <div class="meal-ideas-list" id="sidebar-pending-meals-container">
+                            <div class="text-muted small text-center">Loading pending meals...</div>
                         </div>
                     </div>
                 </div>
@@ -607,6 +588,7 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                 cell.innerHTML = `${days[index]}<br><span class="text-muted fw-normal fs-8">${dayDate.toLocaleDateString('en-US', options)}</span>`;
             });
 
+            window.updateUI = updateUI; // Export for external use
             fetchMeals(startStr, endStr);
             fetchGroceries(startStr, endStr);
         };
@@ -1280,6 +1262,7 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                         bootstrap.Modal.getInstance(document.getElementById('mealModal')).hide();
                         showAlert(data.message || 'Meal saved successfully', 'success');
                         updateUI();
+                        if (typeof fetchPendingUserMeals === 'function') fetchPendingUserMeals();
                         this.reset();
                     } else {
                         showAlert(data.message || 'Error saving meal', 'error');
@@ -1300,12 +1283,15 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
             const titleEl = document.getElementById(titleId);
             const startVal = document.getElementById(startId).value;
             const endVal = document.getElementById(endId).value;
-            if(!startVal || !endVal) return;
-            
+            if (!startVal || !endVal) return;
+
             if (titleEl.value.startsWith('Groceries: ')) {
                 const start = new Date(startVal + 'T00:00:00');
                 const end = new Date(endVal + 'T00:00:00');
-                const options = { month: 'short', day: 'numeric' };
+                const options = {
+                    month: 'short',
+                    day: 'numeric'
+                };
                 titleEl.value = `Groceries: ${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
             }
         };
@@ -1314,30 +1300,30 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
             const startInput = document.getElementById(startId);
             const endInput = document.getElementById(endId);
 
-            if(startInput) {
+            if (startInput) {
                 startInput.addEventListener('change', function(e) {
-                    if(!this.value) return;
+                    if (!this.value) return;
                     const d = new Date(this.value + 'T00:00:00');
-                    if(d.getDay() !== 0) {
+                    if (d.getDay() !== 0) {
                         showAlert('Start date must be a Sunday. The date will be automatically adjusted.', 'warning');
                         d.setDate(d.getDate() - d.getDay());
                         this.value = formatDate(d);
                     }
-                    
+
                     // Enforce the corresponding Saturday for the end date
                     const end = new Date(d);
                     end.setDate(end.getDate() + 6);
                     if (endInput) endInput.value = formatDate(end);
-                    
+
                     updateDefaultTitle(titleId, startId, endId);
                 });
             }
 
-            if(endInput) {
+            if (endInput) {
                 endInput.addEventListener('change', function(e) {
-                    if(!this.value) return;
+                    if (!this.value) return;
                     const d = new Date(this.value + 'T00:00:00');
-                    if(d.getDay() !== 6) {
+                    if (d.getDay() !== 6) {
                         showAlert('End date must be a Saturday. The date will be automatically adjusted.', 'warning');
                         d.setDate(d.getDate() + (6 - d.getDay()));
                         this.value = formatDate(d);
@@ -1959,5 +1945,160 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
         </div>
     </div>
 </div>
+
+<!-- Meal Requests Modal -->
+<div class="modal fade" id="mealRequestsModal" tabindex="-1" aria-labelledby="mealRequestsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center" id="mealRequestsModalLabel">
+                    <span class="bg-primary bg-opacity-10 p-2 rounded-3 me-3">
+                        <i class="fa-solid fa-code-pull-request text-primary fs-5"></i>
+                    </span>
+                    Pending Meal Requests
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-3">
+                <div id="family-pending-meals-container">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Pending Meals Logic
+    const fetchPendingUserMeals = () => {
+        fetch(`../api/meals.php?action=getPendingUser`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    renderPendingUserMeals(data.meals);
+                }
+            }).catch(err => console.error(err));
+    };
+
+    const renderPendingUserMeals = (meals) => {
+        const container = document.getElementById('sidebar-pending-meals-container');
+        if (!meals || meals.length === 0) {
+            container.innerHTML = '<div class="text-muted small text-center">No pending meals.</div>';
+            return;
+        }
+
+        let html = '';
+        meals.forEach(meal => {
+            let img = meal.image ? meal.image : `https://ui-avatars.com/api/?name=${encodeURIComponent(meal.name)}&background=random`;
+            html += `
+            <div class="meal-idea-card">
+                <img src="${img}" alt="${meal.name}">
+                <div class="idea-info">
+                    <div class="idea-name">${meal.name}</div>
+                    <div class="idea-meta"><span class="badge bg-warning text-dark">Pending</span> ${meal.date} • ${meal.type}</div>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    };
+
+    window.fetchPendingFamilyMeals = () => {
+        const container = document.getElementById('family-pending-meals-container');
+        container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>';
+
+        fetch(`../api/meals.php?action=getPendingFamily`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    renderPendingFamilyMeals(data.meals);
+                } else {
+                    container.innerHTML = `<div class="alert alert-danger">${data.message || 'Failed to fetch'}</div>`;
+                }
+            }).catch(err => console.error(err));
+    };
+
+    const renderPendingFamilyMeals = (meals) => {
+        const container = document.getElementById('family-pending-meals-container');
+        if (!meals || meals.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-check-circle text-success fs-1 mb-3"></i>
+                    <h5 class="fw-bold">All Caught Up!</h5>
+                    <p class="text-muted">There are no pending meal requests at the moment.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="list-group list-group-flush">';
+        meals.forEach(meal => {
+            let img = meal.image ? meal.image : `https://ui-avatars.com/api/?name=${encodeURIComponent(meal.name)}&background=random`;
+            html += `
+            <div class="list-group-item px-0 py-3 d-flex align-items-center justify-content-between border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="${img}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
+                    <div>
+                        <h6 class="fw-bold mb-1">${meal.name}</h6>
+                        <div class="small text-muted">
+                            <i class="fa-regular fa-calendar me-1"></i> ${meal.date} &nbsp; 
+                            <i class="fa-solid fa-clock me-1"></i> ${meal.type} &nbsp;
+                            <i class="fa-solid fa-user me-1"></i> Requested by: <strong>${meal.creator_name || 'Unknown'}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-success px-3 rounded-pill" onclick="handleMealAction(${meal.id}, 'approve')">Approve</button>
+                    <button class="btn btn-sm btn-outline-danger px-3 rounded-pill" onclick="handleMealAction(${meal.id}, 'reject')">Reject</button>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    };
+
+    window.handleMealAction = (id, action) => {
+        if (!confirm(`Are you sure you want to ${action} this meal?`)) return;
+
+        let formData = new FormData();
+        formData.append('id', id);
+
+        fetch(`../api/meals.php?action=${action}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (typeof showAlert === 'function') {
+                        showAlert(`Meal ${action}d successfully.`, 'success');
+                    } else {
+                        alert(`Meal ${action}d successfully.`);
+                    }
+                    
+                    fetchPendingFamilyMeals(); // Refresh modal list
+
+                    // Trigger a UI update for calendar
+                    if (typeof window.updateUI === 'function') {
+                        window.updateUI();
+                    }
+                } else {
+                    if (typeof showAlert === 'function') {
+                        showAlert(data.message || 'Error occurred', 'error');
+                    } else {
+                        alert(data.message || 'Error occurred');
+                    }
+                }
+            });
+    };
+
+    // Hook into existing lifecycle
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchPendingUserMeals();
+    });
+</script>
 
 <?php include $path_prefix . 'components/footer.php'; ?>

@@ -17,6 +17,12 @@ if ($action == 'add') {
         }
     }
     $_POST['image'] = $imagePath;
+    
+    // Inject user info for approval flow
+    $_POST['user_id'] = $_SESSION['user']['id'] ?? null;
+    $role = $_SESSION['user']['role'] ?? '';
+    $_POST['status'] = ($role === 'family-head') ? 'approved' : 'pending';
+    
     $result = Meals::addMeal($_POST);
     echo json_encode($result);
     exit;
@@ -62,3 +68,43 @@ if ($action == 'getByDateRange') {
     exit;
 }
 
+if ($action == 'getPendingUser') {
+    $family_id = $_SESSION['user']['active_family_id'] ?? 1;
+    $user_id = $_SESSION['user']['id'] ?? null;
+    $result = Meals::getPendingMealsUser($user_id, $family_id);
+    echo json_encode($result);
+    exit;
+}
+
+if ($action == 'getPendingFamily') {
+    if (($_SESSION['user']['role'] ?? '') !== 'family-head') {
+        echo json_encode(["status" => "error", "message" => "Unauthorized"]);
+        exit;
+    }
+    $family_id = $_SESSION['user']['active_family_id'] ?? 1;
+    $result = Meals::getPendingMealsFamily($family_id);
+    echo json_encode($result);
+    exit;
+}
+
+if ($action == 'approve') {
+    if (($_SESSION['user']['role'] ?? '') !== 'family-head') {
+        echo json_encode(["status" => "error", "message" => "Unauthorized"]);
+        exit;
+    }
+    $family_id = $_SESSION['user']['active_family_id'] ?? 1;
+    $result = Meals::approveMeal($_POST['id'], $family_id);
+    echo json_encode($result);
+    exit;
+}
+
+if ($action == 'reject') {
+    if (($_SESSION['user']['role'] ?? '') !== 'family-head') {
+        echo json_encode(["status" => "error", "message" => "Unauthorized"]);
+        exit;
+    }
+    $family_id = $_SESSION['user']['active_family_id'] ?? 1;
+    $result = Meals::rejectMeal($_POST['id'], $family_id);
+    echo json_encode($result);
+    exit;
+}
