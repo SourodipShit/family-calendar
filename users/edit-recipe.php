@@ -441,11 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
     imageInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
-            if (file.size > 1024 * 1024) {
-                showAlert('Main image must be less than 1MB', 'error');
-                this.value = '';
-                return;
-            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 recipePreview.src = e.target.result;
@@ -480,10 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const files = Array.from(event.target.files);
         files.forEach(file => {
             if (selectedFiles.length >= MAX_ADDITIONAL_IMAGES) return;
-            if (file.size > 1024 * 1024) {
-                showAlert(`Image "${file.name}" exceeds 1MB and will be skipped.`, 'error');
-                return;
-            }
+
             selectedFiles.push(file);
             const reader = new FileReader();
             reader.onload = function(e) {
