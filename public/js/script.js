@@ -595,11 +595,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateOpts = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
 
         if (evt.startStr) {
-            const sd = new Date(evt.startStr.split('T')[0]);
+            const sd = new Date(evt.startStr.split('T')[0] + 'T00:00:00');
             dateStr = sd.toLocaleDateString('en-US', dateOpts);
             
             if (evt.endStr && evt.endStr.split('T')[0] !== evt.startStr.split('T')[0]) {
-                const ed = new Date(evt.endStr.split('T')[0]);
+                const ed = new Date(evt.endStr.split('T')[0] + 'T00:00:00');
                 dateStr += ' - ' + ed.toLocaleDateString('en-US', dateOpts);
             }
         }
@@ -852,9 +852,9 @@ document.addEventListener('DOMContentLoaded', () => {
         weekEnd.setHours(23, 59, 59, 999);
 
         const currentWeekEvents = events.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
-            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0] + 'T00:00:00') : new Date(startD);
             endD.setHours(23, 59, 59, 999);
             return startD <= weekEnd && endD >= weekStart;
         });
@@ -871,9 +871,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const isToday = dayDate.toDateString() === new Date().toDateString();
 
             const dayEvents = currentWeekEvents.filter(e => {
-                const startD = new Date(e.startStr.split('T')[0]);
+                const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
                 startD.setHours(0, 0, 0, 0);
-                const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+                const endD = e.endStr ? new Date(e.endStr.split('T')[0] + 'T00:00:00') : new Date(startD);
                 endD.setHours(0, 0, 0, 0);
                 return dayDate >= startD && dayDate <= endD;
             });
@@ -963,9 +963,9 @@ document.addEventListener('DOMContentLoaded', () => {
         weekEnd.setHours(23, 59, 59, 999);
 
         const currentWeekAllDayEvents = allDayEvents.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
-            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0] + 'T00:00:00') : new Date(startD);
             endD.setHours(23, 59, 59, 999);
             return startD <= weekEnd && endD >= weekStart;
         });
@@ -1013,12 +1013,12 @@ document.addEventListener('DOMContentLoaded', () => {
         now.setHours(0, 0, 0, 0);
 
         const upcomingCountdowns = countdownEventsList.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
             return startD >= now;
         });
 
-        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0] + 'T00:00:00') - new Date(b.startStr.split('T')[0] + 'T00:00:00'));
 
         if (upcomingCountdowns.length > 0) {
             countdownRow.classList.remove('d-none');
@@ -1077,12 +1077,12 @@ document.addEventListener('DOMContentLoaded', () => {
         now.setHours(0, 0, 0, 0);
 
         const upcomingCountdowns = countdownEventsList.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
             return startD >= now;
         });
 
-        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0] + 'T00:00:00') - new Date(b.startStr.split('T')[0] + 'T00:00:00'));
 
         if (upcomingCountdowns.length > 0) {
             countdownRow.classList.remove('d-none');
@@ -1139,12 +1139,12 @@ document.addEventListener('DOMContentLoaded', () => {
         now.setHours(0, 0, 0, 0);
 
         const upcomingCountdowns = countdownEventsList.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
             return startD >= now;
         });
 
-        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+        upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0] + 'T00:00:00') - new Date(b.startStr.split('T')[0] + 'T00:00:00'));
         const top3 = upcomingCountdowns.slice(0, 3);
 
         countdownLists.forEach(list => {
@@ -1279,13 +1279,13 @@ document.addEventListener('DOMContentLoaded', () => {
         todayAtMidnight.setHours(0, 0, 0, 0);
 
         const upcomingCountdowns = countdownEventsList.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
             return startD >= todayAtMidnight;
         });
 
         if (upcomingCountdowns.length > 0) {
-            upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0]) - new Date(b.startStr.split('T')[0]));
+            upcomingCountdowns.sort((a, b) => new Date(a.startStr.split('T')[0] + 'T00:00:00') - new Date(b.startStr.split('T')[0] + 'T00:00:00'));
             
             const countdownRow = document.createElement('div');
             countdownRow.className = 'day-view-row d-flex align-items-center p-3 border-bottom bg-white';
@@ -1368,9 +1368,9 @@ document.addEventListener('DOMContentLoaded', () => {
         targetDate.setHours(0, 0, 0, 0);
 
         const dayAllDayEvents = allDayEvents.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
-            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0] + 'T00:00:00') : new Date(startD);
             endD.setHours(0, 0, 0, 0);
             return targetDate >= startD && targetDate <= endD;
         });
@@ -1409,9 +1409,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Time-based Events for this day
         const dayEvents = events.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
-            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0] + 'T00:00:00') : new Date(startD);
             endD.setHours(0, 0, 0, 0);
             return targetDate >= startD && targetDate <= endD;
         });
@@ -1491,17 +1491,17 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = ''; 
 
         const dayAllDayEvents = allDayEvents.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
-            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0] + 'T00:00:00') : new Date(startD);
             endD.setHours(0, 0, 0, 0);
             return targetDate >= startD && targetDate <= endD;
         });
 
         const dayEvents = events.filter(e => {
-            const startD = new Date(e.startStr.split('T')[0]);
+            const startD = new Date(e.startStr.split('T')[0] + 'T00:00:00');
             startD.setHours(0, 0, 0, 0);
-            const endD = e.endStr ? new Date(e.endStr.split('T')[0]) : new Date(startD);
+            const endD = e.endStr ? new Date(e.endStr.split('T')[0] + 'T00:00:00') : new Date(startD);
             endD.setHours(0, 0, 0, 0);
             return targetDate >= startD && targetDate <= endD;
         }).sort((a, b) => a.startHour - b.startHour);
