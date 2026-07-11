@@ -78,8 +78,13 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <small class="d-block d-lg-none" style="font-size: 10px;">Lists</small>
             </a>
             <?php if (isset($_SESSION['user']['active_family']['family_view_enabled']) && $_SESSION['user']['active_family']['family_view_enabled'] == 1): ?>
-            <a href="#" data-bs-toggle="modal" data-bs-target="#familyViewModal"
-                class="list-group-item list-group-item-action <?php echo basename($_SERVER['PHP_SELF']) == 'family_view.php' ? 'active bg-primary text-white' : 'text-secondary'; ?> rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <?php if (isset($_COOKIE['family_view_token'])): ?>
+                    <a href="<?php echo $path_prefix; ?>family/index.php"
+                        class="list-group-item list-group-item-action rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start text-secondary">
+                <?php else: ?>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#familyViewModal"
+                        class="list-group-item list-group-item-action rounded mb-2 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start text-secondary">
+                <?php endif; ?>
                 <i class="ri-eye-line me-lg-3 fs-4 fs-lg-auto"></i>
                 <span class="d-none d-lg-inline">Family View</span>
                 <small class="d-block d-lg-none" style="font-size: 10px;">Family View</small>
