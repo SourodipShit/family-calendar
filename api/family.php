@@ -33,9 +33,28 @@ switch ($action) {
     case 'update':
         $data['id'] = $family_id;
         $result = Family::update($data);
+        if ($result['status'] === 'success') {
+            $isEnabled = (isset($data['family_view_enabled']) && $data['family_view_enabled'] == '1') ? 1 : 0;
+            if (isset($_SESSION['user']['active_family'])) {
+                $_SESSION['user']['active_family']['family_view_enabled'] = $isEnabled;
+            }
+            if (isset($_SESSION['active_account_id']) && isset($_SESSION['accounts'][$_SESSION['active_account_id']]['active_family'])) {
+                $_SESSION['accounts'][$_SESSION['active_account_id']]['active_family']['family_view_enabled'] = $isEnabled;
+            }
+        }
         echo json_encode($result);
         exit;
     
+    case 'verify_family_view':
+        $pin = $data['pin'] ?? '';
+        require_once __DIR__ . '/../classes/Auth.php';
+        $result = Auth::verifyFamilyView($family_id, $pin);
+        if ($result['status'] === 'success') {
+            $_SESSION['family_view_authenticated'] = true;
+        }
+        echo json_encode($result);
+        exit;
+
     case 'updateSettings':
         $result = Family::updateFamilySettings($data['settings'], $family_id);
         if ($result['status'] === 'success') {

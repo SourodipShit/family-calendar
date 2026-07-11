@@ -109,4 +109,34 @@ class Auth
             return ["status" => "error", "message" => "Failed to register user and family. " . $th->getMessage()];
         }
     }
+
+    static function verifyFamilyView($family_id, $pin)
+    {
+        $family = Database::runPrepared("SELECT family_view_enabled, family_view_pin_hash FROM families WHERE id = ?", [$family_id])->fetch(PDO::FETCH_ASSOC);
+        
+        if ($family) {
+            if ($family['family_view_enabled'] == 1) {
+                $is_valid = false;
+                if (empty($family['family_view_pin_hash'])) {
+                    $is_valid = true;
+                } else if (password_verify($pin, $family['family_view_pin_hash'])) {
+                    $is_valid = true;
+                }
+                
+                if ($is_valid) {
+                    require_once __DIR__ . '/FamilyViewDevice.php';
+                    $deviceResult = FamilyViewDevice::create($family_id);
+                    if ($deviceResult['status'] === 'success') {
+                        setcookie('family_view_token', $deviceResult['token'], time() + (5 * 365 * 24 * 60 * 60), "/");
+                    }
+                    return ["status" => "success", "message" => empty($family['family_view_pin_hash']) ? "Access granted." : "PIN verified successfully."];
+                } else {
+                    return ["status" => "error", "message" => "Invalid PIN."];
+                }
+            } else {
+                return ["status" => "error", "message" => "Family view is not enabled."];
+            }
+        }
+        return ["status" => "error", "message" => "Family not found."];
+    }
 }

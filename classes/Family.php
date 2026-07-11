@@ -133,21 +133,32 @@ class Family
         }
 
         try {
+            $existingFamily = self::getFamily($data['id']);
+            $family_view_enabled = isset($data['family_view_enabled']) && $data['family_view_enabled'] == '1' ? 1 : 0;
+            $family_view_pin_hash = $existingFamily['family_view_pin_hash'];
+            if (!empty($data['family_view_pin'])) {
+                $family_view_pin_hash = password_hash($data['family_view_pin'], PASSWORD_DEFAULT);
+            }
+
             if (isset($data['storage_allocated'])) {
-                $result = Database::runPrepared("UPDATE families SET name = ?, email = ?, location = ?, timezone = ?, storage_allocated = ? WHERE id = ?", [
+                $result = Database::runPrepared("UPDATE families SET name = ?, email = ?, location = ?, timezone = ?, storage_allocated = ?, family_view_enabled = ?, family_view_pin_hash = ? WHERE id = ?", [
                     $data['name'],
                     $data['email'],
                     $data['location'],
                     $data['timezone'],
                     $data['storage_allocated'],
+                    $family_view_enabled,
+                    $family_view_pin_hash,
                     $data['id']
                 ]);
             } else {
-                $result = Database::runPrepared("UPDATE families SET name = ?, email = ?, location = ?, timezone = ? WHERE id = ?", [
+                $result = Database::runPrepared("UPDATE families SET name = ?, email = ?, location = ?, timezone = ?, family_view_enabled = ?, family_view_pin_hash = ? WHERE id = ?", [
                     $data['name'],
                     $data['email'],
                     $data['location'],
                     $data['timezone'],
+                    $family_view_enabled,
+                    $family_view_pin_hash,
                     $data['id']
                 ]);
             }

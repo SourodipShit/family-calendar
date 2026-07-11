@@ -275,6 +275,28 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="col-12 mt-3 border-top pt-3">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-6 d-flex align-items-center justify-content-between gap-3 mb-2 mb-md-0">
+                                                <div>
+                                                    <h6 class="fw-bold mb-0 small">Family View</h6>
+                                                    <p class="text-muted extra-small mb-0">Enable family view and set a PIN.</p>
+                                                </div>
+                                                <div class="form-check form-switch mb-0">
+                                                    <input class="form-check-input" type="checkbox" id="family_view_enabled" name="family_view_enabled" value="1" style="width: 40px; height: 20px; cursor: pointer;">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="input-group border rounded-3 overflow-hidden shadow-sm bg-light border-light">
+                                                    <span class="input-group-text bg-transparent border-0 text-muted ps-2"><i class="ri-lock-password-line"></i></span>
+                                                    <input type="password" class="form-control border-0 bg-transparent py-1 px-1 small" id="family_view_pin" name="family_view_pin" placeholder="Set 4-digit PIN (leave blank to keep)" maxlength="4" disabled>
+                                                    <button class="btn btn-light bg-transparent border-0 text-muted px-2" type="button" id="togglePinVisibility" disabled>
+                                                        <i class="ri-eye-off-line" id="pinEyeIcon"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-12 mt-4">
                                         <div class="d-flex justify-content-end gap-2">
                                             <button type="button" class="btn btn-light btn-sm px-3 py-1 fw-medium rounded-2 border" onclick="loadFamilyProfile()">Discard</button>
@@ -476,7 +498,9 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                         </tr>
                                     </thead>
                                     <tbody id="manage-rewards-table-body" class="border-0">
-                                        <tr><td colspan="4" class="text-center py-4 text-muted small">Loading rewards...</td></tr>
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted small">Loading rewards...</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -644,7 +668,7 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                 <form id="rewardForm">
                     <input type="hidden" id="reward_id" name="id">
                     <input type="hidden" id="reward_existing_image" name="existing_image">
-                    
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-dark small">Title <span class="text-danger">*</span></label>
                         <input type="text" class="form-control px-3 py-2 small border rounded-3" id="reward_title" name="title" required>
@@ -803,6 +827,12 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                 document.getElementById('family_location').value = family.location;
                 document.getElementById('family_timezone').value = family.timezone;
 
+                const isFamilyViewEnabled = family.family_view_enabled == 1;
+                document.getElementById('family_view_enabled').checked = isFamilyViewEnabled;
+                document.getElementById('family_view_pin').disabled = !isFamilyViewEnabled;
+                const toggleBtn = document.getElementById('togglePinVisibility');
+                if (toggleBtn) toggleBtn.disabled = !isFamilyViewEnabled;
+
                 // Load general settings
                 if (family.settings) {
                     try {
@@ -853,6 +883,26 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
         } finally {
             btn.disabled = false;
             btn.innerText = originalText;
+        }
+    });
+
+    document.getElementById('family_view_enabled').addEventListener('change', function() {
+        document.getElementById('family_view_pin').disabled = !this.checked;
+        const toggleBtn = document.getElementById('togglePinVisibility');
+        if (toggleBtn) toggleBtn.disabled = !this.checked;
+    });
+
+    document.getElementById('togglePinVisibility').addEventListener('click', function() {
+        const pinInput = document.getElementById('family_view_pin');
+        const eyeIcon = document.getElementById('pinEyeIcon');
+        if (pinInput.type === 'password') {
+            pinInput.type = 'text';
+            eyeIcon.classList.remove('ri-eye-off-line');
+            eyeIcon.classList.add('ri-eye-line');
+        } else {
+            pinInput.type = 'password';
+            eyeIcon.classList.remove('ri-eye-line');
+            eyeIcon.classList.add('ri-eye-off-line');
         }
     });
 
@@ -1640,7 +1690,7 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
         try {
             const response = await fetch(`${API_PATH}rewards.php?action=list`);
             const result = await response.json();
-            
+
             if (result.status === 'success') {
                 storeRewardsData = result.data || [];
                 renderStoreRewardsTable();
@@ -1655,9 +1705,9 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
     function renderStoreRewardsTable() {
         const tableBody = document.getElementById('manage-rewards-table-body');
         const addBtn = document.getElementById('addStoreRewardBtn');
-        
+
         tableBody.innerHTML = '';
-        
+
         if (addBtn) {
             addBtn.style.display = storeRewardsData.length >= 10 ? 'none' : 'flex';
         }
@@ -1666,14 +1716,14 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted small">No rewards found. Add one above.</td></tr>';
             return;
         }
-        
+
         storeRewardsData.forEach(reward => {
             const tr = document.createElement('tr');
             tr.className = 'border-bottom';
             let imgSrc = reward.image ? (reward.image.startsWith('../') ? reward.image.substring(3) : reward.image) : '';
             if (imgSrc && !imgSrc.startsWith('http')) imgSrc = '<?php echo $path_prefix; ?>' + imgSrc;
             let imgHtml = imgSrc ? `<img src="${imgSrc}" class="rounded border" style="width: 40px; height: 40px; object-fit: cover;">` : `<div class="bg-light rounded border d-flex align-items-center justify-content-center text-muted" style="width:40px;height:40px;"><i class="ri-image-line"></i></div>`;
-            
+
             tr.innerHTML = `
                 <td class="px-3 py-2">${imgHtml}</td>
                 <td class="px-3 py-2 fw-bold text-dark small">${reward.title}</td>
@@ -1697,7 +1747,7 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
         document.getElementById('reward_existing_image').value = '';
         document.getElementById('reward_img_preview').classList.add('d-none');
         document.getElementById('reward_img_preview').src = '';
-        
+
         document.getElementById('rewardModalLabel').innerText = action === 'add' ? 'Add Reward' : 'Edit Reward';
     }
 
@@ -1721,14 +1771,18 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
 
     async function saveReward() {
         const form = document.getElementById('rewardForm');
-        if (!form.checkValidity()) { form.reportValidity(); return; }
-        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
         const formData = new FormData(form);
         const action = formData.get('id') ? 'update' : 'create';
         const btn = document.getElementById('saveRewardBtn');
         const originalText = btn.innerText;
-        btn.disabled = true; btn.innerHTML = 'Saving...';
-        
+        btn.disabled = true;
+        btn.innerHTML = 'Saving...';
+
         try {
             const response = await fetch(`${API_PATH}rewards.php?action=${action}`, {
                 method: 'POST',
@@ -1745,7 +1799,8 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
         } catch (e) {
             showAlert('Network error', 'error');
         } finally {
-            btn.disabled = false; btn.innerText = originalText;
+            btn.disabled = false;
+            btn.innerText = originalText;
         }
     }
 
@@ -1754,8 +1809,12 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             try {
                 const response = await fetch(`${API_PATH}rewards.php?action=delete`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({id: id})
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: id
+                    })
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
@@ -1769,7 +1828,7 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             }
         }
     }
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         loadStoreRewards();
     });
