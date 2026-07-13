@@ -79,7 +79,7 @@ $path_prefix = isset($path_prefix) ? $path_prefix : "";
             <div class="modal-body pb-4 text-center">
                 <form id="familyViewAuthForm" method="post" action="<?php echo $path_prefix; ?>api/family.php?action=verify_family_view">
                     <p class="text-muted small mb-4">Please enter the Family View PIN to proceed.</p>
-                    
+
                     <div class="d-flex justify-content-center gap-2 mb-4">
                         <input type="password" class="form-control text-center fw-bold fs-3 p-0 pin-input" style="width: 45px; height: 50px;" maxlength="1" data-index="1" required autofocus>
                         <input type="password" class="form-control text-center fw-bold fs-3 p-0 pin-input" style="width: 45px; height: 50px;" maxlength="1" data-index="2" required>
@@ -95,125 +95,177 @@ $path_prefix = isset($path_prefix) ? $path_prefix : "";
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const familyViewForm = document.getElementById('familyViewAuthForm');
-    if (familyViewForm) {
-        const pinInputs = document.querySelectorAll('.pin-input');
-        const hiddenPinInput = document.getElementById('familyViewPinInput');
-        
-        pinInputs.forEach((input, index) => {
-            input.addEventListener('input', function(e) {
-                if (e.target.value.length === 1) {
-                    if (index < pinInputs.length - 1) {
-                        pinInputs[index + 1].focus();
-                    }
-                }
-                updateHiddenPin();
-            });
-            
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Backspace' && e.target.value === '') {
-                    if (index > 0) {
-                        pinInputs[index - 1].focus();
-                        pinInputs[index - 1].value = '';
-                    }
-                }
-                updateHiddenPin();
-            });
-            
-            input.addEventListener('paste', function(e) {
-                e.preventDefault();
-                const pasteData = e.clipboardData.getData('text').slice(0, 4);
-                if (/^\d+$/.test(pasteData)) {
-                    for (let i = 0; i < pasteData.length; i++) {
-                        if (pinInputs[i]) {
-                            pinInputs[i].value = pasteData[i];
+    document.addEventListener('DOMContentLoaded', function() {
+                const familyViewForm = document.getElementById('familyViewAuthForm');
+                if (familyViewForm) {
+                    const pinInputs = document.querySelectorAll('.pin-input');
+                    const hiddenPinInput = document.getElementById('familyViewPinInput');
+
+                    pinInputs.forEach((input, index) => {
+                        input.addEventListener('input', function(e) {
+                            if (e.target.value.length === 1) {
+                                if (index < pinInputs.length - 1) {
+                                    pinInputs[index + 1].focus();
+                                }
+                            }
+                            updateHiddenPin();
+                        });
+
+                        input.addEventListener('keydown', function(e) {
+                            if (e.key === 'Backspace' && e.target.value === '') {
+                                if (index > 0) {
+                                    pinInputs[index - 1].focus();
+                                    pinInputs[index - 1].value = '';
+                                }
+                            }
+                            updateHiddenPin();
+                        });
+
+                        input.addEventListener('paste', function(e) {
+                            e.preventDefault();
+                            const pasteData = e.clipboardData.getData('text').slice(0, 4);
+                            if (/^\d+$/.test(pasteData)) {
+                                for (let i = 0; i < pasteData.length; i++) {
+                                    if (pinInputs[i]) {
+                                        pinInputs[i].value = pasteData[i];
+                                    }
+                                }
+                                if (pasteData.length < 4) {
+                                    pinInputs[pasteData.length].focus();
+                                } else {
+                                    pinInputs[3].focus();
+                                }
+                                updateHiddenPin();
+                            }
+                        });
+
+                        input.addEventListener('focus', function(e) {
+                            const emptyInputIndex = Array.from(pinInputs).findIndex(inp => inp.value === '');
+                            if (emptyInputIndex !== -1) {
+                                if (index !== emptyInputIndex) {
+                                    pinInputs[emptyInputIndex].focus();
+                                }
+                            } else {
+                                if (index !== 3) {
+                                    pinInputs[3].focus();
+                                }
+                            }
+                        });
+                    });
+
+                    function updateHiddenPin() {
+                        let pin = '';
+                        pinInputs.forEach(input => pin += input.value);
+                        hiddenPinInput.value = pin;
+                        if (pin.length === 4) {
+                            familyViewForm.dispatchEvent(new Event('submit', {
+                                cancelable: true
+                            }));
                         }
                     }
-                    if (pasteData.length < 4) {
-                        pinInputs[pasteData.length].focus();
-                    } else {
-                        pinInputs[3].focus();
-                    }
-                    updateHiddenPin();
-                }
-            });
-            
-            input.addEventListener('focus', function(e) {
-                const emptyInputIndex = Array.from(pinInputs).findIndex(inp => inp.value === '');
-                if (emptyInputIndex !== -1) {
-                    if (index !== emptyInputIndex) {
-                        pinInputs[emptyInputIndex].focus();
-                    }
-                } else {
-                    if (index !== 3) {
-                        pinInputs[3].focus();
-                    }
-                }
-            });
-        });
 
-        function updateHiddenPin() {
-            let pin = '';
-            pinInputs.forEach(input => pin += input.value);
-            hiddenPinInput.value = pin;
-            if (pin.length === 4) {
-                familyViewForm.dispatchEvent(new Event('submit', { cancelable: true }));
-            }
-        }
+                    familyViewForm.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        const btn = document.getElementById('familyViewSubmitBtn');
+                        const pin = hiddenPinInput.value;
 
-        familyViewForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('familyViewSubmitBtn');
-            const pin = hiddenPinInput.value;
-            
-            if (pin.length < 4) return;
-            
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
-            
-            try {
-                const response = await fetch(familyViewForm.action, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ pin: pin })
-                });
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    if (typeof showAlert === 'function') showAlert('PIN verified! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '<?php echo $path_prefix; ?>family/';
-                    }, 800);
-                } else {
-                    if (typeof showAlert === 'function') showAlert(result.message, 'error');
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                    
-                    pinInputs.forEach(input => input.value = '');
-                    hiddenPinInput.value = '';
-                    pinInputs[0].focus();
+                        if (pin.length < 4) return;
+
+                        const originalText = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+
+                        try {
+                            const response = await fetch(familyViewForm.action, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    pin: pin
+                                })
+                            });
+                            const result = await response.json();
+
+                            if (result.status === 'success') {
+                                if (typeof showAlert === 'function') showAlert('PIN verified! Redirecting...', 'success');
+                                setTimeout(() => {
+                                    window.location.href = '<?php echo $path_prefix; ?>family/';
+                                }, 800);
+                            } else {
+                                if (typeof showAlert === 'function') showAlert(result.message, 'error');
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+
+                                pinInputs.forEach(input => input.value = '');
+                                hiddenPinInput.value = '';
+                                pinInputs[0].focus();
+                            }
+                        } catch (err) {
+                            if (typeof showAlert === 'function') showAlert('Network error. Please try again.', 'error');
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    });
+
+                    const modal = document.getElementById('familyViewModal');
+                    if (modal) {
+                        modal.addEventListener('shown.bs.modal', function() {
+                            pinInputs[0].focus();
+                        });
+                        modal.addEventListener('hidden.bs.modal', function() {
+                            pinInputs.forEach(input => input.value = '');
+                            hiddenPinInput.value = '';
+                        });
+                    }
                 }
-            } catch (err) {
-                if (typeof showAlert === 'function') showAlert('Network error. Please try again.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+    });
+</script>
+<!-- Emoji Picker -->
+<script type="module">
+    import { EmojiButton } from 'https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.4/dist/index.min.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        let picker = null;
+        let currentInput = null;
+
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.emoji-btn');
+            if (btn) {
+                e.preventDefault();
+                const targetId = btn.getAttribute('data-target');
+                currentInput = document.getElementById(targetId);
+
+                if (!picker) {
+                    picker = new EmojiButton({
+                        position: 'bottom-start',
+                        zIndex: 9999999,
+                        autoHide: false
+                    });
+
+                    picker.on('emoji', selection => {
+                        if (currentInput) {
+                            const start = currentInput.selectionStart || currentInput.value.length;
+                            const end = currentInput.selectionEnd || currentInput.value.length;
+                            currentInput.value = currentInput.value.substring(0, start) + selection.emoji + currentInput.value.substring(end);
+                            currentInput.setSelectionRange(start + selection.emoji.length, start + selection.emoji.length);
+                            currentInput.focus();
+                        }
+                    });
+                }
+
+                picker.togglePicker(btn);
             }
         });
         
-        const modal = document.getElementById('familyViewModal');
-        if (modal) {
-            modal.addEventListener('shown.bs.modal', function () {
-                pinInputs[0].focus();
-            });
-            modal.addEventListener('hidden.bs.modal', function () {
-                pinInputs.forEach(input => input.value = '');
-                hiddenPinInput.value = '';
-            });
-        }
-    }
-});
+        // Fix for aria-hidden focus error on modals
+        document.addEventListener('hide.bs.modal', function () {
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        });
+    });
 </script>
 </body>
+
 </html>

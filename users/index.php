@@ -271,7 +271,7 @@ include $path_prefix . 'components/sidebar.php';
 </div>
 
 <!-- Add Event Modal -->
-<div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
+<div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true" data-bs-focus="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 rounded-4 shadow p-3">
             <form action="../helpers/addEvent.php" method="POST" id="addEventForm">
@@ -309,6 +309,7 @@ include $path_prefix . 'components/sidebar.php';
                             <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                 <input type="text" class="form-control border-0 px-3 py-2 text-muted"
                                     id="eventTitle" name="title" placeholder="Enter event title" required>
+                                <button type="button" class="btn btn-white border-0 text-muted emoji-btn" data-target="eventTitle"><i class="fa-regular fa-face-smile"></i></button>
                                 <span class="input-group-text bg-white border-0 text-muted"><i
                                         class="fa-regular fa-calendar"></i></span>
                             </div>
@@ -416,6 +417,7 @@ include $path_prefix . 'components/sidebar.php';
                                 <textarea class="form-control border rounded-3 p-3 text-muted fs-7"
                                     id="eventNotes" name="description" style="background-color: #fafafa;" rows="3"
                                     placeholder="Add notes, agenda or any important details..."></textarea>
+                                <button type="button" class="btn btn-sm btn-link text-muted position-absolute bottom-0 end-0 m-2 emoji-btn text-decoration-none" data-target="eventNotes"><i class="fa-regular fa-face-smile fs-5"></i></button>
                             </div>
                         </div>
 
@@ -463,7 +465,7 @@ include $path_prefix . 'components/sidebar.php';
 </div>
 
 <!-- Edit Event Modal -->
-<div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel" aria-hidden="true">
+<div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel" aria-hidden="true" data-bs-focus="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 rounded-4 shadow p-3">
             <form action="../helpers/editEvent.php" method="POST" id="editEventForm">
@@ -492,6 +494,7 @@ include $path_prefix . 'components/sidebar.php';
                             <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                 <input type="text" class="form-control border-0 px-3 py-2 text-muted"
                                     id="editEventTitle" name="title" placeholder="Enter event title" required>
+                                <button type="button" class="btn btn-white border-0 text-muted emoji-btn" data-target="editEventTitle"><i class="fa-regular fa-face-smile"></i></button>
                                 <span class="input-group-text bg-white border-0 text-muted"><i
                                         class="fa-regular fa-calendar"></i></span>
                             </div>
@@ -599,6 +602,7 @@ include $path_prefix . 'components/sidebar.php';
                                 <textarea class="form-control border rounded-3 p-3 text-muted fs-7"
                                     id="editEventNotes" name="description" style="background-color: #fafafa;" rows="3"
                                     placeholder="Add notes, agenda or any important details..."></textarea>
+                                <button type="button" class="btn btn-sm btn-link text-muted position-absolute bottom-0 end-0 m-2 emoji-btn text-decoration-none" data-target="editEventNotes"><i class="fa-regular fa-face-smile fs-5"></i></button>
                             </div>
                         </div>
 
