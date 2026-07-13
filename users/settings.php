@@ -32,6 +32,13 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                 <small class="opacity-75" style="font-size: 0.7rem;">Your personal preferences</small>
                             </div>
                         </a>
+                        <a href="#calendar-integrations" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-google-fill me-3 fs-5 text-danger"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Calendar Integrations</span>
+                                <small class="opacity-75" style="font-size: 0.7rem;">Sync with Google Calendar</small>
+                            </div>
+                        </a>
                         <a href="#shared-family" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
                             <i class="ri-team-line me-3 fs-5 text-success"></i>
                             <div>
@@ -154,6 +161,36 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                             </form>
                         </div>
 
+                    </div>
+
+                    <!-- Calendar Integrations -->
+                    <div class="tab-pane fade" id="calendar-integrations">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4 mb-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 me-3">
+                                    <i class="ri-calendar-check-line fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Calendar Integrations</h5>
+                                    <p class="text-muted small mb-0">Sync your external calendars with the family calendar.</p>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1 small"><i class="ri-google-fill text-danger me-1"></i> Google Calendar</h6>
+                                            <p class="text-muted extra-small mb-0" id="google-sync-status-text">Checking connection status...</p>
+                                        </div>
+                                        <div class="d-flex gap-3">
+                                            <button id="google-sync-pull-btn" class="btn btn-outline-primary btn-sm px-3 py-1 fw-medium rounded-2" style="display: none;" onclick="pullGoogleSync()">Sync Now</button>
+                                            <button id="google-sync-btn" class="btn btn-outline-danger btn-sm px-3 py-1 fw-medium rounded-2" style="display: none;">Connect Google Calendar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Shared Family -->
@@ -1829,8 +1866,100 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
         }
     }
 
+    async function checkGoogleSyncStatus() {
+        try {
+            const response = await fetch(`${API_PATH}user_google_sync.php?action=status`);
+            const result = await response.json();
+            
+            const statusText = document.getElementById('google-sync-status-text');
+            const btn = document.getElementById('google-sync-btn');
+            const pullBtn = document.getElementById('google-sync-pull-btn');
+            
+            if (result.status === 'success' && result.connected) {
+                statusText.innerHTML = '<span class="text-success fw-bold">Connected</span>';
+                btn.innerText = 'Disconnect';
+                btn.className = 'btn btn-outline-secondary btn-sm px-3 py-1 fw-medium rounded-2';
+                btn.onclick = disconnectGoogleSync;
+                pullBtn.style.display = 'block';
+            } else {
+                statusText.innerHTML = 'Not connected';
+                btn.innerText = 'Connect Google Calendar';
+                btn.className = 'btn btn-outline-danger btn-sm px-3 py-1 fw-medium rounded-2';
+                btn.onclick = connectGoogleSync;
+                pullBtn.style.display = 'none';
+            }
+            btn.style.display = 'block';
+        } catch (e) {
+            console.error('Error checking sync status:', e);
+        }
+    }
+
+    async function connectGoogleSync() {
+        try {
+            const response = await fetch(`${API_PATH}user_google_sync.php?action=connect`);
+            const result = await response.json();
+            if (result.status === 'success' && result.url) {
+                window.location.href = result.url;
+            } else {
+                showAlert(result.message || 'Error connecting to Google', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        }
+    }
+
+    async function disconnectGoogleSync() {
+        if (!confirm('Are you sure you want to disconnect your Google Calendar?')) return;
+        
+        try {
+            const response = await fetch(`${API_PATH}user_google_sync.php?action=disconnect`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Disconnected successfully', 'success');
+                checkGoogleSyncStatus();
+            } else {
+                showAlert(result.message || 'Error disconnecting', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        }
+    }
+
+    async function pullGoogleSync() {
+        const pullBtn = document.getElementById('google-sync-pull-btn');
+        const originalText = pullBtn.innerHTML;
+        pullBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Syncing...';
+        pullBtn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_PATH}user_google_sync.php?action=sync`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Google Calendar synced successfully!', 'success');
+            } else {
+                showAlert(result.message || 'Error syncing', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        } finally {
+            pullBtn.innerHTML = originalText;
+            pullBtn.disabled = false;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         loadStoreRewards();
+        checkGoogleSyncStatus();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('google_sync') === 'success') {
+            showAlert('Google Calendar connected successfully!', 'success');
+            // Remove the param from url
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (urlParams.get('google_sync') === 'error') {
+            showAlert('Google Calendar connection failed: ' + (urlParams.get('message') || ''), 'error');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     });
 </script>
 

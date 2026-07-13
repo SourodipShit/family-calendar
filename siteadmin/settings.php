@@ -550,6 +550,42 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                 </div>
                                             </div>
 
+                                            <!-- Google Calendar Configuration -->
+                                            <div class="accordion-item border-0 mb-3 rounded-3 shadow-sm overflow-hidden">
+                                                <h2 class="accordion-header" id="headingGoogle">
+                                                    <button class="accordion-button collapsed fw-bold bg-light text-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGoogle" aria-expanded="false" aria-controls="collapseGoogle">
+                                                        <i class="ri-google-fill me-2 text-danger"></i> Google Calendar Settings
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseGoogle" class="accordion-collapse collapse" aria-labelledby="headingGoogle" data-bs-parent="#configAccordion">
+                                                    <div class="accordion-body border-top border-light bg-white">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Client ID</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-key-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="google_client_id" name="google_client_id" placeholder="Your Google Client ID">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Client Secret</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-key-2-line"></i></span>
+                                                                <input type="password" class="form-control border-0 px-3 py-2 small" id="google_client_secret" name="google_client_secret" placeholder="Your Google Client Secret">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Redirect URI</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-link"></i></span>
+                                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="google_redirect_uri" name="google_redirect_uri" placeholder="e.g. https://domain.com/api/google_callback.php">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                         </div>
 
                                         <div class="mt-4 pt-3 border-top">
@@ -1212,6 +1248,21 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                 if (monthlySubscriptionCostSetting) {
                     document.getElementById('monthly_subscription_cost').value = monthlySubscriptionCostSetting.setting_value || '';
                 }
+
+                const googleClientIdSetting = settings.find(s => s.setting_key === 'google_client_id');
+                if (googleClientIdSetting) {
+                    document.getElementById('google_client_id').value = googleClientIdSetting.setting_value || '';
+                }
+
+                const googleClientSecretSetting = settings.find(s => s.setting_key === 'google_client_secret');
+                if (googleClientSecretSetting) {
+                    document.getElementById('google_client_secret').value = googleClientSecretSetting.setting_value || '';
+                }
+
+                const googleRedirectUriSetting = settings.find(s => s.setting_key === 'google_redirect_uri');
+                if (googleRedirectUriSetting) {
+                    document.getElementById('google_redirect_uri').value = googleRedirectUriSetting.setting_value || '';
+                }
             }
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -1337,6 +1388,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         const stripeWebhookSecret = document.getElementById('stripe_webhook_secret').value;
         const monthlySubscriptionCost = document.getElementById('monthly_subscription_cost').value;
 
+        const googleClientId = document.getElementById('google_client_id').value;
+        const googleClientSecret = document.getElementById('google_client_secret').value;
+        const googleRedirectUri = document.getElementById('google_redirect_uri').value;
+
         const btn = document.getElementById('saveConfigBtn');
         const originalText = btn.innerHTML;
         btn.disabled = true;
@@ -1362,7 +1417,10 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                         stripe_public_key: stripePublicKey,
                         stripe_secret_key: stripeSecretKey,
                         stripe_webhook_secret: stripeWebhookSecret,
-                        monthly_subscription_cost: monthlySubscriptionCost
+                        monthly_subscription_cost: monthlySubscriptionCost,
+                        google_client_id: googleClientId,
+                        google_client_secret: googleClientSecret,
+                        google_redirect_uri: googleRedirectUri
                     }
                 })
             });

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . "/Remainder.php";
+require_once __DIR__ . "/GoogleCalendarService.php";
 
 class  Event
 {
@@ -85,6 +86,8 @@ class  Event
                 }
             }
 
+            GoogleCalendarService::pushEvent($userId, $id, $data);
+
             return ["msg" => "Event added successfully", "status" => "success"];
         } catch (Exception $e) {
             return ["msg" => $e->getMessage(), "status" => "error"];
@@ -125,6 +128,8 @@ class  Event
                 }
             }
 
+            GoogleCalendarService::pushEvent($userId, $id, $data);
+
             return ["msg" => "Event updated successfully", "status" => "success"];
         } catch (Exception $e) {
             return ["msg" => $e->getMessage(), "status" => "error"];
@@ -138,6 +143,8 @@ class  Event
             if (!$check || $check['created_by'] != $userId) {
                 return ["msg" => "Unauthorized", "status" => "error"];
             }
+
+            GoogleCalendarService::deleteEvent($userId, $id);
 
             Database::runPrepared("DELETE FROM event_reminders WHERE event_id = ?", [$id]);
             Database::runPrepared("DELETE FROM event_members WHERE event_id = ?", [$id]);
