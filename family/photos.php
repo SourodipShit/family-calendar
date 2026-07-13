@@ -16,8 +16,33 @@ include $path_prefix . 'components/family-sidebar.php';
                 <h3 class="fw-bold text-dark mb-1">Family Photos</h3>
                 <p class="text-muted mb-0">Capture and share your favorite moments.</p>
             </div>
-            </div>
+        </div>
+
         <!-- Photos Feed -->
+        <div id="photosFeedContainer">
+            <!-- Dynamically loaded -->
+        </div>
+
+    </div>
+</div>
+
+<!-- Fullscreen Photo Lightbox -->
+<div id="photoLightbox" class="lightbox-container" aria-hidden="true">
+    <div class="lightbox-toolbar">
+        <button class="lightbox-btn" id="lightboxClose" title="Close (Esc)"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="lightbox-info">
+            <span id="lightboxDate" class="lightbox-date"></span>
+            <span id="lightboxCaption" class="lightbox-caption-text"></span>
+        </div>
+        <div class="lightbox-actions">
+            <button class="lightbox-btn" title="Download" id="lightboxDownload" style="display:none;"><i class="fa-solid fa-download"></i></button>
+            <button class="lightbox-btn" title="Delete" id="lightboxDelete" style="display:none;"><i class="fa-solid fa-trash"></i></button>
+            <button class="lightbox-btn" title="Info" id="lightboxInfoBtn"><i class="fa-solid fa-circle-info"></i></button>
+        </div>
+    </div>
+
+    <!-- Image Area -->
+    <div class="lightbox-content-area" id="lightboxContentArea">
         <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
 
         <div class="lightbox-image-wrapper">
@@ -349,11 +374,6 @@ include $path_prefix . 'components/family-sidebar.php';
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const photosFeedContainer = document.getElementById('photosFeedContainer');
-        const pendingPhotosContainer = document.getElementById('pendingPhotosContainer');
-        const fileUpload = document.getElementById('fileUpload');
-        const btnSubmitUpload = document.getElementById('btnSubmitUpload');
-        const pendingCountBadge = document.getElementById('pendingCountBadge');
-
         const lightbox = document.getElementById('photoLightbox');
         const lightboxImg = document.getElementById('lightboxImage');
         const lightboxCaption = document.getElementById('lightboxCaption');
@@ -372,7 +392,6 @@ include $path_prefix . 'components/family-sidebar.php';
 
         // Load data on start
         loadPhotosFeed();
-        loadPendingPhotos();
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -400,39 +419,6 @@ include $path_prefix . 'components/family-sidebar.php';
                 const result = await res.json();
                 if (result.status === 'success') {
                     renderPhotosFeed(result.data);
-                    updateStorageUI();
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function updateStorageUI() {
-            try {
-                const res = await fetch('../api/family/photos.php?action=getStorageDetails');
-                const result = await res.json();
-                if (result.status === 'success') {
-                    const usedMB = parseFloat(result.data.approved_storage).toFixed(2);
-                    const allocatedMB = parseFloat(result.data.allocated_storage);
-
-                    document.getElementById('storageUsedMB').textContent = usedMB;
-                    document.getElementById('storageAllocatedMB').textContent = allocatedMB;
-
-                    let percentage = (usedMB / allocatedMB) * 100;
-                    if (percentage > 100) percentage = 100;
-
-                    const progressBar = document.getElementById('storageProgressBar');
-                    progressBar.style.width = percentage + '%';
-                    progressBar.setAttribute('aria-valuenow', percentage);
-
-                    progressBar.classList.remove('bg-primary', 'bg-warning', 'bg-danger');
-                    if (percentage > 90) {
-                        progressBar.classList.add('bg-danger');
-                    } else if (percentage > 70) {
-                        progressBar.classList.add('bg-warning');
-                    } else {
-                        progressBar.classList.add('bg-primary');
-                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -509,204 +495,6 @@ include $path_prefix . 'components/family-sidebar.php';
             }
         }
 
-        async function loadPendingPhotos() {
-            try {
-                const res = await fetch('../api/family/photos.php?action=getPending');
-                const result = await res.json();
-                if (result.status === 'success') {
-                    renderPendingPhotos(result.data);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function renderPendingPhotos(photos) {
-            pendingPhotosContainer.innerHTML = '';
-            pendingCountBadge.textContent = photos.length;
-            const approveBadge = document.querySelector('.btn-outline-primary .badge');
-            
-            if (approveBadge) {
-                approveBadge.textContent = photos.length;
-                if (photos.length > 0) {
-                    approveBadge.style.display = 'inline-block';
-                } else {
-                    approveBadge.style.display = 'none';
-                }
-            }
-
-            if (photos.length === 0) {
-                pendingPhotosContainer.innerHTML = '<div class="col-12"><p class="text-muted text-center py-4">No pending photos.</p></div>';
-                document.getElementById('bulkActionsContainer').classList.add('d-none');
-                document.getElementById('defaultActionContainer').classList.add('d-none');
-                return;
-            }
-
-            document.getElementById('defaultActionContainer').classList.remove('d-none');
-
-            photos.forEach(photo => {
-                const col = document.createElement('div');
-                col.className = 'col-lg-3 col-md-4 col-sm-6';
-                col.innerHTML = `
-                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
-                        <div class="position-absolute top-0 start-0 p-2" style="z-index: 10;">
-                            <input class="form-check-input photo-approval-checkbox" type="checkbox" value="${photo.id}" aria-label="Select photo" style="width: 1.25rem; height: 1.25rem; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-color: #dee2e6;">
-                        </div>
-                        <img src="${photo.photo}" class="card-img-top" style="height: 110px; object-fit: cover;" alt="Pending">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="d-flex align-items-center">
-                                    <img src="${photo.user?.image ? photo.user.image : 'https://ui-avatars.com/api/?name=' + photo.user?.name}" class="rounded-circle me-2" width="24" height="24" alt="User">
-                                    <span class="fw-medium text-dark fs-7">${photo.user?.name || 'Unknown'}</span>
-                                </div>
-                                <span class="text-muted" style="font-size: 0.7rem;">${formatDate(photo.created_at)}</span>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-success flex-grow-1 rounded-pill fw-medium btn-sm" onclick="approvePhoto(${photo.id})"><i class="fa-solid fa-check"></i></button>
-                                <button class="btn btn-outline-danger flex-grow-1 rounded-pill fw-medium btn-sm" onclick="rejectPhoto(${photo.id})"><i class="fa-solid fa-xmark"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                pendingPhotosContainer.appendChild(col);
-            });
-
-            bindCheckboxLogic();
-        }
-
-        // Upload functionality
-        fileUpload.addEventListener('change', () => {
-            if (fileUpload.files.length > 0) {
-                const count = fileUpload.files.length;
-                document.querySelector('#uploadPhotoModal h5').textContent = count + ' file(s) selected';
-                document.querySelector('#uploadPhotoModal p.text-muted').textContent = 'Ready to upload';
-            } else {
-                document.querySelector('#uploadPhotoModal h5').textContent = 'Drag and drop your photos here';
-                document.querySelector('#uploadPhotoModal p.text-muted').textContent = 'or click to browse from your computer';
-            }
-        });
-
-        btnSubmitUpload.addEventListener('click', async () => {
-            const files = fileUpload.files;
-            if (files.length === 0) return alert('Please select files to upload.');
-
-            btnSubmitUpload.disabled = true;
-            btnSubmitUpload.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
-
-            let uploadedCount = 0;
-            for (let i = 0; i < files.length; i++) {
-                const formData = new FormData();
-                formData.append('file', files[i]);
-                try {
-                    const res = await fetch('../api/family/photos.php?action=upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const data = await res.json();
-                    if (data.status === 'success') {
-                        uploadedCount++;
-                    }
-                } catch (err) {
-                    console.error('Upload error', err);
-                }
-            }
-
-            btnSubmitUpload.disabled = false;
-            btnSubmitUpload.innerHTML = 'Upload Photos';
-            fileUpload.value = '';
-            document.querySelector('#uploadPhotoModal h5').textContent = 'Drag and drop your photos here';
-            document.querySelector('#uploadPhotoModal p.text-muted').textContent = 'or click to browse from your computer';
-
-            const modalEl = document.getElementById('uploadPhotoModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-
-            if (uploadedCount > 0) {
-                showAlert(`${uploadedCount} photo(s) uploaded and waiting for approval`, 'success');
-            } else {
-                showAlert('Failed to upload photos', 'danger');
-            }
-
-            loadPendingPhotos();
-            loadPhotosFeed();
-        });
-
-        // Approve / Reject actions
-        window.approvePhoto = async (id, skipAlert = false) => {
-            const formData = new FormData();
-            formData.append('id', id);
-            await fetch('../api/family/photos.php?action=approve', {
-                method: 'POST',
-                body: formData
-            });
-            loadPendingPhotos();
-            loadPhotosFeed();
-            if (!skipAlert) showAlert('Photo approved successfully', 'success');
-        };
-
-        window.rejectPhoto = async (id, skipAlert = false) => {
-            if (!skipAlert) {
-                if (!confirm('Are you sure you want to delete this pending photo?')) return;
-            }
-            const formData = new FormData();
-            formData.append('id', id);
-            await fetch('../api/family/photos.php?action=delete', {
-                method: 'POST',
-                body: formData
-            });
-            loadPendingPhotos();
-            if (!skipAlert) showAlert('Photo deleted successfully', 'success');
-        };
-
-        const bulkActions = document.getElementById('bulkActionsContainer');
-        const defaultActions = document.getElementById('defaultActionContainer');
-
-        function bindCheckboxLogic() {
-            const approveCheckboxes = document.querySelectorAll('.photo-approval-checkbox');
-            approveCheckboxes.forEach(cb => {
-                cb.addEventListener('change', () => {
-                    const checkedCount = document.querySelectorAll('.photo-approval-checkbox:checked').length;
-                    if (checkedCount > 0) {
-                        bulkActions.classList.remove('d-none');
-                        defaultActions.classList.add('d-none');
-                    } else {
-                        bulkActions.classList.add('d-none');
-                        defaultActions.classList.remove('d-none');
-                    }
-                });
-            });
-        }
-
-        // Bulk Approve / Reject / Approve All buttons
-        document.querySelector('#defaultActionContainer .btn-primary').addEventListener('click', async () => {
-            const checkboxes = document.querySelectorAll('.photo-approval-checkbox');
-            if (checkboxes.length === 0) return;
-            if (!confirm('Are you sure you want to approve all photos?')) return;
-            for (const cb of checkboxes) {
-                await window.approvePhoto(cb.value, true);
-            }
-            showAlert(checkboxes.length + ' photo(s) approved', 'success');
-        });
-
-        document.querySelector('#bulkActionsContainer .btn-success').addEventListener('click', async () => {
-            const checked = document.querySelectorAll('.photo-approval-checkbox:checked');
-            if (checked.length === 0) return;
-            for (const cb of checked) {
-                await window.approvePhoto(cb.value, true);
-            }
-            showAlert(checked.length + ' photo(s) approved', 'success');
-        });
-
-        document.querySelector('#bulkActionsContainer .btn-outline-danger').addEventListener('click', async () => {
-            const checked = document.querySelectorAll('.photo-approval-checkbox:checked');
-            if (checked.length === 0) return;
-            if (!confirm('Are you sure you want to delete selected photos?')) return;
-            for (const cb of checked) {
-                await window.rejectPhoto(cb.value, true);
-            }
-            showAlert(checked.length + ' photo(s) deleted', 'success');
-        });
-
         // --- Lightbox Logic ---
         function openLightbox(index) {
             currentIndex = index;
@@ -727,15 +515,19 @@ include $path_prefix . 'components/family-sidebar.php';
         const infoPanelClose = document.getElementById('infoPanelClose');
         const infoBtn = document.getElementById('lightboxInfoBtn');
 
-        infoBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            lightbox.classList.toggle('info-open');
-        });
+        if (infoBtn) {
+            infoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                lightbox.classList.toggle('info-open');
+            });
+        }
 
-        infoPanelClose.addEventListener('click', (e) => {
-            e.stopPropagation();
-            lightbox.classList.remove('info-open');
-        });
+        if (infoPanelClose) {
+            infoPanelClose.addEventListener('click', (e) => {
+                e.stopPropagation();
+                lightbox.classList.remove('info-open');
+            });
+        }
 
         function closeLightbox() {
             lightbox.classList.remove('active');
@@ -766,35 +558,6 @@ include $path_prefix . 'components/family-sidebar.php';
             document.getElementById('infoSize').textContent = data.sizeBytes > 0 ? (data.sizeBytes / (1024 * 1024)).toFixed(2) + ' MB' : 'Unknown size';
             document.getElementById('infoUploader').textContent = data.uploader || 'Unknown';
             document.getElementById('infoUploadDate').textContent = data.fullDate || 'Unknown Date';
-
-            // Update Download Button
-            const downloadBtn = document.getElementById('lightboxDownload');
-            downloadBtn.onclick = (e) => {
-                e.stopPropagation();
-                const a = document.createElement('a');
-                a.href = data.src;
-                a.download = data.originalName || 'photo.jpg';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            };
-
-            // Update Delete Button
-            const deleteBtn = document.getElementById('lightboxDelete');
-            deleteBtn.onclick = async (e) => {
-                e.stopPropagation();
-                if(confirm('Are you sure you want to delete this photo?')) {
-                    const formData = new FormData();
-                    formData.append('id', data.id);
-                    await fetch('../api/family/photos.php?action=delete', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    document.getElementById('photoLightbox').classList.remove('active');
-                    loadPhotosFeed();
-                }
-            };
 
             btnPrev.style.visibility = index > 0 ? 'visible' : 'hidden';
             btnNext.style.visibility = index < photosData.length - 1 ? 'visible' : 'hidden';
@@ -832,10 +595,6 @@ include $path_prefix . 'components/family-sidebar.php';
                 loadImage(currentIndex);
             }
         }
-
-        btnPrev.addEventListener('click', prevPhoto);
-        btnNext.addEventListener('click', nextPhoto);
-        btnClose.addEventListener('click', closeLightbox);
 
         function resetIdleTimer() {
             lightbox.classList.remove('idle');
@@ -879,5 +638,3 @@ include $path_prefix . 'components/family-sidebar.php';
 </script>
 
 <?php include $path_prefix . 'components/family-footer.php'; ?>
-
-

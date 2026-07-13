@@ -27,14 +27,33 @@ switch ($action) {
         echo json_encode(Reward::getFamilyVault($family_id));
         break;
         
+    case 'redeem':
+        $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        $reward_id = $data['reward_id'] ?? $_GET['reward_id'] ?? null;
+        $user_id = $data['user_id'] ?? $_GET['user_id'] ?? null;
+        if (empty($reward_id) || empty($user_id)) {
+            echo json_encode(['status' => 'error', 'message' => 'Reward ID and User ID are required']);
+            exit;
+        }
+        echo json_encode(Reward::redeem($reward_id, $user_id, $family_id));
+        break;
+
     case 'my_vault':
-        // Family view has no 'my' vault
-        echo json_encode(['status' => 'success', 'data' => []]);
+        $user_id = $_GET['user_id'] ?? null;
+        if (empty($user_id)) {
+            echo json_encode(['status' => 'success', 'data' => []]);
+        } else {
+            echo json_encode(Reward::getMyVault($user_id, $family_id));
+        }
         break;
 
     case 'get_points':
-        // Family view has no specific user, so points are 0
-        echo json_encode(['status' => 'success', 'data' => ['balance' => 0]]);
+        $user_id = $_GET['user_id'] ?? null;
+        if (empty($user_id)) {
+            echo json_encode(['status' => 'success', 'data' => ['balance' => 0]]);
+        } else {
+            echo json_encode(Points::getPoints($user_id));
+        }
         break;
 
     default:

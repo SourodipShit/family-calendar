@@ -23,14 +23,55 @@ if ($action == 'getByFamily') {
     exit;
 }
 
-// For any remaining UI components trying to fetch these
 if ($action == 'getStorageDetails') {
-    echo json_encode(["status" => "success", "data" => ["total_storage" => 0, "allocated_storage" => 500]]);
+    $result = Photo::getPhotoStorageDetails($family_id);
+    echo json_encode($result);
     exit;
 }
 
 if ($action == 'getPending') {
-    echo json_encode(["status" => "success", "data" => []]);
+    $result = Photo::getPendingPhotos($family_id);
+    echo json_encode($result);
+    exit;
+}
+
+if ($action == 'upload') {
+    if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+        $data = [
+            'file' => $_FILES['file'],
+            'family_id' => $family_id,
+            'size' => $_FILES['file']['size'],
+            'metadata' => $_POST['metadata'] ?? null,
+            'uploaded_by' => null // Family view might not have a specific user logged in, or we might need to handle this.
+        ];
+        
+        $result = Photo::uploadPhoto($data);
+        echo json_encode($result);
+    } else {
+        echo json_encode(["status" => "error", "message" => "No file uploaded or upload error"]);
+    }
+    exit;
+}
+
+if ($action == 'approve') {
+    $photoId = $_POST['id'] ?? null;
+    if ($photoId) {
+        $result = Photo::approvePhoto($photoId);
+        echo json_encode($result);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Missing photo ID"]);
+    }
+    exit;
+}
+
+if ($action == 'delete') {
+    $photoId = $_POST['id'] ?? null;
+    if ($photoId) {
+        $result = Photo::deletePhoto($photoId);
+        echo json_encode($result);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Missing photo ID"]);
+    }
     exit;
 }
 

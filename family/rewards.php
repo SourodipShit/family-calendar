@@ -31,16 +31,17 @@ include $path_prefix . 'components/family-sidebar.php';
         <!-- Header & Points Summary -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold mb-0 text-dark">Rewards</h2>
-            <div class="d-flex align-items-center px-3 py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #FFD700, #FDB931); border: 2px solid #FFF3E0; transform: translateY(-2px);">
-                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle me-2 shadow-sm" style="width: 28px; height: 28px;">
-                    <i class="fa-solid fa-star text-warning" style="font-size: 0.85rem;"></i>
+            <div class="d-flex align-items-center px-3 py-2 rounded-pill shadow-sm cursor-pointer" onclick="openSelectUserModal('vault')" style="background: linear-gradient(135deg, #FFD700, #FDB931); border: 2px solid #FFF3E0; transform: translateY(-2px); transition: transform 0.2s;" id="points-container">
+                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle me-2 shadow-sm" style="width: 28px; height: 28px; overflow: hidden;" id="points-avatar-container">
+                    <i class="fa-solid fa-star text-warning" style="font-size: 0.85rem;" id="points-avatar-icon"></i>
                 </div>
-                <span class="fw-bold text-white fs-5" id="user-points-display" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);"><?php echo $myPoints; ?></span>
+                <div class="d-flex flex-column lh-1 me-2 text-start">
+                    <span class="text-white fw-bold" style="font-size: 0.7rem;" id="points-user-name">Select User</span>
+                </div>
+                <span class="fw-bold text-white fs-5" id="user-points-display" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">0</span>
                 <span class="ms-1 fw-bold text-white fs-6" style="opacity: 0.9;">pts</span>
             </div>
         </div>
-
-
 
         <!-- Tabs -->
         <ul class="nav nav-tabs border-bottom mb-4" id="rewardsTabs" role="tablist">
@@ -54,16 +55,13 @@ include $path_prefix . 'components/family-sidebar.php';
                     <i class="fa-solid fa-box-open me-2"></i> My Reward Vault
                 </button>
             </li>
-            
         </ul>
 
         <div class="tab-content" id="rewardsTabsContent">
-
             <!-- Redeem Store Tab -->
             <div class="tab-pane fade show active" id="store" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-secondary mb-0">Available Rewards</h5>
-                    
                 </div>
                 <div class="row g-3" id="store-rewards-container">
                     <!-- Dynamic rewards will be loaded here -->
@@ -77,9 +75,6 @@ include $path_prefix . 'components/family-sidebar.php';
                     <!-- Dynamic vault items will be loaded here -->
                 </div>
             </div>
-
-            
-
         </div>
     </div>
 </div>
@@ -103,13 +98,79 @@ include $path_prefix . 'components/family-sidebar.php';
     }
 </style>
 
+<!-- Select User Modal -->
+<div class="modal fade" id="selectUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-0 justify-content-center">
+                <h5 class="modal-title fw-bold" id="selectUserModalTitle">Who is this for?</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <?php foreach ($familyMembers as $member):
+                        $avatarUrl = !empty($member['image']) ? $member['image'] : 'https://ui-avatars.com/api/?name=' . urlencode($member['nickname'] ?? $member['name']) . '&background=random&color=fff';
+                        $displayName = htmlspecialchars(!empty($member['nickname']) ? $member['nickname'] : $member['name']);
+                    ?>
+                        <div class="text-center position-relative cursor-pointer avatar-selector opacity-75 hover-opacity-100"
+                            onclick="selectUserAndContinue(<?= $member['id'] ?>, '<?= addslashes($displayName) ?>', '<?= $avatarUrl ?>')">
+                            <img src="<?= $avatarUrl ?>" class="rounded-circle border border-transparent border-2 p-1 avatar-img" width="50" height="50" style="object-fit: cover;">
+                            <div class="fs-8 mt-1 text-dark avatar-name" style="font-size: 0.75rem;"><?= $displayName ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <button type="button" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    let userPoints = <?php echo $myPoints; ?>;
+    let userPoints = 0;
     const isHead = <?php echo $isHead ? 'true' : 'false'; ?>;
 
-    function fetchUserPoints() {
-        fetch('../api/family/rewards.php?action=get_points')
+    let pendingAction = null; // 'redeem' or 'vault'
+    let pendingRewardId = null;
+    let pendingRewardPrice = null;
+    let currentSelectedUserId = null;
+    let currentSelectedUserName = null;
+
+    function openSelectUserModal(action, rewardId = null, price = null) {
+        pendingAction = action;
+        pendingRewardId = rewardId;
+        pendingRewardPrice = price;
+        
+        document.getElementById('selectUserModalTitle').innerText = action === 'redeem' ? 'Who is redeeming this?' : 'Select Member';
+        
+        let modal = new bootstrap.Modal(document.getElementById('selectUserModal'));
+        modal.show();
+    }
+
+    function selectUserAndContinue(userId, userName, avatarUrl) {
+        currentSelectedUserId = userId;
+        currentSelectedUserName = userName;
+        
+        let modalEl = document.getElementById('selectUserModal');
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        
+        // Update top right header
+        document.getElementById('points-user-name').innerText = userName;
+        document.getElementById('points-avatar-container').innerHTML = `<img src="${avatarUrl}" class="w-100 h-100" style="object-fit: cover;">`;
+        
+        fetchUserPoints(userId).then(() => {
+            if (pendingAction === 'redeem') {
+                processRedeem();
+            } else if (pendingAction === 'vault') {
+                fetchMyVault();
+            }
+        });
+    }
+
+    function fetchUserPoints(userId = currentSelectedUserId) {
+        if (!userId) return Promise.resolve();
+        return fetch('../api/family/rewards.php?action=get_points&user_id=' + userId)
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
@@ -153,7 +214,18 @@ include $path_prefix . 'components/family-sidebar.php';
     }
 
     function fetchMyVault() {
-        fetch('../api/family/rewards.php?action=my_vault')
+        if (!currentSelectedUserId) {
+            const container = document.getElementById('my-vault-container');
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fa-solid fa-users fa-3x text-muted mb-3 opacity-50"></i>
+                    <p class="text-muted">Please choose a member to view their reward vault.</p>
+                    <button class="btn btn-outline-primary rounded-pill px-4 mt-2" onclick="openSelectUserModal('vault')">Select Member</button>
+                </div>
+            `;
+            return;
+        }
+        fetch('../api/family/rewards.php?action=my_vault&user_id=' + currentSelectedUserId)
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
@@ -212,6 +284,7 @@ include $path_prefix . 'components/family-sidebar.php';
     function renderFamilyVault(vaults) {
         const pendingContainer = document.getElementById('manage-vault-pending-container');
         const completedContainer = document.getElementById('manage-vault-completed-container');
+        if (!pendingContainer || !completedContainer) return;
         pendingContainer.innerHTML = '';
         completedContainer.innerHTML = '';
 
@@ -274,15 +347,21 @@ include $path_prefix . 'components/family-sidebar.php';
     }
 
     function redeemReward(rewardId, price) {
-        if (userPoints < price) {
+        openSelectUserModal('redeem', rewardId, price);
+    }
+
+    function processRedeem() {
+        if (!currentSelectedUserId) return;
+        
+        if (userPoints < pendingRewardPrice) {
             showAlert('Not enough points to redeem this reward!', 'error');
             return;
         }
-        if (!confirm('Are you sure you want to redeem this reward for ' + price + ' points?')) return;
+        if (!confirm('Are you sure you want to redeem this reward for ' + currentSelectedUserName + ' for ' + pendingRewardPrice + ' points?')) return;
 
         // Optimistic UI Update: Make it feel instant
         const previousPoints = userPoints;
-        userPoints -= price;
+        userPoints -= pendingRewardPrice;
         document.getElementById('user-points-display').innerText = userPoints;
 
         fetch('../api/family/rewards.php?action=redeem', {
@@ -291,7 +370,8 @@ include $path_prefix . 'components/family-sidebar.php';
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    reward_id: rewardId
+                    reward_id: pendingRewardId,
+                    user_id: currentSelectedUserId
                 })
             })
             .then(res => res.json())
@@ -340,36 +420,6 @@ include $path_prefix . 'components/family-sidebar.php';
             });
     }
 
-    function createReward() {
-        const form = document.getElementById('createRewardForm');
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        const formData = new FormData(form);
-
-        fetch('../api/family/rewards.php?action=create', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(res => {
-            if (res.status === 'success') {
-                showAlert('Reward created successfully!', 'success');
-                fetchStoreRewards();
-                const modal = bootstrap.Modal.getInstance(document.getElementById('createRewardModal'));
-                if (modal) modal.hide();
-                form.reset();
-            } else {
-                showAlert(res.message || 'Failed to create reward', 'error');
-            }
-        })
-        .catch(() => {
-            showAlert('A network error occurred. Please try again.', 'error');
-        });
-    }
-
     // Init
     document.addEventListener('DOMContentLoaded', () => {
         fetchStoreRewards();
@@ -378,5 +428,3 @@ include $path_prefix . 'components/family-sidebar.php';
     });
 </script>
 <?php include $path_prefix . 'components/family-footer.php'; ?>
-
-
