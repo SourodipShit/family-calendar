@@ -134,7 +134,7 @@ class Chore
             $sql = "SELECT c.assigned_to FROM chore_instances ci INNER JOIN chores c ON ci.chore_id = c.id WHERE ci.id = ?";
             $check = Database::runPrepared($sql, [$instanceId])->fetch(PDO::FETCH_ASSOC);
             
-            if (!$check || $check['assigned_to'] != $userId) {
+            if (!$check || ($userId !== 0 && $check['assigned_to'] != $userId)) {
                 return ["msg" => "Unauthorized or chore not found", "status" => "error"];
             }
 

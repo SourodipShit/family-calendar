@@ -16,6 +16,22 @@ if (!isset($_SESSION['user']) || empty($_SESSION['user'])) {
         echo '<script>window.location.href = "' . $path_prefix . 'login.php";</script>';
         exit;
     }
+} else {
+    // Role-based directory enforcement
+    $role = $_SESSION['user']['role'] ?? 'member';
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    
+    // Prevent coach from accessing user pages, and vice versa
+    if (strpos($uri, '/coach/') !== false && $role !== 'coach') {
+        echo '<script>window.location.href = "' . $path_prefix . 'users/index.php";</script>';
+        exit;
+    } elseif (strpos($uri, '/users/') !== false && $role === 'coach') {
+        echo '<script>window.location.href = "' . $path_prefix . 'coach/index.php";</script>';
+        exit;
+    } elseif (strpos($uri, '/siteadmin/') !== false && $role !== 'siteadmin') {
+        echo '<script>window.location.href = "' . $path_prefix . 'users/index.php";</script>';
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>

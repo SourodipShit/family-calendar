@@ -3,7 +3,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
-    header("Location: users/index.php");
+    if ($_SESSION['user']['role'] == 'siteadmin') {
+        header("Location: siteadmin/index.php");
+    } else if ($_SESSION['user']['role'] == 'coach') {
+        header("Location: coach/index.php");
+    } else {
+        header("Location: users/index.php");
+    }
     exit;
 }
 $path_prefix = "";
