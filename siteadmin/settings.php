@@ -50,6 +50,13 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                 <small class="text-muted" style="font-size: 0.7rem;">System name & logo</small>
                             </div>
                         </a>
+                        <a href="#coach-categories" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
+                            <i class="ri-file-list-3-line me-3 fs-5 text-info"></i>
+                            <div>
+                                <span class="fw-bold d-block small">Coach Categories</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">Manage coach categories</small>
+                            </div>
+                        </a>
                         <a href="#config-settings" class="list-group-item list-group-item-action py-3 px-4 d-flex align-items-center border-0" data-bs-toggle="list">
                             <i class="ri-equalizer-line me-3 fs-5 text-dark"></i>
                             <div>
@@ -252,6 +259,52 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                     <tbody id="grocery-categories-table-body" class="border-0">
                                         <tr id="grocery-loading-row">
                                             <td colspan="4" class="text-center py-4">
+                                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                <span class="small text-muted">Loading categories...</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coach Categories -->
+                    <div class="tab-pane fade" id="coach-categories">
+                        <div class="card border-0 shadow-sm rounded-3 p-3 p-md-4">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                        <i class="ri-file-list-3-line fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0">Coach Categories</h5>
+                                        <p class="text-muted small mb-0">Manage coach categories for the platform.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="input-group input-group-sm" style="width: 200px;">
+                                        <span class="input-group-text bg-light border-0"><i class="ri-search-line"></i></span>
+                                        <input type="text" id="coachCategorySearch" class="form-control bg-light border-0" placeholder="Search...">
+                                    </div>
+                                    <button class="btn btn-primary btn-sm rounded-2 px-3 py-1" data-bs-toggle="modal" data-bs-target="#coachCategoryModal" onclick="prepareCoachCategoryModal('add')">
+                                        <i class="ri-add-line me-1"></i> Add Category
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="coachCategoriesTable" class="table table-hover align-middle border-0 mb-0 w-100">
+                                    <thead class="bg-light border-0">
+                                        <tr>
+                                            <th class="border-0 rounded-start px-3 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">ID</th>
+                                            <th class="border-0 py-2 text-uppercase extra-small ls-1 fw-bold text-muted">Name</th>
+                                            <th class="border-0 rounded-end px-3 py-2 text-end text-uppercase extra-small ls-1 fw-bold text-muted">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="coach-categories-table-body" class="border-0">
+                                        <tr id="coach-loading-row">
+                                            <td colspan="3" class="text-center py-4">
                                                 <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                                                 <span class="small text-muted">Loading categories...</span>
                                             </td>
@@ -711,6 +764,31 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         transition: height 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     }
 </style>
+
+<!-- Coach Category Modal -->
+<div class="modal fade" id="coachCategoryModal" tabindex="-1" aria-labelledby="coachCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="coachCategoryModalLabel">Add Coach Category</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pb-0">
+                <form id="coachCategoryForm">
+                    <input type="hidden" name="id" id="coach_category_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase ls-1">Category Name</label>
+                        <input type="text" class="form-control" name="name" id="coach_category_name" required placeholder="e.g. Fitness, Mentoring...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary px-4" id="saveCoachCategoryBtn">Save Category</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Password Confirmation Modal for Resets -->
 <div class="modal fade" id="passwordConfirmModal" tabindex="-1" aria-labelledby="passwordConfirmModalLabel" aria-hidden="true">
@@ -2299,6 +2377,193 @@ require_once $path_prefix . 'components/admin-sidebar.php';
         } finally {
             btn.disabled = false;
             btn.innerText = originalText;
+        }
+    });
+
+    // --- Coach Categories Logic ---
+    const COACH_CAT_API_PATH = '../api/admin/coach_categories.php';
+
+    async function loadCoachCategories() {
+        const tableBody = document.getElementById('coach-categories-table-body');
+        try {
+            const response = await fetch(`${COACH_CAT_API_PATH}?action=list`);
+            const result = await response.json();
+
+            if (result.status === 'success' || result.status === true) {
+                renderCoachCategoriesTable(result.data);
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">${result.message || 'No categories found'}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error loading coach categories:', error);
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-danger small">Failed to connect to server</td></tr>`;
+        }
+    }
+
+    function renderCoachCategoriesTable(categories) {
+        const tableBody = document.getElementById('coach-categories-table-body');
+
+        if ($.fn.DataTable.isDataTable('#coachCategoriesTable')) {
+            $('#coachCategoriesTable').DataTable().destroy();
+        }
+
+        tableBody.innerHTML = '';
+
+        if (categories.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted small">No coach categories found.</td></tr>';
+            return;
+        }
+
+        categories.forEach(category => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-bottom';
+
+            tr.innerHTML = `
+                <td class="px-3 py-2 fw-bold text-dark small">${category.id}</td>
+                <td class="py-2">${category.name}</td>
+                <td class="px-3 py-2 text-end">
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 me-1 hover-shadow" style="width: 32px; height: 32px;" onclick="editCoachCategory(${category.id})" title="Edit">
+                        <i class="ri-pencil-line fs-6"></i>
+                    </button>
+                    <button class="btn btn-light btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0 text-danger hover-shadow" style="width: 32px; height: 32px;" onclick="deleteCoachCategory(${category.id})" title="Delete">
+                        <i class="ri-delete-bin-line fs-6"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        const table = $('#coachCategoriesTable').DataTable({
+            "dom": 'rt<"d-flex justify-content-between align-items-center p-3"ip>',
+            "pageLength": 10,
+            "destroy": true,
+            "language": {
+                "paginate": {
+                    "next": '<i class="ri-arrow-right-s-line"></i>',
+                    "previous": '<i class="ri-arrow-left-s-line"></i>'
+                }
+            },
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 2
+            }]
+        });
+
+        document.getElementById('coachCategorySearch').addEventListener('keyup', function() {
+            table.search(this.value).draw();
+        });
+    }
+
+    function prepareCoachCategoryModal(action) {
+        const modalTitle = document.getElementById('coachCategoryModalLabel');
+        const form = document.getElementById('coachCategoryForm');
+        form.reset();
+        document.getElementById('coach_category_id').value = '';
+
+        if (action === 'add') {
+            modalTitle.innerText = 'Add Coach Category';
+        } else {
+            modalTitle.innerText = 'Edit Coach Category';
+        }
+    }
+
+    async function editCoachCategory(id) {
+        try {
+            const response = await fetch(`${COACH_CAT_API_PATH}?action=list`);
+            const result = await response.json();
+            if (result.status === 'success' || result.status === true) {
+                const category = result.data.find(c => c.id == id);
+                if (category) {
+                    prepareCoachCategoryModal('edit');
+                    document.getElementById('coach_category_id').value = category.id;
+                    document.getElementById('coach_category_name').value = category.name;
+
+                    const modal = new bootstrap.Modal(document.getElementById('coachCategoryModal'));
+                    modal.show();
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching coach category:', error);
+            if (typeof showAlert === 'function') showAlert('Failed to fetch category details', 'error');
+            else alert('Failed to fetch category details');
+        }
+    }
+
+    async function deleteCoachCategory(id) {
+        if (confirm('Are you sure you want to delete this coach category?')) {
+            try {
+                const response = await fetch(`${COACH_CAT_API_PATH}?action=delete&id=${id}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                if (result.status === 'success' || result.status === true) {
+                    if (typeof showAlert === 'function') showAlert('Category deleted successfully', 'success');
+                    else alert('Category deleted successfully');
+                    loadCoachCategories();
+                } else {
+                    if (typeof showAlert === 'function') showAlert(result.message || 'Failed to delete category', 'error');
+                    else alert(result.message || 'Failed to delete category');
+                }
+            } catch (error) {
+                console.error('Error deleting coach category:', error);
+                if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+                else alert('Network error occurred');
+            }
+        }
+    }
+
+    document.getElementById('saveCoachCategoryBtn').addEventListener('click', async () => {
+        const form = document.getElementById('coachCategoryForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const action = data.id ? 'update' : 'create';
+
+        const btn = document.getElementById('saveCoachCategoryBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+
+        try {
+            const url = `${COACH_CAT_API_PATH}?action=${action}${data.id ? `&id=${data.id}` : ''}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.status === 'success' || result.status === true) {
+                if (typeof showAlert === 'function') showAlert(result.message || 'Category saved successfully', 'success');
+                else alert(result.message || 'Category saved successfully');
+
+                const modalEl = document.getElementById('coachCategoryModal');
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+
+                loadCoachCategories();
+            } else {
+                if (typeof showAlert === 'function') showAlert(result.message || 'Failed to save category', 'error');
+                else alert(result.message || 'Failed to save category');
+            }
+        } catch (error) {
+            console.error('Error saving coach category:', error);
+            if (typeof showAlert === 'function') showAlert('Network error occurred', 'error');
+            else alert('Network error occurred');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        if(typeof loadCoachCategories === "function") {
+            loadCoachCategories();
         }
     });
 

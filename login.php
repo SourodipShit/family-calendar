@@ -6,6 +6,8 @@ if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
     if (!isset($_GET['add_account'])) {
         if ($_SESSION['user']['role'] == 'siteadmin') {
             echo '<script>window.location.href = "siteadmin/index.php";</script>';
+        } else if ($_SESSION['user']['role'] == 'coach') {
+            echo '<script>window.location.href = "coach/index.php";</script>';
         } else {
             echo '<script>window.location.href = "users/index.php";</script>';
         }
@@ -39,12 +41,33 @@ if (isset($_POST['login'])) {
     if ($result['status'] == 'success') {
         $user = $result['data'];
         $is_siteadmin = ($user['role'] === 'siteadmin');
+        $is_coach = ($user['role'] === 'coach');
 
         if ($is_siteadmin) {
             $_SESSION['accounts'][$user['id']] = $user;
             $_SESSION['active_account_id'] = $user['id'];
             $_SESSION['user'] = $user;
             $success = "Logged in successfully! Redirecting...";
+        } else if ($is_coach) {
+            require_once __DIR__ . '/config/Database.php';
+            $stmt = Database::runPrepared("SELECT approval_status FROM coach_profiles WHERE user_id = ?", [$user['id']]);
+            $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($profile) {
+                if ($profile['approval_status'] === 'approved') {
+                    $_SESSION['accounts'][$user['id']] = $user;
+                    $_SESSION['active_account_id'] = $user['id'];
+                    $_SESSION['user'] = $user;
+                    LoginLogs::track($user['id']);
+                    $success = "Logged in successfully! Redirecting to Coach Dashboard...";
+                } else if ($profile['approval_status'] === 'pending') {
+                    $error = "Your coach application is currently pending approval.";
+                } else {
+                    $error = "Your coach application has been rejected.";
+                }
+            } else {
+                $error = "Coach profile not found!";
+            }
         } else {
             if (empty($user['families'])) {
                 $error = "You do not belong to any family!";
@@ -328,6 +351,10 @@ if (isset($_POST['login'])) {
             <?php if ($_SESSION['user']['role'] == 'siteadmin') { ?>
                 setTimeout(() => {
                     window.location.href = 'siteadmin/index.php';
+                }, 2000);
+            <?php } else if ($_SESSION['user']['role'] == 'coach') { ?>
+                setTimeout(() => {
+                    window.location.href = 'coach/index.php';
                 }, 2000);
             <?php } else { ?>
                 setTimeout(() => {

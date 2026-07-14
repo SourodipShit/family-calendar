@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . "/Points.php";
+require_once __DIR__ . "/Coach.php";
 
 class Auth
 {
@@ -80,7 +81,7 @@ class Auth
                 require_once __DIR__ . '/Account.php';
                 $promoCode = isset($data['promo_code']) ? $data['promo_code'] : null;
                 Account::create($lastFamilyId, $promoCode);
-                
+
                 if (!empty($promoCode)) {
                     Database::runPrepared(
                         "INSERT INTO used_promocodes (family_id, promo_code, status) VALUES (?, ?, 'failed')",
@@ -110,10 +111,63 @@ class Auth
         }
     }
 
+    static function registerAsCoach($data)
+    {
+        $user = $data['user'];
+        $coach = $data['coach'];
+
+        $existingUser = Database::runPrepared("SELECT * FROM users WHERE email=?", [$user['email']])->fetch(PDO::FETCH_ASSOC);
+        if ($existingUser) {
+            return ["status" => "error", "message" => "User already exists."];
+        }
+
+        try {
+            $user['password'] = password_hash($user['password'], PASSWORD_DEFAULT);
+            $phone = isset($user['phone']) ? $user['phone'] : null;
+            $image = isset($user['image']) ? $user['image'] : null;
+
+            Database::runPrepared(
+                "INSERT INTO users (name, email, phone, role, password, image) VALUES (?, ?, ?, 'coach', ?, ?)",
+                [$user['name'], $user['email'], $phone, $user['password'], $image]
+            );
+            $lastUserId = Database::getInstance()->lastInsertId();
+            Points::createInstance($lastUserId);
+
+            if ($lastUserId) {
+                $coachData = [
+                    'profile' => [
+                        'user_id' => $lastUserId,
+                        'description' => $coach['description'] ?? '',
+                        'category_id' => $coach['category_id'] ?? null,
+                    ],
+                    'certifications' => $coach['certifications'] ?? []
+                ];
+
+                $coachResult = Coach::add($coachData);
+
+                if ($coachResult['status'] === 'success') {
+                    // Send signup success email
+                    require_once __DIR__ . '/../services/mail/Mail.php';
+                    Mail::sendSignupSuccess($user['email'], $user['name']);
+
+                    return ["status" => "success", "message" => "Coach registered successfully."];
+                } else {
+                    // Rollback manually since we can't do nested transactions
+                    Database::runPrepared("DELETE FROM users WHERE id = ?", [$lastUserId]);
+                    return ["status" => "error", "message" => "Failed to create coach profile: " . $coachResult['message']];
+                }
+            } else {
+                return ["status" => "error", "message" => "Failed to create user record."];
+            }
+        } catch (Exception $th) {
+            return ["status" => "error", "message" => "Registration failed. " . $th->getMessage()];
+        }
+    }
+
     static function verifyFamilyView($family_id, $pin)
     {
         $family = Database::runPrepared("SELECT family_view_enabled, family_view_pin_hash FROM families WHERE id = ?", [$family_id])->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($family) {
             if ($family['family_view_enabled'] == 1) {
                 $is_valid = false;
@@ -122,7 +176,7 @@ class Auth
                 } else if (password_verify($pin, $family['family_view_pin_hash'])) {
                     $is_valid = true;
                 }
-                
+
                 if ($is_valid) {
                     require_once __DIR__ . '/FamilyViewDevice.php';
                     $deviceResult = FamilyViewDevice::create($family_id);

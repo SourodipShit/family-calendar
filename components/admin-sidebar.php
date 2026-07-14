@@ -79,6 +79,23 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 </div>
             </a>
 
+            <a href="<?php echo $path_prefix; ?>siteadmin/coaches.php"
+                class="list-group-item list-group-item-action d-flex flex-column flex-lg-row align-items-center text-center text-lg-start <?php echo $current_page == 'coaches.php' ? 'active' : ''; ?> rounded mb-1">
+                <div class="d-flex flex-column flex-lg-row align-items-center w-100">
+                    <i class="ri-user-star-line me-lg-3 fs-4 fs-lg-auto"></i>
+                    <span class="d-none d-lg-inline">Manage Coaches</span>
+                    <small class="d-block d-lg-none" style="font-size: 10px;">Manage Coaches</small>
+                    <?php
+                    require_once __DIR__ . '/../classes/Coach.php';
+                    $pendingCoachesRes = Coach::getPendingCoachesCount();
+                    $pendingCoachesCount = ($pendingCoachesRes['status'] === 'success') ? $pendingCoachesRes['data'] : 0;
+                    if ($pendingCoachesCount > 0):
+                    ?>
+                        <span class="badge bg-danger rounded-circle ms-lg-auto mt-1 mt-lg-0" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; padding: 0;"><?php echo $pendingCoachesCount; ?></span>
+                    <?php endif; ?>
+                </div>
+            </a>
+
             <a href="<?php echo $path_prefix; ?>siteadmin/promocodes.php"
                 class="list-group-item list-group-item-action <?php echo $current_page == 'promocodes.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
                 <i class="ri-coupon-line me-lg-3 fs-4 fs-lg-auto"></i>
