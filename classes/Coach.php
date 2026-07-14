@@ -20,16 +20,16 @@ class Coach
 
             $sql = "INSERT INTO coach_profiles (" . implode(", ", $fields) . ") VALUES (" . implode(", ", $placeholders) . ")";
             Database::runPrepared($sql, $params);
-            
+
             $profileId = Database::getInstance()->lastInsertId();
-            
+
             // user_id is the foreign key reference for coach_id in child tables
             $userId = $profileData['user_id'];
 
             if (!empty($data['certifications'])) {
                 self::addCertifications($userId, $data['certifications']);
             }
-            
+
             if (!empty($data['plans'])) {
                 self::addPlans($userId, $data['plans']);
             }
@@ -61,12 +61,12 @@ class Coach
 
             $sql = "UPDATE coach_profiles SET " . implode(", ", $fields) . " WHERE id = ?";
             Database::runPrepared($sql, $params);
-            
+
             // Fetch user_id to update child tables
             $stmt = Database::runPrepared("SELECT user_id FROM coach_profiles WHERE id = ?", [$id]);
             $profile = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$profile) throw new Exception("Coach profile not found");
-            
+
             $userId = $profile['user_id'];
 
             // Replace certifications if provided in the update payload
@@ -74,7 +74,7 @@ class Coach
                 Database::runPrepared("DELETE FROM coach_certifications WHERE coach_id = ?", [$userId]);
                 self::addCertifications($userId, $data['certifications']);
             }
-            
+
             // Replace plans if provided in the update payload
             if (isset($data['plans'])) {
                 Database::runPrepared("DELETE FROM coach_plans WHERE coach_id = ?", [$userId]);
@@ -96,7 +96,7 @@ class Coach
     {
         foreach ($certifications as $cert) {
             $imagePath = $cert['image'] ?? '';
-            
+
             // Automatically handle file upload if 'file' array (like $_FILES format) is passed
             if (isset($cert['file']) && is_array($cert['file']) && $cert['file']['error'] === UPLOAD_ERR_OK) {
                 $upload = File::upload($cert['file'], 'certifications');
@@ -106,20 +106,20 @@ class Coach
             }
 
             $params = [
-                $coachId, 
-                $cert['name'] ?? '', 
-                $cert['description'] ?? '', 
+                $coachId,
+                $cert['name'] ?? '',
+                $cert['description'] ?? '',
                 $imagePath
             ];
             $sql = "INSERT INTO coach_certifications (coach_id, name, description, image) VALUES (?, ?, ?, ?)";
             Database::runPrepared($sql, $params);
         }
     }
-    
+
     /**
      * Helper to add coach plans.
      */
-    private static function addPlans($coachId, $plans)
+    public static function addPlans($coachId, $plans)
     {
         foreach ($plans as $plan) {
             $plan['coach_id'] = $coachId;
@@ -143,24 +143,24 @@ class Coach
                     INNER JOIN users u ON cp.user_id = u.id
                     LEFT JOIN coach_categories cc ON cp.category_id = cc.id
                     WHERE cp.id = ?";
-            
+
             $stmt = Database::runPrepared($sql, [$id]);
             $profile = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if (!$profile) return ["status" => "error", "message" => "Coach profile not found."];
-            
+
             $userId = $profile['user_id'];
-            
+
             // Certifications
             $certStmt = Database::runPrepared("SELECT * FROM coach_certifications WHERE coach_id = ?", [$userId]);
             $certifications = $certStmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             // Plans
             $planStmt = Database::runPrepared("SELECT * FROM coach_plans WHERE coach_id = ?", [$userId]);
             $plans = $planStmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             return [
-                "status" => "success", 
+                "status" => "success",
                 "data" => [
                     "profile" => $profile,
                     "certifications" => $certifications,
@@ -171,7 +171,7 @@ class Coach
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
-    
+
     /**
      * Fetch all coaches based on optional filters.
      */
@@ -184,28 +184,28 @@ class Coach
                     LEFT JOIN coach_categories cc ON cp.category_id = cc.id
                     WHERE 1=1";
             $params = [];
-            
+
             if (!empty($filter['category_id'])) {
                 $sql .= " AND cp.category_id = ?";
                 $params[] = $filter['category_id'];
             }
-            
+
             if (!empty($filter['approval_status'])) {
                 $sql .= " AND cp.approval_status = ?";
                 $params[] = $filter['approval_status'];
             }
-            
+
             $sql .= " ORDER BY cp.created_at DESC";
-            
+
             $stmt = Database::runPrepared($sql, $params);
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             return ["status" => "success", "data" => $results];
         } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
-    
+
     /**
      * Delete a coach profile and associated sub-records.
      */
@@ -213,18 +213,18 @@ class Coach
     {
         try {
             Database::getInstance()->beginTransaction();
-            
+
             $stmt = Database::runPrepared("SELECT user_id FROM coach_profiles WHERE id = ?", [$id]);
             $profile = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($profile) {
                 $userId = $profile['user_id'];
                 Database::runPrepared("DELETE FROM coach_certifications WHERE coach_id = ?", [$userId]);
                 Database::runPrepared("DELETE FROM coach_plans WHERE coach_id = ?", [$userId]);
             }
-            
+
             Database::runPrepared("DELETE FROM coach_profiles WHERE id = ?", [$id]);
-            
+
             Database::getInstance()->commit();
             return ["status" => "success", "message" => "Coach profile deleted successfully"];
         } catch (Exception $e) {
