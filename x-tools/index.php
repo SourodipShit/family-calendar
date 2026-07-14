@@ -14,6 +14,21 @@ if (isset($_GET['action']) && $_GET['action'] == 'clear_session') {
     exit;
 }
 
+// Clear Cookies Logic
+if (isset($_GET['action']) && $_GET['action'] == 'clear_cookies') {
+    if (isset($_SERVER['HTTP_COOKIE'])) {
+        $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
+        foreach($cookies as $cookie) {
+            $parts = explode('=', $cookie);
+            $name = trim($parts[0]);
+            setcookie($name, '', time()-1000);
+            setcookie($name, '', time()-1000, '/');
+        }
+    }
+    header("Location: index.php");
+    exit;
+}
+
 // Database Export Logic
 if (isset($_GET['action']) && $_GET['action'] == 'export_db') {
     $config = require __DIR__ . '/../config/config.php';
@@ -262,7 +277,11 @@ function renderSessionData($data) {
                     </a>
                     <button onclick="if(confirm('Wipe session data?')) window.location.href='?action=clear_session'" 
                             class="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white text-[9px] font-orbitron uppercase px-3 py-1.5 rounded-lg transition-all">
-                        <i class="fa-solid fa-trash-can mr-1"></i> Wipe
+                        <i class="fa-solid fa-trash-can mr-1"></i> Wipe Session
+                    </button>
+                    <button onclick="if(confirm('Clear all cookies?')) window.location.href='?action=clear_cookies'" 
+                            class="bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-white text-[9px] font-orbitron uppercase px-3 py-1.5 rounded-lg transition-all">
+                        <i class="fa-solid fa-cookie-bite mr-1"></i> Clear Cookies
                     </button>
                 </div>
             </div>

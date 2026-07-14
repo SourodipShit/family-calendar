@@ -96,6 +96,13 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 </div>
             </a>
 
+            <a href="<?php echo $path_prefix; ?>siteadmin/coach_approvals.php"
+                class="list-group-item list-group-item-action <?php echo $current_page == 'coach_approvals.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-checkbox-circle-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Coach Approvals</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Coach Approvals</small>
+            </a>
+
             <a href="<?php echo $path_prefix; ?>siteadmin/promocodes.php"
                 class="list-group-item list-group-item-action <?php echo $current_page == 'promocodes.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
                 <i class="ri-coupon-line me-lg-3 fs-4 fs-lg-auto"></i>

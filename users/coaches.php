@@ -1,6 +1,33 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $path_prefix = "../";
 $page_title = "Coaches";
+require_once $path_prefix . 'config/Database.php';
+require_once $path_prefix . 'classes/Coach.php';
+
+$coachesRes = Coach::getAll(['approval_status' => 'approved']);
+$allCoaches = $coachesRes['status'] === 'success' ? $coachesRes['data'] : [];
+
+$familyId = $_SESSION['user']['family_id'] ?? null;
+if (!$familyId && isset($_SESSION['user']['id'])) {
+    $stmt = Database::runPrepared("SELECT family_id FROM user_family WHERE user_id = ?", [$_SESSION['user']['id']]);
+    $res = $stmt->fetch(PDO::FETCH_ASSOC);
+    $familyId = $res ? $res['family_id'] : null;
+}
+$myCoaches = [];
+$hiredCoachStatuses = [];
+if ($familyId) {
+    $myRes = Coach::getFamilyCoaches($familyId);
+    $myCoaches = $myRes['status'] === 'success' ? $myRes['data'] : [];
+    foreach ($myCoaches as $hire) {
+        if (!isset($hiredCoachStatuses[$hire['coach_id']])) {
+            $hiredCoachStatuses[$hire['coach_id']] = $hire['status'];
+        }
+    }
+}
+
 include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 ?>
@@ -229,260 +256,144 @@ include $path_prefix . 'components/sidebar.php';
                         </div>
 
                         <!-- Featured Coaches -->
-                        <h5 class="fw-bold mb-4">Featured Coaches</h5>
+                        <h5 class="fw-bold mb-4">Available Coaches</h5>
+                        
+
+
                         <div class="row g-4 mb-4">
-                            <!-- Coach Card 1 -->
-                            <div class="col-md-6 col-xl-4">
-                                <div class="card coach-card bg-white p-4 d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <img src="https://randomuser.me/api/portraits/women/44.jpg"
-                                            class="coach-img shadow-sm" alt="Sarah Johnson">
-                                        <span class="status-badge">Available</span>
-                                    </div>
-                                    <div class="mb-1 d-flex align-items-center">
-                                        <h5 class="fw-bold mb-0 me-2">Sarah Johnson</h5>
-                                        <i class="fa-solid fa-circle-check verification-badge"></i>
-                                    </div>
-                                    <div class="text-muted fs-7 mb-2">Academic Coach</div>
-                                    <div class="d-flex align-items-center mb-3 fs-7">
-                                        <i class="fa-solid fa-star text-warning me-1"></i>
-                                        <span class="fw-bold me-1">4.9</span>
-                                        <span class="text-muted">(128 reviews)</span>
-                                    </div>
-                                    <p class="text-muted fs-7 mb-4 flex-grow-1">Specializes in Math, Science,
-                                        and Study Skills for middle and high school students.</p>
-                                    <div class="d-flex flex-wrap gap-2 mb-4">
-                                        <span class="tag-pill">Math</span>
-                                        <span class="tag-pill">Science</span>
-                                        <span class="tag-pill">Study Skills</span>
-                                    </div>
-                                    <div
-                                        class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                                        <div>
-                                            <span class="fw-bold fs-5">$45</span>
-                                            <span class="text-muted fs-7"> / 60 min</span>
-                                        </div>
-                                        <button
-                                            class="btn btn-outline-primary rounded-3 px-3 py-2 fw-medium">View
-                                            Profile</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Coach Card 2 -->
-                            <div class="col-md-6 col-xl-4">
-                                <div class="card coach-card bg-white p-4 d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <img src="https://randomuser.me/api/portraits/men/32.jpg"
-                                            class="coach-img shadow-sm" alt="Mike Thompson">
-                                        <span class="status-badge">Available</span>
-                                    </div>
-                                    <div class="mb-1 d-flex align-items-center">
-                                        <h5 class="fw-bold mb-0 me-2">Mike Thompson</h5>
-                                        <i class="fa-solid fa-circle-check verification-badge"></i>
-                                    </div>
-                                    <div class="text-muted fs-7 mb-2">Sports Coach</div>
-                                    <div class="d-flex align-items-center mb-3 fs-7">
-                                        <i class="fa-solid fa-star text-warning me-1"></i>
-                                        <span class="fw-bold me-1">4.8</span>
-                                        <span class="text-muted">(96 reviews)</span>
-                                    </div>
-                                    <p class="text-muted fs-7 mb-4 flex-grow-1">Youth sports coach specializing
-                                        in basketball skills, teamwork, and condition training.</p>
-                                    <div class="d-flex flex-wrap gap-2 mb-4">
-                                        <span class="tag-pill">Basketball</span>
-                                        <span class="tag-pill">Fitness</span>
-                                        <span class="tag-pill">Teamwork</span>
-                                    </div>
-                                    <div
-                                        class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                                        <div>
-                                            <span class="fw-bold fs-5">$40</span>
-                                            <span class="text-muted fs-7"> / 60 min</span>
-                                        </div>
-                                        <button
-                                            class="btn btn-outline-primary rounded-3 px-3 py-2 fw-medium">View
-                                            Profile</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Coach Card 3 -->
-                            <div class="col-md-6 col-xl-4">
-                                <div class="card coach-card bg-white p-4 d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <img src="https://randomuser.me/api/portraits/women/65.jpg"
-                                            class="coach-img shadow-sm" alt="Lisa Chen">
-                                        <span class="status-badge">Available</span>
-                                    </div>
-                                    <div class="mb-1 d-flex align-items-center">
-                                        <h5 class="fw-bold mb-0 me-2">Lisa Chen</h5>
-                                        <i class="fa-solid fa-circle-check verification-badge"></i>
-                                    </div>
-                                    <div class="text-muted fs-7 mb-2">Music Instructor</div>
-                                    <div class="d-flex align-items-center mb-3 fs-7">
-                                        <i class="fa-solid fa-star text-warning me-1"></i>
-                                        <span class="fw-bold me-1">4.9</span>
-                                        <span class="text-muted">(156 reviews)</span>
-                                    </div>
-                                    <p class="text-muted fs-7 mb-4 flex-grow-1">Guitar and piano lessons for
-                                        beginners to advanced students. All ages welcome.</p>
-                                    <div class="d-flex flex-wrap gap-2 mb-4">
-                                        <span class="tag-pill">Guitar</span>
-                                        <span class="tag-pill">Piano</span>
-                                        <span class="tag-pill">Music Theory</span>
-                                    </div>
-                                    <div
-                                        class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                                        <div>
-                                            <span class="fw-bold fs-5">$50</span>
-                                            <span class="text-muted fs-7"> / 60 min</span>
-                                        </div>
-                                        <button
-                                            class="btn btn-outline-primary rounded-3 px-3 py-2 fw-medium">View
-                                            Profile</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- More Coaches (Hidden by default) -->
-                        <div class="collapse" id="moreCoaches">
-                            <div class="row g-4 mb-4">
-                                <!-- Coach Card 4 -->
+                            <?php foreach ($allCoaches as $coach): ?>
+                                <?php 
+                                $cId = $coach['user_id'];
+                                $cStatus = $hiredCoachStatuses[$cId] ?? null; 
+                                ?>
+                                <!-- Coach Card -->
                                 <div class="col-md-6 col-xl-4">
                                     <div class="card coach-card bg-white p-4 d-flex flex-column">
                                         <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <img src="https://randomuser.me/api/portraits/men/45.jpg"
-                                                class="coach-img shadow-sm" alt="David Lee">
-                                            <span class="status-badge"
-                                                style="background-color: #f8f9fa; color: #6c757d;">Busy</span>
+                                            <img src="<?= htmlspecialchars($path_prefix . 'assets/uploads/' . ($coach['profile_image'] ?: 'default.jpg')) ?>"
+                                                class="coach-img shadow-sm" alt="<?= htmlspecialchars($coach['user_name']) ?>" onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
+                                            <?php if ($cStatus === 'pending_admin_approval' || $cStatus === 'pending'): ?>
+                                                <span class="badge bg-warning text-dark" style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Pending</span>
+                                            <?php elseif ($cStatus === 'approved' || $cStatus === 'active'): ?>
+                                                <span class="badge bg-success" style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Hired</span>
+                                            <?php else: ?>
+                                                <span class="status-badge">Available</span>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="mb-1 d-flex align-items-center">
-                                            <h5 class="fw-bold mb-0 me-2">David Lee</h5>
-                                        </div>
-                                        <div class="text-muted fs-7 mb-2">Life Skills Coach</div>
-                                        <div class="d-flex align-items-center mb-3 fs-7">
-                                            <i class="fa-solid fa-star text-warning me-1"></i>
-                                            <span class="fw-bold me-1">4.7</span>
-                                            <span class="text-muted">(82 reviews)</span>
-                                        </div>
-                                        <p class="text-muted fs-7 mb-4 flex-grow-1">Empowering kids to build
-                                            independence through practical life skills and time management.</p>
-                                        <div class="d-flex flex-wrap gap-2 mb-4">
-                                            <span class="tag-pill">Organization</span>
-                                            <span class="tag-pill">Time Mgmt</span>
-                                        </div>
-                                        <div
-                                            class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                                            <div>
-                                                <span class="fw-bold fs-5">$35</span>
-                                                <span class="text-muted fs-7"> / 60 min</span>
-                                            </div>
-                                            <button
-                                                class="btn btn-outline-primary rounded-3 px-3 py-2 fw-medium">View
-                                                Profile</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Coach Card 5 -->
-                                <div class="col-md-6 col-xl-4">
-                                    <div class="card coach-card bg-white p-4 d-flex flex-column">
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <img src="https://randomuser.me/api/portraits/women/23.jpg"
-                                                class="coach-img shadow-sm" alt="Emily Davis">
-                                            <span class="status-badge">Available</span>
-                                        </div>
-                                        <div class="mb-1 d-flex align-items-center">
-                                            <h5 class="fw-bold mb-0 me-2">Emily Davis</h5>
+                                            <h5 class="fw-bold mb-0 me-2"><?= htmlspecialchars($coach['user_name']) ?></h5>
                                             <i class="fa-solid fa-circle-check verification-badge"></i>
                                         </div>
-                                        <div class="text-muted fs-7 mb-2">Wellness Coach</div>
+                                        <div class="text-muted fs-7 mb-2"><?= htmlspecialchars($coach['category_name'] ?? 'Coach') ?></div>
                                         <div class="d-flex align-items-center mb-3 fs-7">
                                             <i class="fa-solid fa-star text-warning me-1"></i>
                                             <span class="fw-bold me-1">5.0</span>
-                                            <span class="text-muted">(210 reviews)</span>
+                                            <span class="text-muted">(0 reviews)</span>
                                         </div>
-                                        <p class="text-muted fs-7 mb-4 flex-grow-1">Focuses on mental
-                                            well-being, mindfulness, and healthy habits for children and teens.
-                                        </p>
+                                        <p class="text-muted fs-7 mb-4 flex-grow-1"><?= htmlspecialchars(substr($coach['description'], 0, 100)) ?>...</p>
                                         <div class="d-flex flex-wrap gap-2 mb-4">
-                                            <span class="tag-pill">Mindfulness</span>
-                                            <span class="tag-pill">Nutrition</span>
+                                            <span class="tag-pill"><?= htmlspecialchars($coach['category_name'] ?? 'General') ?></span>
                                         </div>
-                                        <div
-                                            class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                                            <div>
-                                                <span class="fw-bold fs-5">$60</span>
-                                                <span class="text-muted fs-7"> / 60 min</span>
-                                            </div>
-                                            <button
-                                                class="btn btn-outline-primary rounded-3 px-3 py-2 fw-medium">View
-                                                Profile</button>
+                                        <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
+                                            <?php if ($cStatus === 'pending_admin_approval' || $cStatus === 'pending'): ?>
+                                                <button class="btn btn-warning rounded-3 px-3 py-2 fw-medium w-100" disabled>Pending Approval</button>
+                                            <?php elseif ($cStatus === 'approved' || $cStatus === 'active'): ?>
+                                                <button class="btn btn-success rounded-3 px-3 py-2 fw-medium w-100" disabled>Hired</button>
+                                            <?php else: ?>
+                                                <button class="btn btn-outline-primary rounded-3 px-3 py-2 fw-medium w-100" data-bs-toggle="modal" data-bs-target="#hireModal<?= $coach['id'] ?>">View Profile & Hire</button>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Coach Card 6 -->
-                                <div class="col-md-6 col-xl-4">
-                                    <div class="card coach-card bg-white p-4 d-flex flex-column">
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <img src="https://randomuser.me/api/portraits/men/78.jpg"
-                                                class="coach-img shadow-sm" alt="James Wilson">
-                                            <span class="status-badge">Available</span>
-                                        </div>
-                                        <div class="mb-1 d-flex align-items-center">
-                                            <h5 class="fw-bold mb-0 me-2">James Wilson</h5>
-                                        </div>
-                                        <div class="text-muted fs-7 mb-2">Art Instructor</div>
-                                        <div class="d-flex align-items-center mb-3 fs-7">
-                                            <i class="fa-solid fa-star text-warning me-1"></i>
-                                            <span class="fw-bold me-1">4.6</span>
-                                            <span class="text-muted">(45 reviews)</span>
-                                        </div>
-                                        <p class="text-muted fs-7 mb-4 flex-grow-1">Creative arts and crafts
-                                            lessons focusing on painting, drawing, and sculpting.</p>
-                                        <div class="d-flex flex-wrap gap-2 mb-4">
-                                            <span class="tag-pill">Painting</span>
-                                            <span class="tag-pill">Drawing</span>
-                                        </div>
-                                        <div
-                                            class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                                            <div>
-                                                <span class="fw-bold fs-5">$40</span>
-                                                <span class="text-muted fs-7"> / 60 min</span>
-                                            </div>
-                                            <button
-                                                class="btn btn-outline-primary rounded-3 px-3 py-2 fw-medium">View
-                                                Profile</button>
-                                        </div>
+                                
+                                <!-- Hire Modal -->
+                                <div class="modal fade" id="hireModal<?= $coach['id'] ?>" tabindex="-1">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title">Hire <?= htmlspecialchars($coach['user_name']) ?></h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                      </div>
+                                      <form action="<?= $path_prefix ?>api/hire_coach.php" method="POST">
+                                          <div class="modal-body">
+                                            <p><?= nl2br(htmlspecialchars($coach['description'])) ?></p>
+                                            <p><strong>Category:</strong> <?= htmlspecialchars($coach['category_name']) ?></p>
+                                            
+                                            <hr>
+                                            <h6>Select a Plan</h6>
+                                            <?php 
+                                            // Fetch plans for this coach
+                                            $plansRes = Database::runPrepared("SELECT * FROM coach_plans WHERE coach_id = ?", [$coach['user_id']])->fetchAll(PDO::FETCH_ASSOC);
+                                            if (empty($plansRes)):
+                                            ?>
+                                                <p class="text-danger">This coach has no plans available.</p>
+                                            <?php else: ?>
+                                                <?php foreach ($plansRes as $plan): ?>
+                                                <div class="form-check mb-2">
+                                                  <input class="form-check-input" type="radio" name="plan_id" id="plan<?= $plan['id'] ?>" value="<?= $plan['id'] ?>" required>
+                                                  <label class="form-check-label" for="plan<?= $plan['id'] ?>">
+                                                    <strong><?= $plan['duration_days'] ?> Days Plan</strong> - $<?= number_format($plan['price'], 2) ?>
+                                                  </label>
+                                                  <input type="hidden" name="price" value="<?= $plan['price'] ?>">
+                                                </div>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                            
+                                            <input type="hidden" name="coach_id" value="<?= $coach['user_id'] ?>">
+                                          </div>
+                                          <div class="modal-footer">
+                                            <?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'family-head'): ?>
+                                                <button type="submit" class="btn btn-primary" <?= empty($plansRes) ? 'disabled' : '' ?>>Hire Coach</button>
+                                            <?php else: ?>
+                                                <span class="text-muted">Only Family Head can hire.</span>
+                                            <?php endif; ?>
+                                          </div>
+                                      </form>
                                     </div>
+                                  </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="text-center mt-2 mb-5">
-                            <button
-                                class="btn btn-white border text-primary fw-medium rounded-3 px-4 py-2 bg-white shadow-sm"
-                                type="button" data-bs-toggle="collapse" data-bs-target="#moreCoaches"
-                                aria-expanded="false" aria-controls="moreCoaches" id="viewAllBtn">
-                                View All Coaches
-                            </button>
+                            <?php endforeach; ?>
+                            <?php if (empty($allCoaches)): ?>
+                                <p class="text-muted">No coaches available at the moment.</p>
+                            <?php endif; ?>
                         </div>
 
                     </div> <!-- End #find tab-pane -->
 
                     <!-- My Coaches Tab Pane -->
                     <div class="tab-pane fade" id="my-coaches" role="tabpanel" aria-labelledby="my-coaches-tab">
-                        <div class="p-5 text-center text-muted bg-white border rounded-4 shadow-sm mb-4 mt-2">
-                            <i class="fa-solid fa-users fa-3x mb-3 text-primary opacity-50"></i>
-                            <h4>Your Coaches</h4>
-                            <p>You haven't hired any coaches yet. Browse coaches to find the right fit for your
-                                family.</p>
-                            <button class="btn btn-outline-primary mt-2"
-                                onclick="document.getElementById('find-tab').click()">Browse Coaches</button>
-                        </div>
+                        <?php if (empty($myCoaches)): ?>
+                            <div class="p-5 text-center text-muted bg-white border rounded-4 shadow-sm mb-4 mt-2">
+                                <i class="fa-solid fa-users fa-3x mb-3 text-primary opacity-50"></i>
+                                <h4>Your Coaches</h4>
+                                <p>You haven't hired any coaches yet. Browse coaches to find the right fit for your
+                                    family.</p>
+                                <button class="btn btn-outline-primary mt-2"
+                                    onclick="document.getElementById('find-tab').click()">Browse Coaches</button>
+                            </div>
+                        <?php else: ?>
+                            <div class="row g-4 mb-4 mt-2">
+                                <?php foreach ($myCoaches as $hire): ?>
+                                    <div class="col-md-6 col-xl-4">
+                                        <div class="card coach-card bg-white p-4 d-flex flex-column">
+                                            <div class="mb-1 d-flex align-items-center">
+                                                <h5 class="fw-bold mb-0 me-2"><?= htmlspecialchars($hire['coach_name']) ?></h5>
+                                                <span class="badge bg-<?= $hire['status'] == 'approved' ? 'success' : ($hire['status'] == 'rejected' ? 'danger' : 'warning') ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $hire['status']))) ?></span>
+                                            </div>
+                                            <div class="text-muted fs-7 mb-2"><?= $hire['duration_days'] ?? 0 ?> Days Plan</div>
+                                            <p class="text-muted fs-7 mb-4 flex-grow-1">Hired for $<?= number_format($hire['price_at_hire'] ?? 0, 2) ?> on <?= date('M d, Y', strtotime($hire['created_at'])) ?></p>
+                                            
+                                            <?php if ($hire['status'] == 'approved' && !empty($hire['csv_link'])): ?>
+                                                <div class="alert alert-info py-2">
+                                                    <p class="mb-2"><small>Coach has uploaded calendar events.</small></p>
+                                                    <a href="<?= htmlspecialchars($hire['csv_link']) ?>" class="btn btn-sm btn-primary w-100" target="_blank">Download Events (CSV)</a>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Applications Tab Pane -->
@@ -491,7 +402,7 @@ include $path_prefix . 'components/sidebar.php';
                         <div class="p-5 text-center text-muted bg-white border rounded-4 shadow-sm mb-4 mt-2">
                             <i class="fa-regular fa-file-lines fa-3x mb-3 text-info opacity-50"></i>
                             <h4>Applications</h4>
-                            <p>You have no pending coach applications at this time.</p>
+                            <p>You can check the status of your applications in the "My Coaches" tab.</p>
                         </div>
                     </div>
                 </div> <!-- End #coachesTabsContent -->
@@ -665,5 +576,15 @@ include $path_prefix . 'components/sidebar.php';
         });
     });
 </script>
+
+<?php if (isset($_GET['msg'])): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AlertSystem !== 'undefined') {
+            AlertSystem.show(<?= json_encode($_GET['msg']) ?>, 'success', 5000);
+        }
+    });
+</script>
+<?php endif; ?>
 
 <?php include $path_prefix . 'components/footer.php'; ?>

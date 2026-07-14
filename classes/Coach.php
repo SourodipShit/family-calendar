@@ -264,4 +264,132 @@ class Coach
             return ["status" => "error", "message" => $e->getMessage()];
         }
     }
+
+    /**
+     * Family hires a coach.
+     */
+    public static function hireCoach($familyId, $coachId, $planId, $priceAtHire)
+    {
+        try {
+            $sql = "INSERT INTO family_coaches (family_id, coach_id, plan_id, price_at_hire, status) VALUES (?, ?, ?, ?, 'pending_admin_approval')";
+            Database::runPrepared($sql, [$familyId, $coachId, $planId, $priceAtHire]);
+            return ["status" => "success", "message" => "Coach hired successfully, pending admin approval."];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get coaches hired by a specific family.
+     */
+    public static function getFamilyCoaches($familyId)
+    {
+        try {
+            $sql = "SELECT fc.*, u.name as coach_name, u.email as coach_email, u.image as coach_image, cp.price as plan_price, cp.duration_days 
+                    FROM family_coaches fc
+                    INNER JOIN users u ON fc.coach_id = u.id
+                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    WHERE fc.family_id = ?
+                    ORDER BY fc.created_at DESC";
+            $stmt = Database::runPrepared($sql, [$familyId]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return ["status" => "success", "data" => $results];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get pending coach hire approvals for siteadmin.
+     */
+    public static function getPendingCoachApprovals()
+    {
+        try {
+            $sql = "SELECT fc.*, f.name as family_name, u.name as coach_name, cp.duration_days as plan_duration, cp.price
+                    FROM family_coaches fc
+                    INNER JOIN families f ON fc.family_id = f.id
+                    INNER JOIN users u ON fc.coach_id = u.id
+                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    WHERE fc.status = 'pending_admin_approval'
+                    ORDER BY fc.created_at DESC";
+            $stmt = Database::runPrepared($sql);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return ["status" => "success", "data" => $results];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Update the status of a family_coach record.
+     */
+    public static function updateFamilyCoachStatus($id, $status)
+    {
+        try {
+            $allowedStatuses = ['pending_admin_approval', 'approved', 'rejected', 'active'];
+            if (!in_array($status, $allowedStatuses)) {
+                return ["status" => "error", "message" => "Invalid status provided."];
+            }
+            Database::runPrepared("UPDATE family_coaches SET status = ? WHERE id = ?", [$status, $id]);
+            return ["status" => "success", "message" => "Hire status updated successfully."];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Update the CSV link for a family_coach record.
+     */
+    public static function updateFamilyCoachCsvLink($id, $csvLink)
+    {
+        try {
+            Database::runPrepared("UPDATE family_coaches SET csv_link = ? WHERE id = ?", [$csvLink, $id]);
+            return ["status" => "success", "message" => "CSV link updated successfully."];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get specific family_coach record details.
+     */
+    public static function getFamilyCoachDetails($id)
+    {
+        try {
+            $sql = "SELECT fc.*, f.name as family_name, u.name as coach_name, cp.duration_days as plan_duration, cp.price as plan_price
+                    FROM family_coaches fc
+                    INNER JOIN families f ON fc.family_id = f.id
+                    INNER JOIN users u ON fc.coach_id = u.id
+                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    WHERE fc.id = ?";
+            $stmt = Database::runPrepared($sql, [$id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$result) {
+                return ["status" => "error", "message" => "Record not found."];
+            }
+            return ["status" => "success", "data" => $result];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get families that have hired a specific coach.
+     */
+    public static function getCoachFamilies($coachId)
+    {
+        try {
+            $sql = "SELECT fc.*, f.name as family_name, f.email as family_email, cp.price as plan_price, cp.duration_days 
+                    FROM family_coaches fc
+                    INNER JOIN families f ON fc.family_id = f.id
+                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    WHERE fc.coach_id = ? AND fc.status = 'approved'
+                    ORDER BY fc.created_at DESC";
+            $stmt = Database::runPrepared($sql, [$coachId]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return ["status" => "success", "data" => $results];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
 }
