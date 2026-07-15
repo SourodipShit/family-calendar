@@ -117,6 +117,89 @@ class Coach
     }
 
     /**
+     * Add a single certification.
+     * 
+     * @return array
+     */
+    public static function addSingleCertification($coachId, $cert)
+    {
+        try {
+            $imagePath = '';
+            if (isset($cert['file']) && is_array($cert['file']) && $cert['file']['error'] === UPLOAD_ERR_OK) {
+                $upload = File::upload($cert['file'], 'certifications');
+                if ($upload['status'] === 'success') {
+                    $imagePath = $upload['filePath'];
+                } else {
+                    return ["status" => "error", "message" => $upload['message'] ?? 'Image upload failed.'];
+                }
+            }
+
+            $params = [
+                $coachId,
+                $cert['name'] ?? '',
+                $cert['description'] ?? '',
+                $imagePath
+            ];
+            $sql = "INSERT INTO coach_certifications (coach_id, name, description, image) VALUES (?, ?, ?, ?)";
+            Database::runPrepared($sql, $params);
+            
+            return ["status" => "success", "message" => "Certification added successfully"];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Update a single certification.
+     * 
+     * @return array
+     */
+    public static function updateSingleCertification($certId, $coachId, $cert)
+    {
+        try {
+            $fields = ["name = ?", "description = ?"];
+            $params = [$cert['name'] ?? '', $cert['description'] ?? ''];
+
+            if (isset($cert['file']) && is_array($cert['file']) && $cert['file']['error'] === UPLOAD_ERR_OK) {
+                $upload = File::upload($cert['file'], 'certifications');
+                if ($upload['status'] === 'success') {
+                    $fields[] = "image = ?";
+                    $params[] = $upload['filePath'];
+                } else {
+                    return ["status" => "error", "message" => $upload['message'] ?? 'Image upload failed.'];
+                }
+            }
+
+            // Ensure the cert belongs to the coach
+            $params[] = $certId;
+            $params[] = $coachId;
+
+            $sql = "UPDATE coach_certifications SET " . implode(", ", $fields) . " WHERE id = ? AND coach_id = ?";
+            Database::runPrepared($sql, $params);
+            
+            return ["status" => "success", "message" => "Certification updated successfully"];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Delete a single certification.
+     * 
+     * @return array
+     */
+    public static function deleteSingleCertification($certId, $coachId)
+    {
+        try {
+            $sql = "DELETE FROM coach_certifications WHERE id = ? AND coach_id = ?";
+            Database::runPrepared($sql, [$certId, $coachId]);
+            return ["status" => "success", "message" => "Certification deleted successfully"];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
      * Helper to add coach plans.
      */
     public static function addPlans($coachId, $plans)
@@ -150,6 +233,44 @@ class Coach
             if (!$profile) return ["status" => "error", "message" => "Coach profile not found."];
 
             $userId = $profile['user_id'];
+
+            // Certifications
+            $certStmt = Database::runPrepared("SELECT * FROM coach_certifications WHERE coach_id = ?", [$userId]);
+            $certifications = $certStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Plans
+            $planStmt = Database::runPrepared("SELECT * FROM coach_plans WHERE coach_id = ?", [$userId]);
+            $plans = $planStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return [
+                "status" => "success",
+                "data" => [
+                    "profile" => $profile,
+                    "certifications" => $certifications,
+                    "plans" => $plans
+                ]
+            ];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Fetch a coach profile by user_id, including user details, certifications, and plans.
+     */
+    public static function getByUserId($userId)
+    {
+        try {
+            $sql = "SELECT cp.*, u.name as user_name, u.email, u.image as profile_image, cc.name as category_name, u.phone
+                    FROM coach_profiles cp
+                    INNER JOIN users u ON cp.user_id = u.id
+                    LEFT JOIN coach_categories cc ON cp.category_id = cc.id
+                    WHERE cp.user_id = ?";
+
+            $stmt = Database::runPrepared($sql, [$userId]);
+            $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$profile) return ["status" => "error", "message" => "Coach profile not found."];
 
             // Certifications
             $certStmt = Database::runPrepared("SELECT * FROM coach_certifications WHERE coach_id = ?", [$userId]);

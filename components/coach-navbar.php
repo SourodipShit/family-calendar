@@ -54,7 +54,7 @@ if ($globalSettingsLogo && file_exists(__DIR__ . '/../' . ltrim($globalSettingsL
         <?php
         $avatar = "";
         if (!empty($_SESSION['user']['image'])) {
-            $avatar = $path_prefix . "public/uploads/" . htmlspecialchars($_SESSION['user']['image']);
+            $avatar = htmlspecialchars($_SESSION['user']['image']);
         } else {
             $avatar = 'https://ui-avatars.com/api/?name=' . urlencode($_SESSION['user']['name'] ?? 'Coach') . '&background=random';
         }
@@ -77,7 +77,9 @@ if ($globalSettingsLogo && file_exists(__DIR__ . '/../' . ltrim($globalSettingsL
                 <li>
                     <hr class="dropdown-divider opacity-50">
                 </li>
-                <li><h6 class="dropdown-header px-3">Switch Account</h6></li>
+                <li>
+                    <h6 class="dropdown-header px-3">Switch Account</h6>
+                </li>
                 <?php if (isset($_SESSION['accounts'])): ?>
                     <?php foreach ($_SESSION['accounts'] as $acc_id => $acc): ?>
                         <li>
@@ -119,4 +121,3 @@ if ($globalSettingsLogo && file_exists(__DIR__ . '/../' . ltrim($globalSettingsL
         </div>
     </div>
 </nav>
-
