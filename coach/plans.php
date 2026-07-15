@@ -80,6 +80,9 @@ try {
                 <p class="text-muted mb-0">Manage your coaching plans and offerings.</p>
             </div>
             <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <button type="button" class="btn btn-outline-primary shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#addPlanModal">
+                    <i class="ri-add-line me-1"></i> Add Plan
+                </button>
                 <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="collapse" data-bs-target="#uploadCsvCard">
                     <i class="ri-file-excel-line me-2"></i> Upload CSV
                 </button>
@@ -141,42 +144,20 @@ try {
                         <div class="card h-100 border-0 shadow-sm hover-lift" style="border-radius: 16px; transition: transform 0.2s;">
                             <div class="card-body p-4 d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <h5 class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($plan['name'] ?? $plan['title'] ?? 'Untitled Plan'); ?></h5>
+                                    <h5 class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($plan['duration_days']); ?> Days Plan</h5>
                                     <?php if (isset($plan['price']) && $plan['price'] !== ''): ?>
                                         <span class="badge bg-success-subtle text-success fs-6 fw-bold px-3 py-2 rounded-pill">
                                             $<?php echo htmlspecialchars($plan['price']); ?>
                                         </span>
                                     <?php endif; ?>
                                 </div>
-
-                                <?php if (isset($plan['description'])): ?>
-                                    <p class="text-secondary small mb-4 flex-grow-1">
-                                        <?php echo nl2br(htmlspecialchars(substr($plan['description'], 0, 150) . (strlen($plan['description']) > 150 ? '...' : ''))); ?>
-                                    </p>
-                                <?php endif; ?>
-
-                                <div class="mt-auto pt-3 border-top border-light">
-                                    <ul class="list-unstyled mb-0 small text-muted">
-                                        <?php
-                                        $skipKeys = ['id', 'coach_id', 'name', 'title', 'description', 'price', 'created_at', 'updated_at'];
-                                        foreach ($plan as $key => $value):
-                                            if (!in_array($key, $skipKeys) && !empty($value)):
-                                        ?>
-                                                <li class="mb-2 d-flex align-items-center">
-                                                    <i class="ri-arrow-right-s-line text-primary me-2"></i>
-                                                    <strong class="text-capitalize me-1"><?php echo str_replace('_', ' ', $key); ?>:</strong>
-                                                    <span class="text-dark"><?php echo htmlspecialchars($value); ?></span>
-                                                </li>
-                                        <?php
-                                            endif;
-                                        endforeach;
-                                        ?>
-                                    </ul>
-                                </div>
                             </div>
                             <div class="card-footer bg-transparent border-0 p-4 pt-0 d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-primary flex-grow-1">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger"><i class="ri-delete-bin-line"></i></button>
+                                <button class="btn btn-sm btn-outline-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#editPlanModal"
+                                    data-id="<?php echo $plan['id']; ?>"
+                                    data-price="<?php echo htmlspecialchars($plan['price'] ?? ''); ?>"
+                                    data-duration="<?php echo htmlspecialchars($plan['duration_days'] ?? ''); ?>">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deletePlan(<?php echo $plan['id']; ?>)"><i class="ri-delete-bin-line"></i></button>
                             </div>
                         </div>
                     </div>
@@ -185,5 +166,173 @@ try {
         </div>
     </div>
 </div>
+
+<!-- Add Plan Modal -->
+<div class="modal fade" id="addPlanModal" tabindex="-1" aria-labelledby="addPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="addPlanModalLabel">Add Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addPlanForm">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="add_plan">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Duration (Days)</label>
+                        <input type="number" class="form-control" name="duration_days" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Price</label>
+                        <input type="number" step="0.01" class="form-control" name="price">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4" id="saveAddPlanBtn">Add Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Plan Modal -->
+<div class="modal fade" id="editPlanModal" tabindex="-1" aria-labelledby="editPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="editPlanModalLabel">Edit Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editPlanForm">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="edit_plan">
+                    <input type="hidden" name="plan_id" id="editPlanId">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Duration (Days)</label>
+                        <input type="number" class="form-control" name="duration_days" id="editPlanDuration" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Price</label>
+                        <input type="number" step="0.01" class="form-control" name="price" id="editPlanPrice">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4" id="saveEditPlanBtn">Update Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="<?php echo $path_prefix; ?>public/js/alert.js"></script>
+<script>
+    // Handle Add Plan Form Submission
+    const addPlanForm = document.getElementById('addPlanForm');
+    if (addPlanForm) {
+        addPlanForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveAddPlanBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+            btn.disabled = true;
+
+            fetch('<?php echo $path_prefix; ?>api/coach_profile.php', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => window.location.href = window.location.href, 1500);
+                } else {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    showAlert(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showAlert('An unexpected error occurred.', 'error');
+            });
+        });
+    }
+
+    // Populate Edit Plan Modal
+    const editPlanModal = document.getElementById('editPlanModal');
+    if (editPlanModal) {
+        editPlanModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            document.getElementById('editPlanId').value = button.getAttribute('data-id');
+            document.getElementById('editPlanPrice').value = button.getAttribute('data-price');
+            document.getElementById('editPlanDuration').value = button.getAttribute('data-duration');
+        });
+    }
+
+    // Handle Edit Plan Form Submission
+    const editPlanForm = document.getElementById('editPlanForm');
+    if (editPlanForm) {
+        editPlanForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveEditPlanBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+            btn.disabled = true;
+
+            fetch('<?php echo $path_prefix; ?>api/coach_profile.php', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => window.location.href = window.location.href, 1500);
+                } else {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    showAlert(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showAlert('An unexpected error occurred.', 'error');
+            });
+        });
+    }
+
+    // Handle Delete Plan
+    function deletePlan(planId) {
+        if (confirm("Are you sure you want to delete this plan?")) {
+            const formData = new FormData();
+            formData.append('action', 'delete_plan');
+            formData.append('plan_id', planId);
+
+            fetch('<?php echo $path_prefix; ?>api/coach_profile.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => window.location.href = window.location.href, 1500);
+                } else {
+                    showAlert(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('An unexpected error occurred.', 'error');
+            });
+        }
+    }
+</script>
 
 <?php require_once $path_prefix . 'components/admin-footer.php'; ?>
