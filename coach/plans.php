@@ -17,13 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['plans_csv'])) {
         $tmpName = $file['tmp_name'];
         if (($handle = fopen($tmpName, 'r')) !== false) {
             // Read headers
-            $header = fgetcsv($handle);
+            $header = fgetcsv($handle, 0, ',', '"', '\\');
             if ($header) {
                 // Clean headers (trim whitespace)
                 $header = array_map('trim', $header);
 
                 $plansToInsert = [];
-                while (($row = fgetcsv($handle)) !== false) {
+                while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
                     if (count($header) === count($row)) {
                         $plan = array_combine($header, $row);
                         // Make sure we have some data
