@@ -63,6 +63,13 @@ if ($globalSettingsLogo && file_exists($globalSettingsLogo)) {
                 <small class="d-block d-lg-none" style="font-size: 10px;">Manage Users</small>
             </a>
 
+            <a href="<?php echo $path_prefix; ?>siteadmin/shared_emails.php"
+                class="list-group-item list-group-item-action <?php echo $current_page == 'shared_emails.php' ? 'active' : ''; ?> rounded mb-1 d-flex flex-column flex-lg-row align-items-center text-center text-lg-start">
+                <i class="ri-mail-line me-lg-3 fs-4 fs-lg-auto"></i>
+                <span class="d-none d-lg-inline">Shared Emails</span>
+                <small class="d-block d-lg-none" style="font-size: 10px;">Shared Emails</small>
+            </a>
+
             <a href="<?php echo $path_prefix; ?>siteadmin/recipes.php"
                 class="list-group-item list-group-item-action d-flex flex-column flex-lg-row align-items-center text-center text-lg-start <?php echo $current_page == 'recipes.php' ? 'active' : ''; ?> rounded mb-1">
                 <div class="d-flex flex-column flex-lg-row align-items-center w-100">

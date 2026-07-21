@@ -32,14 +32,40 @@ class SharedEmails
     }
 
     // Update
-    public static function update($id, $emailAddress, $password)
+    public static function update($id, $emailAddress, $password, $familyId = null)
     {
         try {
-            Database::runPrepared("UPDATE family_shared_emails SET email_address = ?, password = ? WHERE id = ?", [
-                $emailAddress,
-                $password,
-                $id
-            ]);
+            if ($familyId === '') $familyId = null;
+
+            // Get current state to handle family email syncing
+            $current = self::getById($id);
+            $oldFamilyId = $current ? $current['family_id'] : null;
+            
+            if ($familyId === null) {
+                Database::runPrepared("UPDATE family_shared_emails SET email_address = ?, password = ?, family_id = NULL, allocated_at = NULL WHERE id = ?", [
+                    $emailAddress,
+                    $password,
+                    $id
+                ]);
+            } else {
+                Database::runPrepared("UPDATE family_shared_emails SET email_address = ?, password = ?, family_id = ?, allocated_at = NOW() WHERE id = ?", [
+                    $emailAddress,
+                    $password,
+                    $familyId,
+                    $id
+                ]);
+            }
+
+            // Sync email with the families table
+            if ($oldFamilyId && $oldFamilyId != $familyId) {
+                // If it was allocated to a family and is now unallocated or changed to another family, clear the old family's email
+                Database::runPrepared("UPDATE families SET email = NULL WHERE id = ?", [$oldFamilyId]);
+            }
+            if ($familyId) {
+                // Update the newly allocated family's email to this shared email address
+                Database::runPrepared("UPDATE families SET email = ? WHERE id = ?", [$emailAddress, $familyId]);
+            }
+
             return ['status' => 'success', 'message' => 'Shared email updated successfully'];
         } catch (PDOException $e) {
             return ['status' => 'error', 'message' => 'Failed to update shared email: ' . $e->getMessage()];
