@@ -91,7 +91,7 @@ class Chore
     public static function getByDateRange($startDate, $endDate, $familyId, $userId = null)
     {
         // Fallback to active session user if userId is not provided
-        if (!$userId && isset($_SESSION['user']['id'])) {
+        if (!$userId && isset($_SESSION) && isset($_SESSION['user']['id'])) {
             $userId = $_SESSION['user']['id'];
         }
 

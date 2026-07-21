@@ -600,7 +600,7 @@ include $path_prefix . 'components/family-sidebar.php';
 </div>
 
 <script>
-    const CURRENT_USER_ID = <?= json_encode($_SESSION['user']['id']) ?>;
+    const CURRENT_USER_ID = <?= json_encode($_SESSION['user']['id'] ?? 0) ?>;
     const CURRENT_USER_ROLE = <?= json_encode($_SESSION['user']['role'] ?? 'member') ?>;
     const TODAY_STR = '<?= date('Y-m-d') ?>';
     <?php
@@ -830,6 +830,8 @@ include $path_prefix . 'components/family-sidebar.php';
                                 if (CURRENT_USER_ROLE === 'family-head') {
                                     canInteract = true;
                                 } else if (chore.assigned_to_id == CURRENT_USER_ID) {
+                                    canInteract = true;
+                                } else if (CURRENT_USER_ID === 0) {
                                     canInteract = true;
                                 }
 
