@@ -328,6 +328,20 @@ class Coach
     }
 
     /**
+     * Fetch all coach categories.
+     */
+    public static function getAllCategories()
+    {
+        try {
+            $stmt = Database::run("SELECT * FROM coach_categories ORDER BY name ASC");
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return ["status" => "success", "data" => $results];
+        } catch (Exception $e) {
+            return ["status" => "error", "message" => $e->getMessage()];
+        }
+    }
+
+    /**
      * Delete a coach profile and associated sub-records.
      */
     public static function delete($id)
@@ -394,7 +408,137 @@ class Coach
         try {
             $sql = "INSERT INTO family_coaches (family_id, coach_id, plan_id, price_at_hire, status) VALUES (?, ?, ?, ?, 'pending_admin_approval')";
             Database::runPrepared($sql, [$familyId, $coachId, $planId, $priceAtHire]);
-            return ["status" => "success", "message" => "Coach hired successfully, pending admin approval."];
+            $familyCoachId = Database::getLastInsertId();
+
+            // Fetch Family Account
+            require_once __DIR__ . '/Account.php';
+            $accountRes = Account::getByFamilyId($familyId);
+            if ($accountRes['status'] !== 'success' || empty($accountRes['data'])) {
+                // Dummy account creation if not exists
+                $accountNum = 'ACCT-' . strtoupper(substr(md5(time() . rand()), 0, 8));
+                Database::runPrepared("INSERT INTO accounts (family_id, account_number, next_billing_date) VALUES (?, ?, DATE_ADD(CURDATE(), INTERVAL 1 MONTH))", [$familyId, $accountNum]);
+                $accountId = Database::getLastInsertId();
+                $accountRes = ['data' => ['id' => $accountId, 'account_number' => $accountNum]];
+            } else {
+                $accountId = $accountRes['data'][0]['id'] ?? $accountRes['data']['id'];
+                $accountNum = $accountRes['data'][0]['account_number'] ?? $accountRes['data']['account_number'];
+            }
+
+            // Fetch Coach Name & Family Info for Invoice
+            require_once __DIR__ . '/User.php';
+            require_once __DIR__ . '/Family.php';
+            $coachData = User::getUserById($coachId);
+            $coachName = $coachData ? $coachData['name'] : 'Professional Coach';
+            
+            $familyData = Family::getFamily($familyId);
+            $familyName = $familyData ? $familyData['name'] : 'Valued Customer';
+            $familyEmail = $familyData ? $familyData['email'] : null;
+
+            // Stripe Integration
+            require_once __DIR__ . '/GlobalSettings.php';
+            if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+                require_once __DIR__ . '/../vendor/autoload.php';
+            }
+
+            $stripeKeyRes = GlobalSettings::getSetting('stripe_secret_key');
+            $stripeKey = ($stripeKeyRes['status'] === 'success' && !empty($stripeKeyRes['data'])) ? $stripeKeyRes['data']['setting_value'] : '';
+            
+            $baseUrlRes = GlobalSettings::getSetting('base_url');
+            $baseUrl = ($baseUrlRes['status'] === 'success' && !empty($baseUrlRes['data'])) ? rtrim($baseUrlRes['data']['setting_value'], '/') : 'http://localhost/project/family-calendar';
+
+            $stripeSessionId = null;
+            $paymentUrl = '#';
+
+            if (!empty($stripeKey)) {
+                try {
+                    \Stripe\Stripe::setApiKey($stripeKey);
+                    $checkout_session = \Stripe\Checkout\Session::create([
+                        'payment_method_types' => ['card'],
+                        'line_items' => [[
+                            'price_data' => [
+                                'currency' => 'usd',
+                                'product_data' => [
+                                    'name' => 'Coach Hiring Invoice - ' . $coachName,
+                                ],
+                                'unit_amount' => (int)($priceAtHire * 100),
+                            ],
+                            'quantity' => 1,
+                        ]],
+                        'mode' => 'payment',
+                        'success_url' => $baseUrl . '/payment_status.php?status=success',
+                        'cancel_url' => $baseUrl . '/payment_status.php?status=failed',
+                    ]);
+                    $stripeSessionId = $checkout_session->id;
+                    $paymentUrl = $checkout_session->url;
+                } catch (Exception $e) {
+                    // Ignore stripe errors, it will fall back to '#'
+                }
+            }
+
+            // Generate Invoice PDF
+            require_once __DIR__ . '/PDF.php';
+            $invoiceData = [
+                'family_name' => $familyName,
+                'account_number' => $accountNum,
+                'invoice_date' => date('Y-m-d'),
+                'amount' => $priceAtHire,
+                'stripe_link' => $paymentUrl,
+                'invoice_title' => 'Coach Hiring Invoice',
+                'item_description' => 'Hiring Coach: ' . $coachName
+            ];
+            
+            $pdfResult = PDF::generateBill($invoiceData);
+            $pdfPath = $pdfResult['status'] === 'success' ? $pdfResult['public_path'] : null;
+
+            // Insert Payment Record
+            $sqlPay = "INSERT INTO payments (account_id, invoice_date, amount, stripe_session_id, status, pdf_path, payment_type, reference_id) VALUES (?, ?, ?, ?, 'unpaid', ?, 'coach_hire', ?)";
+            Database::runPrepared($sqlPay, [$accountId, date('Y-m-d'), $priceAtHire, $stripeSessionId, $pdfPath, $familyCoachId]);
+
+            // Email the Invoice to all family heads
+            $headsQuery = Database::runPrepared("
+                SELECT users.email, users.name 
+                FROM users 
+                INNER JOIN user_family ON users.id = user_family.user_id 
+                WHERE user_family.family_id = ? AND users.role = 'family-head'
+            ", [$familyId]);
+            $familyHeads = $headsQuery->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($familyHeads)) {
+                require_once __DIR__ . '/../services/mail/Mailer.php';
+                
+                foreach ($familyHeads as $head) {
+                    $emailHtml = Mailer::render('invoice', [
+                        'name' => $head['name'],
+                        'invoiceTitle' => 'Coach Hiring Invoice',
+                        'invoiceDate' => date('Y-m-d'),
+                        'amount' => $priceAtHire,
+                        'paymentUrl' => $paymentUrl
+                    ]);
+                    
+                    $mailData = [
+                        'to' => $head['email'],
+                        'subject' => 'Coach Hiring Invoice',
+                        'html' => $emailHtml,
+                        'attachments' => []
+                    ];
+                    
+                    if ($pdfPath) {
+                        $realPath = __DIR__ . '/../' . ltrim($pdfPath, './');
+                        if (file_exists($realPath)) {
+                            $pdfContent = file_get_contents($realPath);
+                            $mailData['attachments'][] = [
+                                'name' => 'Coach_Hiring_Invoice.pdf',
+                                'type' => 'application/pdf',
+                                'content' => $pdfContent
+                            ];
+                        }
+                    }
+                    
+                    Mailer::send($mailData);
+                }
+            }
+
+            return ["status" => "success", "message" => "Coach hired successfully and invoice sent! Pending admin approval."];
         } catch (Exception $e) {
             return ["status" => "error", "message" => $e->getMessage()];
         }

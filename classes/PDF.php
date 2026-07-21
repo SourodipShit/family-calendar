@@ -60,6 +60,8 @@ class PDF
         $invoiceDate = htmlspecialchars($data['invoice_date'] ?? date('Y-m-d'));
         $amount = number_format($data['amount'] ?? 0, 2);
         $stripeLink = htmlspecialchars($data['stripe_link'] ?? '#');
+        $invoiceTitle = htmlspecialchars($data['invoice_title'] ?? 'Monthly Subscription Invoice');
+        $itemDescription = htmlspecialchars($data['item_description'] ?? 'Monthly Subscription Plan');
         
         return "
         <html>
@@ -84,7 +86,7 @@ class PDF
                 <div class='header'>
                     <div class='header-left'>
                         <h1>Family Calendar</h1>
-                        <p>Monthly Subscription Invoice</p>
+                        <p>{$invoiceTitle}</p>
                     </div>
                     <div class='header-right'>
                         <strong>Invoice Date:</strong> {$invoiceDate}<br>
@@ -103,7 +105,7 @@ class PDF
                         <th style='text-align: right;'>Amount</th>
                     </tr>
                     <tr>
-                        <td>Monthly Subscription Plan</td>
+                        <td>{$itemDescription}</td>
                         <td style='text-align: right;'>\${$amount}</td>
                     </tr>
                     <tr>

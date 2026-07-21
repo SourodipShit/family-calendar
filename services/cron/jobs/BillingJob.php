@@ -57,7 +57,8 @@ class BillingJob
                 if ($existingPayments['status'] === 'success') {
                     $hasUnpaid = false;
                     foreach ($existingPayments['data'] as $p) {
-                        if ($p['status'] === 'unpaid') {
+                        $pType = isset($p['payment_type']) ? $p['payment_type'] : 'subscription';
+                        if ($p['status'] === 'unpaid' && $pType === 'subscription') {
                             $hasUnpaid = true;
                             break;
                         }

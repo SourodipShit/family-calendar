@@ -1,9 +1,10 @@
 <?php
-// Extracted variables: $name, $paymentUrl, $invoiceDate, $amount, $baseUrl
+// Extracted variables: $name, $paymentUrl, $invoiceDate, $amount, $baseUrl, $invoiceTitle
+$title = $invoiceTitle ?? 'Your Monthly Invoice';
 ?>
-<h2>Your Monthly Invoice</h2>
+<h2><?php echo htmlspecialchars($title); ?></h2>
 <p>Hi <?php echo htmlspecialchars($name ?? 'Family'); ?>,</p>
-<p>Your monthly invoice for Family Calendar is now available.</p>
+<p>Your invoice for Family Calendar is now available.</p>
 <p>
     <strong>Invoice Date:</strong> <?php echo htmlspecialchars($invoiceDate ?? date('Y-m-d')); ?><br>
     <strong>Amount Due:</strong> $<?php echo htmlspecialchars(number_format($amount ?? 0.00, 2)); ?>

@@ -29,15 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // Redirect back
+    $_SESSION['flash_msg'] = $msg;
+    $_SESSION['flash_type'] = (isset($result['status']) && $result['status'] === 'success') ? 'success' : 'error';
+
     if (isset($_SERVER['HTTP_REFERER'])) {
         $url = parse_url($_SERVER['HTTP_REFERER']);
         $path = $url['path'] ?? '';
         $query = [];
         if (isset($url['query'])) {
             parse_str($url['query'], $query);
+            unset($query['msg']);
+            unset($query['type']);
         }
-        $query['msg'] = $msg;
-        header("Location: " . $path . "?" . http_build_query($query));
+        $newQuery = !empty($query) ? '?' . http_build_query($query) : '';
+        header("Location: " . $path . $newQuery);
         exit;
     }
     
