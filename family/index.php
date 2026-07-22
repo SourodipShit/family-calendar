@@ -18,11 +18,16 @@ include $path_prefix . 'components/family-sidebar.php';
                     .family-members-list::-webkit-scrollbar {
                         display: none;
                     }
+
                     .family-members-list {
-                        -ms-overflow-style: none;  /* IE and Edge */
-                        scrollbar-width: none;  /* Firefox */
+                        -ms-overflow-style: none;
+                        /* IE and Edge */
+                        scrollbar-width: none;
+                        /* Firefox */
                     }
+
                     @media (max-width: 991px) {
+
                         /* Disable pointer events on month view events so they pass through to dateClick */
                         .fc-dayGridMonth-view .fc-event {
                             pointer-events: none !important;
@@ -152,7 +157,7 @@ include $path_prefix . 'components/family-sidebar.php';
                         </div>
 
                         <div id="full-calendar-container"></div>
-                        
+
                         <!-- Mobile Month Day Details Container -->
                         <div id="mobileMonthDayDetailsContainer" class="d-lg-none mt-3 d-none">
                             <div class="card border rounded-4 shadow-sm bg-white overflow-hidden">
@@ -168,7 +173,7 @@ include $path_prefix . 'components/family-sidebar.php';
                     </div>
 
                 </div> <!-- End Calendar Views Container -->
-                
+
                 <!-- Mobile Event Details Container -->
                 <div id="mobileEventDetailsContainer" class="d-lg-none mt-3 d-none">
                     <div class="card border rounded-4 shadow-sm p-3 position-relative bg-white">
@@ -177,7 +182,7 @@ include $path_prefix . 'components/family-sidebar.php';
                             <div class="me-3 text-primary d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded p-2" style="width: 36px; height: 36px;">
                                 <i class="fa-solid fa-calendar-days fs-5 text-primary"></i>
                             </div>
-                            
+
                             <!-- Content -->
                             <div class="flex-grow-1 min-w-0" style="overflow: hidden;">
                                 <h6 class="fw-bold mb-1 text-truncate text-dark" id="mobileEventTitle" style="font-size: 0.95rem;">Event Title</h6>
@@ -185,7 +190,7 @@ include $path_prefix . 'components/family-sidebar.php';
                                     Jun 2 - Jun 3 &middot; Location
                                 </div>
                             </div>
-                            
+
                             <!-- Actions Dropdown -->
                             <div class="dropdown ms-2" id="mobileEventEditContainer" style="display: none !important;">
                                 <button class="btn btn-link text-muted p-1 text-decoration-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -675,5 +680,3 @@ include $path_prefix . 'components/family-sidebar.php';
 
 
 <?php include $path_prefix . 'components/family-footer.php'; ?>
-
-

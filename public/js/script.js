@@ -646,6 +646,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     editContainer.style.setProperty('display', 'none', 'important');
                 }
                 
+                
+                const mobileCoachTaskContainer = document.getElementById('mobileCoachTaskContainer');
+                const mobileCoachTaskStatusText = document.getElementById('mobileCoachTaskStatusText');
+                const mobileBtnMarkTaskComplete = document.getElementById('mobileBtnMarkTaskComplete');
+
+                if (mobileCoachTaskContainer) {
+                    if (evt.tracking_status) {
+                        mobileCoachTaskContainer.style.display = 'block';
+                        if (evt.tracking_status === 'pending' || evt.tracking_status === 'reopened') {
+                            mobileCoachTaskStatusText.innerHTML = evt.tracking_status === 'reopened' 
+                                ? `<span class="text-danger fw-bold">Reopened by coach</span><br>${evt.tracking_feedback || ''}`
+                                : 'Pending Coach Task';
+                            mobileBtnMarkTaskComplete.style.display = 'inline-block';
+                            mobileBtnMarkTaskComplete.onclick = function() {
+                                markCoachTaskComplete(evt.id);
+                            };
+                        } else if (evt.tracking_status === 'family_completed') {
+                            mobileCoachTaskStatusText.innerHTML = '<span class="text-warning fw-bold">Pending Coach Review</span>';
+                            mobileBtnMarkTaskComplete.style.display = 'none';
+                        } else if (evt.tracking_status === 'coach_approved') {
+                            mobileCoachTaskStatusText.innerHTML = `<span class="text-success fw-bold">Approved by Coach</span><br>${evt.tracking_feedback || ''}`;
+                            mobileBtnMarkTaskComplete.style.display = 'none';
+                        }
+                    } else {
+                        mobileCoachTaskContainer.style.display = 'none';
+                    }
+                }
+                
                 container.classList.remove('d-none');
                 container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 return;
@@ -670,8 +698,38 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('viewEventTime').textContent = timeStr;
         
         const editContainer = document.getElementById('viewEventEditContainer');
+        editContainer.setAttribute('data-event-id', evt.id);
         const btnEdit = document.getElementById('btnEditEvent');
         const btnDelete = document.getElementById('btnDeleteEvent');
+        
+        // Handle Coach Task UI
+        const coachTaskContainer = document.getElementById('coachTaskContainer');
+        const coachTaskStatusText = document.getElementById('coachTaskStatusText');
+        const btnMarkTaskComplete = document.getElementById('btnMarkTaskComplete');
+        
+        if (coachTaskContainer) {
+            if (evt.tracking_status) {
+                coachTaskContainer.style.display = 'block';
+                if (evt.tracking_status === 'pending' || evt.tracking_status === 'reopened') {
+                    coachTaskStatusText.innerHTML = evt.tracking_status === 'reopened' 
+                        ? `<span class="text-danger fw-bold">Reopened by coach</span><br>${evt.tracking_feedback || ''}`
+                        : 'Pending Coach Task';
+                    btnMarkTaskComplete.style.display = 'inline-block';
+                    btnMarkTaskComplete.onclick = function() {
+                        markCoachTaskComplete(evt.id);
+                    };
+                } else if (evt.tracking_status === 'family_completed') {
+                    coachTaskStatusText.innerHTML = '<span class="text-warning fw-bold">Pending Coach Review</span>';
+                    btnMarkTaskComplete.style.display = 'none';
+                } else if (evt.tracking_status === 'coach_approved') {
+                    coachTaskStatusText.innerHTML = `<span class="text-success fw-bold">Approved by Coach</span><br>${evt.tracking_feedback || ''}`;
+                    btnMarkTaskComplete.style.display = 'none';
+                }
+            } else {
+                coachTaskContainer.style.display = 'none';
+            }
+        }
+
         if (evt.created_by == window.CURRENT_USER_ID) {
             editContainer.style.setProperty('display', 'flex', 'important');
             
@@ -1611,6 +1669,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         duration: e.duration,
                         location: e.location,
                         countdown: e.countdown,
+                        tracking_status: e.tracking_status,
+                        tracking_feedback: e.tracking_feedback,
                         isAllDay: false
                     }
                 }));
@@ -1632,6 +1692,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         categoryColor: e.categoryColor,
                         location: e.location,
                         countdown: e.countdown,
+                        tracking_status: e.tracking_status,
+                        tracking_feedback: e.tracking_feedback,
                         isAllDay: true
                     }
                 }));
@@ -1662,6 +1724,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     isAllDay: props.isAllDay,
                     created_by: props.created_by,
                     countdown: props.countdown,
+                    tracking_status: props.tracking_status,
+                    tracking_feedback: props.tracking_feedback,
                     id: props.id,
                     startStr: info.event.startStr,
                     endStr: info.event.endStr
@@ -1938,6 +2002,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.textContent = '00:00:00';
             }
         });
-    }, 1000);
-
+    }, 60000); // Check every minute
 });
+
+// Coach Task Complete Function
+window.markCoachTaskComplete = function(eventId) {
+    if (!eventId) return;
+    
+    const formData = new FormData();
+    formData.append('action', 'mark_complete');
+    formData.append('event_id', eventId);
+    
+    fetch('../api/coach_actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            if (typeof showAlert === 'function') showAlert(data.message, 'success');
+            else alert(data.message);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('viewEventModal'));
+            if (modal) modal.hide();
+            document.getElementById('mobileEventDetailsContainer').classList.add('d-none');
+            if (typeof fetchEvents === 'function') fetchEvents();
+        } else {
+            if (typeof showAlert === 'function') showAlert(data.message, 'error');
+            else alert(data.message);
+        }
+    })
+    .catch(err => console.error('Error marking complete:', err));
+};

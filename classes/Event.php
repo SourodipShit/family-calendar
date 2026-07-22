@@ -7,9 +7,11 @@ class  Event
 {
     public static function getEventsByDateRange($startDate, $endDate, $familyId, $userId = null)
     {
-        $sql = "SELECT e.*, e.created_by, et.name AS type, et.colour AS color
+        $sql = "SELECT e.*, e.created_by, et.name AS type, et.colour AS color,
+                       cet.status AS tracking_status, cet.feedback AS tracking_feedback
                 FROM events AS e 
                 INNER JOIN event_types AS et ON e.type_id = et.id 
+                LEFT JOIN coach_event_tracking cet ON e.id = cet.event_id
                 WHERE e.start_time BETWEEN ? AND ? 
                 AND (
                     e.family_id = ? 

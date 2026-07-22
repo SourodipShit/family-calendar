@@ -43,6 +43,8 @@ function getEventsByDateRange()
                 'location' => $event['location'] ?? '',
                 'is_all_day' => (isset($event['is_all_day']) && $event['is_all_day']) ? true : false,
                 'countdown' => $event['countdown'] ?? 0,
+                'tracking_status' => $event['tracking_status'] ?? null,
+                'tracking_feedback' => $event['tracking_feedback'] ?? null,
                 'members' => $members
             ];
         }

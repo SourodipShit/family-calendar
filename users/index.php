@@ -14,6 +14,56 @@ include $path_prefix . 'components/sidebar.php';
 
         <div class="row">
             <div class="col-12">
+                <?php
+                // Check if there is a pending coach plan to import
+                $familyId = $_SESSION['user']['active_family_id'] ?? $_SESSION['user']['family_id'] ?? null;
+                if ($familyId && $_SESSION['user']['role'] === 'family-head') {
+                    $planCheck = Database::runPrepared("SELECT id FROM family_coaches WHERE family_id = ? AND csv_link IS NOT NULL AND csv_link != '' LIMIT 1", [$familyId])->fetch(PDO::FETCH_ASSOC);
+                    if ($planCheck) {
+                        ?>
+                        <div class="alert alert-info d-flex align-items-center justify-content-between mb-4 shadow-sm" role="alert" id="coachPlanAlert">
+                            <div>
+                                <i class="fa-solid fa-file-csv me-2 fs-5"></i>
+                                <strong>New Coach Plan Available!</strong> Your coach has uploaded a new 365-day plan for your family.
+                            </div>
+                            <button class="btn btn-primary btn-sm fw-bold px-3" onclick="importCoachPlan(<?php echo $planCheck['id']; ?>)">
+                                Import Plan to Calendar
+                            </button>
+                        </div>
+                        <script>
+                            function importCoachPlan(familyCoachId) {
+                                if (!confirm('Are you sure you want to import this plan? This will add up to 365 events to your calendar.')) return;
+                                
+                                const formData = new FormData();
+                                formData.append('action', 'import_csv');
+                                formData.append('family_coach_id', familyCoachId);
+                                
+                                fetch('../api/coach_actions.php', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.status === 'success') {
+                                        if (typeof showAlert === 'function') {
+                                            showAlert(data.message, 'success');
+                                            setTimeout(() => window.location.reload(), 1500);
+                                        } else {
+                                            alert(data.message);
+                                            window.location.reload();
+                                        }
+                                    } else {
+                                        if (typeof showAlert === 'function') showAlert(data.message, 'error');
+                                        else alert(data.message);
+                                    }
+                                })
+                                .catch(err => console.error('Error importing plan:', err));
+                            }
+                        </script>
+                        <?php
+                    }
+                }
+                ?>
                 <style>
                     .family-members-list::-webkit-scrollbar {
                         display: none;
@@ -199,6 +249,14 @@ include $path_prefix . 'components/sidebar.php';
 
                             <!-- Close Button (Always visible) -->
                             <button type="button" class="btn-close ms-2 mb-4" aria-label="Close" onclick="document.getElementById('mobileEventDetailsContainer').classList.add('d-none');" style="font-size: 0.6rem; opacity: 0.5;"></button>
+                        </div>
+                        
+                        <!-- Coach Task Mobile UI -->
+                        <div id="mobileCoachTaskContainer" class="mt-3 pt-2 border-top text-center" style="display: none;">
+                            <p class="text-muted fw-medium fs-8 mb-2" id="mobileCoachTaskStatusText"></p>
+                            <button class="btn btn-success btn-sm fw-bold px-3" id="mobileBtnMarkTaskComplete" onclick="markCoachTaskComplete()">
+                                <i class="fa-solid fa-check me-1"></i> Mark Complete
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -682,6 +740,13 @@ include $path_prefix . 'components/sidebar.php';
                         <i class="fa-solid fa-trash-can"></i>
                     </a>
                 </div>
+                
+                <div id="coachTaskContainer" class="mt-4 pt-3 border-top text-center" style="display: none;">
+                    <p class="text-muted fw-medium fs-7 mb-2" id="coachTaskStatusText"></p>
+                    <button class="btn btn-success fw-bold px-4" id="btnMarkTaskComplete">
+                        <i class="fa-solid fa-check me-1"></i> Mark as Complete
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -693,6 +758,7 @@ include $path_prefix . 'components/sidebar.php';
 </div>
 </div>
 
-
+<!-- Premium Alert System -->
+<script src="../public/js/alert.js"></script>
 
 <?php include $path_prefix . 'components/footer.php'; ?>

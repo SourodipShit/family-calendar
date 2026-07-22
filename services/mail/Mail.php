@@ -170,4 +170,17 @@ class Mail
             'attachments' => $attachments
         ]);
     }
+
+    public static function coachPlanUploaded($email, $name)
+    {
+        $html = Mailer::render('coach_plan_uploaded', [
+            'name' => $name
+        ]);
+
+        return Mailer::send([
+            'to' => $email,
+            'subject' => 'New Coach Plan Available',
+            'html' => $html
+        ]);
+    }
 }
