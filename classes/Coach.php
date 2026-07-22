@@ -221,7 +221,7 @@ class Coach
     public static function getById($id)
     {
         try {
-            $sql = "SELECT cp.*, u.name as user_name, u.email, u.image as profile_image, cc.name as category_name
+            $sql = "SELECT cp.*, u.name as user_name, u.email, u.phone, u.image as profile_image, cc.name as category_name
                     FROM coach_profiles cp
                     INNER JOIN users u ON cp.user_id = u.id
                     LEFT JOIN coach_categories cc ON cp.category_id = cc.id
@@ -299,7 +299,7 @@ class Coach
     public static function getAll($filter = [])
     {
         try {
-            $sql = "SELECT cp.*, u.name as user_name, u.email, u.image as profile_image, cc.name as category_name
+            $sql = "SELECT cp.*, u.name as user_name, u.email, u.phone, u.image as profile_image, cc.name as category_name
                     FROM coach_profiles cp
                     INNER JOIN users u ON cp.user_id = u.id
                     LEFT JOIN coach_categories cc ON cp.category_id = cc.id
@@ -550,7 +550,7 @@ class Coach
     public static function getFamilyCoaches($familyId)
     {
         try {
-            $sql = "SELECT fc.*, u.name as coach_name, u.email as coach_email, u.image as coach_image, cp.price as plan_price, cp.duration_days 
+            $sql = "SELECT fc.*, u.name as coach_name, u.email as coach_email, u.phone as coach_phone, u.image as coach_image, cp.price as plan_price, cp.duration_days 
                     FROM family_coaches fc
                     INNER JOIN users u ON fc.coach_id = u.id
                     INNER JOIN coach_plans cp ON fc.plan_id = cp.id

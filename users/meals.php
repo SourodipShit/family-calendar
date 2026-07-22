@@ -989,7 +989,12 @@ if (isset($_SESSION['user']['active_family']['settings'])) {
                                     <span>${meal.average_rating}</span>
                                     <span class="text-muted" style="font-size: 0.65rem">(${meal.total_ratings})</span>
                                 </div>
-                                ` : ''}
+                                ` : `
+                                <div class="rating-badge">
+                                    <i class="fa-regular fa-star star-rating text-muted"></i>
+                                    <span class="text-muted">0</span>
+                                </div>
+                                `}
 
                                 <div class="meal-name">${meal.name}</div>
                                 <img src="${imageUrl}" alt="${meal.name}" onerror="this.src='${fallbackImage}'">

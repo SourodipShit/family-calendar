@@ -1,6 +1,20 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once __DIR__ . '/../classes/Family.php';
+
 $path_prefix = "../";
-$page_title = "Calendar";
+$familyId = $_SESSION['user']['active_family_id'] ?? $_SESSION['user']['family_id'] ?? null;
+$familyName = "Family";
+if ($familyId) {
+    $family = Family::getFamily($familyId);
+    if ($family) {
+        $familyName = $family['name'];
+    }
+}
+$page_title = htmlspecialchars($familyName) . " Calendar";
+
 include $path_prefix . 'components/header.php';
 include $path_prefix . 'components/sidebar.php';
 ?>

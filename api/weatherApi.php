@@ -31,7 +31,15 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
             if ($family && !empty($family['location'])) {
                 $locationQuery = urlencode($family['location']);
                 $geoApiUrl = "https://geocoding-api.open-meteo.com/v1/search?name={$locationQuery}&count=1&language=en&format=json";
-                $geoResponse = @file_get_contents($geoApiUrl);
+                
+                $chGeo = curl_init();
+                curl_setopt($chGeo, CURLOPT_URL, $geoApiUrl);
+                curl_setopt($chGeo, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($chGeo, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($chGeo, CURLOPT_TIMEOUT, 5);
+                curl_setopt($chGeo, CURLOPT_USERAGENT, 'FamilyCalendarApp/1.0 (Contact: admin@ascinate.in)');
+                $geoResponse = curl_exec($chGeo);
+                curl_close($chGeo);
                 
                 if ($geoResponse) {
                     $geoData = json_decode($geoResponse, true);
@@ -155,8 +163,8 @@ function getWeatherDetails($code, $isDay)
     return ['text' => $text, 'icon_url' => $iconUrl];
 }
 
-// 2. Open-Meteo API URL with daily max/min temps, Celsius (default)
-$apiUrl = "https://api.open-meteo.com/v1/forecast?latitude={$latitude}&longitude={$longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone={$timezone}";
+// 2. Open-Meteo API URL with daily max/min temps, Fahrenheit
+$apiUrl = "https://api.open-meteo.com/v1/forecast?latitude={$latitude}&longitude={$longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone={$timezone}&temperature_unit=fahrenheit";
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $apiUrl);
@@ -187,7 +195,7 @@ $weatherDetails = getWeatherDetails($data['current_weather']['weathercode'], $is
 // Extract only the details we want
 $widgetData = [
     'location' => $locationName,
-    'current_temperature' => round($data['current_weather']['temperature']) . '°C',
+    'current_temperature' => round($data['current_weather']['temperature']) . '°F',
     'condition_icon_url' => $weatherDetails['icon_url'],
     'condition_text' => $weatherDetails['text'],
     'high_temperature' => 'H: ' . round($data['daily']['temperature_2m_max'][0]) . '°',

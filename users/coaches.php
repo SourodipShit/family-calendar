@@ -299,7 +299,12 @@ include $path_prefix . 'components/sidebar.php';
                                         </div>
                                         <div class="mb-1 d-flex align-items-center">
                                             <h5 class="fw-bold mb-0 me-2"><?= htmlspecialchars($coach['user_name']) ?></h5>
-                                            <i class="fa-solid fa-circle-check verification-badge"></i>
+                                            <i class="fa-solid fa-circle-check verification-badge me-2"></i>
+                                            <?php if (!empty($coach['phone'])): ?>
+                                                <a href="tel:<?= htmlspecialchars($coach['phone']) ?>" class="text-muted text-decoration-none" title="<?= htmlspecialchars($coach['phone']) ?>">
+                                                    <i class="fa-solid fa-phone fs-7"></i>
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="text-muted fs-7 mb-2"><?= htmlspecialchars($coach['category_name'] ?? 'Coach') ?></div>
                                         <div class="d-flex align-items-center mb-3 fs-7">
@@ -335,7 +340,12 @@ include $path_prefix . 'components/sidebar.php';
                                                     <div>
                                                         <?php $isHead = (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'family-head'); ?>
                                                         <h4 class="modal-title fw-bold mb-1"><?= $isHead ? 'Hire ' . htmlspecialchars($coach['user_name']) : htmlspecialchars($coach['user_name']) . "'s Profile" ?></h4>
-                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill"><i class="fa-solid fa-tag me-1"></i><?= htmlspecialchars($coach['category_name'] ?? 'General') ?></span>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill"><i class="fa-solid fa-tag me-1"></i><?= htmlspecialchars($coach['category_name'] ?? 'General') ?></span>
+                                                            <?php if (!empty($coach['phone'])): ?>
+                                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-pill"><i class="fa-solid fa-phone me-1"></i><?= htmlspecialchars($coach['phone']) ?></span>
+                                                            <?php endif; ?>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

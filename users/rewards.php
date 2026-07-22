@@ -307,8 +307,9 @@ include $path_prefix . 'components/sidebar.php';
                 <div class="col-6 col-md-3 col-lg-2">
                     <div class="card border-0 shadow-sm overflow-hidden position-relative rounded-4 border border-warning" style="aspect-ratio: 1/1;">
                         <img src="${imgSrc}" class="w-100 h-100" style="object-fit: cover;">
-                        <div class="position-absolute top-0 start-0 p-1">
+                        <div class="position-absolute top-0 start-0 p-1 d-flex align-items-center">
                             <img src="${userImg}" alt="${vault.name}" class="rounded-circle shadow-sm border border-2 border-white" style="width: 24px; height: 24px; object-fit: cover;" title="${vault.name}">
+                            <span class="ms-1 fw-bold text-white" style="font-size: 0.75rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${vault.name}</span>
                         </div>
                         <div class="position-absolute bottom-0 start-0 w-100 p-2 d-flex flex-column justify-content-end" style="background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); height: 75%;">
                             <h6 class="fw-bold text-white mb-1 text-truncate text-center" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8); font-size: 0.85rem;">${vault.title}</h6>
@@ -331,8 +332,9 @@ include $path_prefix . 'components/sidebar.php';
                 <div class="col-6 col-md-3 col-lg-2">
                     <div class="card border-0 shadow-sm overflow-hidden position-relative rounded-4 border border-success" style="aspect-ratio: 1/1;">
                         <img src="${imgSrc}" class="w-100 h-100" style="object-fit: cover; filter: grayscale(40%);">
-                        <div class="position-absolute top-0 start-0 p-1">
+                        <div class="position-absolute top-0 start-0 p-1 d-flex align-items-center">
                             <img src="${userImg}" alt="${vault.name}" class="rounded-circle shadow-sm border border-2 border-white" style="width: 24px; height: 24px; object-fit: cover;" title="${vault.name}">
+                            <span class="ms-1 fw-bold text-white" style="font-size: 0.75rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${vault.name}</span>
                         </div>
                         <div class="position-absolute top-0 end-0 p-1">
                             <span class="badge bg-success shadow-sm" style="font-size: 0.6rem;">Done</span>

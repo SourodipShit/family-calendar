@@ -14,8 +14,21 @@ class ICS
         $description = self::escapeString($event['description'] ?? '');
         $location = self::escapeString($event['location'] ?? '');
         
-        $start = date('Ymd\THis', strtotime($event['start']));
-        $end = date('Ymd\THis', strtotime($event['end']));
+        $isAllDay = !empty($event['is_all_day']);
+        
+        if ($isAllDay) {
+            $start = date('Ymd', strtotime($event['start']));
+            // For all-day events, the end date must be the day after the event ends (exclusive)
+            $end = date('Ymd', strtotime(date('Y-m-d', strtotime($event['end']))) + 86400);
+            $dtstart = "DTSTART;VALUE=DATE:{$start}";
+            $dtend = "DTEND;VALUE=DATE:{$end}";
+        } else {
+            $start = date('Ymd\THis', strtotime($event['start']));
+            $end = date('Ymd\THis', strtotime($event['end']));
+            $dtstart = "DTSTART:{$start}";
+            $dtend = "DTEND:{$end}";
+        }
+        
         $dtstamp = gmdate('Ymd\THis\Z');
         $uid = uniqid() . '@familycalendar.com';
 
@@ -27,8 +40,8 @@ class ICS
             "BEGIN:VEVENT",
             "UID:{$uid}",
             "DTSTAMP:{$dtstamp}",
-            "DTSTART:{$start}",
-            "DTEND:{$end}",
+            $dtstart,
+            $dtend,
             "SUMMARY:{$summary}",
             "DESCRIPTION:{$description}",
             "LOCATION:{$location}",
