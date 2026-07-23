@@ -3,6 +3,11 @@ $path_prefix = "../";
 $page_title = "Coach Dashboard";
 require_once $path_prefix . 'components/coach-header.php';
 require_once $path_prefix . 'components/coach-sidebar.php';
+require_once $path_prefix . 'classes/Coach.php';
+
+$coachId = $_SESSION['user']['id'] ?? null;
+$familiesRes = Coach::getCoachFamilies($coachId);
+$coachFamilies = ($familiesRes['status'] === 'success') ? $familiesRes['data'] : [];
 ?>
 
 <div id="page-content-wrapper" class="flex-grow-1 bg-white">
@@ -26,7 +31,14 @@ require_once $path_prefix . 'components/coach-sidebar.php';
                     }
                 </style>
                 <div class="d-flex flex-nowrap align-items-center gap-0 mb-4 coach-families-list overflow-x-auto" id="coach-families-container">
-                    <!-- Populated by JS -->
+                    <button class="btn btn-sm btn-white border border-primary bg-primary bg-opacity-10 fw-bold rounded-pill px-3 py-2 me-2 text-nowrap family-filter-btn" data-family-id="all">
+                        <i class="fa-solid fa-users me-1 text-primary"></i> All Families
+                    </button>
+                    <?php foreach ($coachFamilies as $f): ?>
+                        <button class="btn btn-sm btn-white border-transparent text-muted rounded-pill px-3 py-2 me-2 text-nowrap family-filter-btn" data-family-id="<?= htmlspecialchars($f['family_id']) ?>">
+                            <?= htmlspecialchars($f['family_name']) ?>
+                        </button>
+                    <?php endforeach; ?>
                 </div>
             </div>
             
@@ -136,7 +148,9 @@ require_once $path_prefix . 'components/coach-sidebar.php';
                         <label class="form-label fw-bold">Select Family</label>
                         <select class="form-select" name="family_coach_id" id="uploadFamilySelect" required>
                             <option value="">Choose a family...</option>
-                            <!-- Populated dynamically -->
+                            <?php foreach ($coachFamilies as $f): ?>
+                                <option value="<?= htmlspecialchars($f['id']) ?>"><?= htmlspecialchars($f['family_name']) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">

@@ -414,10 +414,7 @@ include $path_prefix . 'components/sidebar.php';
                                                                             <h6 class="fw-bold mb-1 text-dark" style="font-size: 0.75rem;"><?= $plan['duration_days'] ?> Days</h6>
                                                                             <div class="text-primary fw-bold" style="font-size: 1rem;">$<?= number_format($plan['price'], 2) ?></div>
                                                                         </div>
-                                                                        <?php if ($isHead): ?>
-                                                                            <input type="hidden" name="price" value="<?= $plan['price'] ?>">
-                                                                        <?php endif; ?>
-                                                                    </label>
+                                                                        </label>
                                                                 </div>
                                                             <?php endforeach; ?>
                                                         </div>

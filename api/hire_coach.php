@@ -19,11 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $coachId = $_POST['coach_id'] ?? null;
     $planId = $_POST['plan_id'] ?? null;
-    $priceAtHire = $_POST['price'] ?? 0;
 
     if (!$familyId || !$coachId || !$planId) {
         $msg = "Missing required fields.";
     } else {
+        // Fetch actual price from database to prevent tampering and fix the $25 bug
+        $stmt = Database::runPrepared("SELECT price FROM coach_plans WHERE id = ? AND coach_id = ?", [$planId, $coachId]);
+        $planData = $stmt->fetch(PDO::FETCH_ASSOC);
+        $priceAtHire = $planData ? $planData['price'] : 0;
+
         $result = Coach::hireCoach($familyId, $coachId, $planId, $priceAtHire);
         $msg = $result['message'];
     }
