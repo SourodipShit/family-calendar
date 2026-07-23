@@ -13,6 +13,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require_once __DIR__ . '/../config/Database.php';
+$timezone = 'auto';
 
 // Check if latitude and longitude are provided via GET
 if (isset($_GET['lat']) && isset($_GET['lon'])) {
@@ -22,7 +23,7 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
     $timezone = 'auto'; // Let open-meteo auto-resolve timezone based on lat/lon
 } else {
     $geocoded = false;
-    
+
     // Check if user is logged in and has an active family
     if (isset($_SESSION['user']['active_family_id'])) {
         $familyId = $_SESSION['user']['active_family_id'];
@@ -31,7 +32,7 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
             if ($family && !empty($family['location'])) {
                 $locationQuery = urlencode($family['location']);
                 $geoApiUrl = "https://geocoding-api.open-meteo.com/v1/search?name={$locationQuery}&count=1&language=en&format=json";
-                
+
                 $chGeo = curl_init();
                 curl_setopt($chGeo, CURLOPT_URL, $geoApiUrl);
                 curl_setopt($chGeo, CURLOPT_RETURNTRANSFER, true);
@@ -40,7 +41,7 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
                 curl_setopt($chGeo, CURLOPT_USERAGENT, 'FamilyCalendarApp/1.0 (Contact: admin@ascinate.in)');
                 $geoResponse = curl_exec($chGeo);
                 curl_close($chGeo);
-                
+
                 if ($geoResponse) {
                     $geoData = json_decode($geoResponse, true);
                     if (isset($geoData['results']) && count($geoData['results']) > 0) {
@@ -58,39 +59,39 @@ if (isset($_GET['lat']) && isset($_GET['lon'])) {
     }
 
     if (!$geocoded) {
-    // 1. Get current location based on user's IP address (instead of server's IP)
-    $clientIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $clientIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
-    }
+        // 1. Get current location based on user's IP address (instead of server's IP)
+        $clientIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $clientIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+        }
 
-    // If local, don't pass IP so ip-api uses the server's public IP for testing
-    $ipQuery = '';
-    if ($clientIp && !in_array($clientIp, ['127.0.0.1', '::1'])) {
-        $ipQuery = $clientIp;
-    }
+        // If local, don't pass IP so ip-api uses the server's public IP for testing
+        $ipQuery = '';
+        if ($clientIp && !in_array($clientIp, ['127.0.0.1', '::1'])) {
+            $ipQuery = $clientIp;
+        }
 
-    $ipApiUrl = "http://ip-api.com/json/" . $ipQuery;
+        $ipApiUrl = "http://ip-api.com/json/" . $ipQuery;
 
-    // Suppress errors if API is unreachable
-    $ipResponse = @file_get_contents($ipApiUrl);
+        // Suppress errors if API is unreachable
+        $ipResponse = @file_get_contents($ipApiUrl);
 
-    if (!$ipResponse) {
-        echo json_encode(['error' => 'Failed to auto-detect location.']);
-        exit;
-    }
+        if (!$ipResponse) {
+            echo json_encode(['error' => 'Failed to auto-detect location.']);
+            exit;
+        }
 
-    $ipData = json_decode($ipResponse, true);
+        $ipData = json_decode($ipResponse, true);
 
-    if (isset($ipData['status']) && $ipData['status'] !== 'success') {
-        echo json_encode(['error' => 'Error from IP API: ' . $ipData['message']]);
-        exit;
-    }
+        if (isset($ipData['status']) && $ipData['status'] !== 'success') {
+            echo json_encode(['error' => 'Error from IP API: ' . $ipData['message']]);
+            exit;
+        }
 
-    $latitude = $ipData['lat'];
-    $longitude = $ipData['lon'];
-    $locationName = $ipData['city'] . ', ' . $ipData['region'];
-    $timezone = urlencode($ipData['timezone']);
+        $latitude = $ipData['lat'];
+        $longitude = $ipData['lon'];
+        $locationName = $ipData['city'] . ', ' . $ipData['region'];
+        $timezone = urlencode($ipData['timezone']);
     }
 }
 
