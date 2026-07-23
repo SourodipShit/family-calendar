@@ -300,9 +300,12 @@ include $path_prefix . 'components/sidebar.php';
                                         <div class="mb-1 d-flex align-items-center">
                                             <h5 class="fw-bold mb-0 me-2"><?= htmlspecialchars($coach['user_name']) ?></h5>
                                             <i class="fa-solid fa-circle-check verification-badge me-2"></i>
+
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3 fs-7">
                                             <?php if (!empty($coach['phone'])): ?>
-                                                <a href="tel:<?= htmlspecialchars($coach['phone']) ?>" class="text-muted text-decoration-none" title="<?= htmlspecialchars($coach['phone']) ?>">
-                                                    <i class="fa-solid fa-phone fs-7"></i>
+                                                <a href="tel:<?= htmlspecialchars($coach['phone']) ?>" class="text-muted text-decoration-none fs-7" title="<?= htmlspecialchars($coach['phone']) ?>">
+                                                    <i class="fa-solid fa-phone fs-7 me-2"></i><?= htmlspecialchars($coach['phone']) ?>
                                                 </a>
                                             <?php endif; ?>
                                         </div>
@@ -362,11 +365,11 @@ include $path_prefix . 'components/sidebar.php';
                                                         <div class="row g-3 mb-4">
                                                             <?php foreach ($certifications as $cert): ?>
                                                                 <div class="col-6 col-md-4">
-                                                                    <div class="card border-0 shadow-sm h-100 overflow-hidden" 
-                                                                         style="cursor: pointer; transition: transform 0.2s;" 
-                                                                         onmouseover="this.style.transform='scale(1.03)'" 
-                                                                         onmouseout="this.style.transform='scale(1)'"
-                                                                         onclick="<?php if (!empty($cert['image'])) echo "window.open('" . htmlspecialchars($cert['image']) . "', '_blank')"; ?>">
+                                                                    <div class="card border-0 shadow-sm h-100 overflow-hidden"
+                                                                        style="cursor: pointer; transition: transform 0.2s;"
+                                                                        onmouseover="this.style.transform='scale(1.03)'"
+                                                                        onmouseout="this.style.transform='scale(1)'"
+                                                                        onclick="<?php if (!empty($cert['image'])) echo "window.open('" . htmlspecialchars($cert['image']) . "', '_blank')"; ?>">
                                                                         <div style="padding-top: 75%; position: relative; background-color: #f8f9fa;">
                                                                             <?php if (!empty($cert['image'])): ?>
                                                                                 <img src="<?= htmlspecialchars($cert['image']) ?>" alt="cert" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: cover;">
