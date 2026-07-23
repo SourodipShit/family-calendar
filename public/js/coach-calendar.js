@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 dayEvents.forEach(evt => {
                     const block = document.createElement('div');
                     block.className = `event-block position-relative rounded p-2 shadow-sm w-100 d-flex align-items-center justify-content-between`;
-                    
+
                     let baseColor = evt.colorCode || '#0d6efd';
                     const bgColor = lightenColor(baseColor, 92);
                     block.style.backgroundColor = bgColor;
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
             div.style.color = baseColor;
             div.style.borderLeft = `4px solid ${baseColor}`;
             div.style.position = 'relative';
-            
+
             let statusBadge = '';
             if (evt.tracking_status === 'family_completed') {
                 statusBadge = `<span class="badge ms-2" style="background-color:#0dcaf0; color:#fff; font-size:0.65rem;">Needs Review</span>`;
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let baseColor = evt.colorCode || '#0d6efd';
             const bgColor = lightenColor(baseColor, 92);
-            
+
             let statusBadge = '';
             if (evt.tracking_status === 'family_completed') statusBadge = `<span class="badge ms-2" style="background-color:#0dcaf0; color:#fff; font-size:0.65rem;">Needs Review</span>`;
             else if (evt.tracking_status === 'coach_approved') statusBadge = `<span class="badge ms-2" style="background-color:#198754; color:#fff; font-size:0.65rem;">Approved</span>`;
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const startStr = formatTime(evt.startStr);
                 let baseColor = evt.colorCode || '#0d6efd';
                 const bgColor = lightenColor(baseColor, 92);
-                
+
                 let statusBadge = '';
                 if (evt.tracking_status === 'family_completed') statusBadge = `<span class="badge ms-2" style="background-color:#0dcaf0; color:#fff; font-size:0.65rem;">Needs Review</span>`;
                 else if (evt.tracking_status === 'coach_approved') statusBadge = `<span class="badge ms-2" style="background-color:#198754; color:#fff; font-size:0.65rem;">Approved</span>`;
@@ -492,7 +492,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
             },
             eventClick: function (info) {
-                handleEventClick(info.event.extendedProps);
+                const eventId = info.event.id;
+                const originalEvent = allEvents.find(e => e.id == eventId);
+                if (originalEvent) {
+                    handleEventClick(originalEvent);
+                }
             }
         });
         window.calendarInstance.render();

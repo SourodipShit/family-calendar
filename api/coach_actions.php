@@ -39,30 +39,41 @@ switch ($action) {
         }
 
         $upload = File::upload($_FILES['csv_file'], 'plans');
+        
         if ($upload['status'] === 'success') {
             $csvLink = $upload['filePath'];
             $update = Coach::updateFamilyCoachCsvLink($familyCoachId, $csvLink);
             
+            if ($update['status'] !== 'success') {
+                ob_clean();
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save CSV link: ' . $update['message']]);
+                exit;
+            }
+
             // Fetch family info to send email
             $details = Coach::getFamilyCoachDetails($familyCoachId);
             if ($details['status'] === 'success') {
                 $familyId = $details['data']['family_id'];
-                $headsQuery = Database::runPrepared("
-                    SELECT users.email, users.name 
-                    FROM users 
-                    INNER JOIN user_family ON users.id = user_family.user_id 
-                    WHERE user_family.family_id = ? AND users.role = 'family-head'
-                ", [$familyId]);
-                $familyHeads = $headsQuery->fetchAll(PDO::FETCH_ASSOC);
+                try {
+                    $headsQuery = Database::runPrepared("
+                        SELECT users.email, users.name 
+                        FROM users 
+                        INNER JOIN user_family ON users.id = user_family.user_id 
+                        WHERE user_family.family_id = ? AND users.role = 'family-head'
+                    ", [$familyId]);
+                    $familyHeads = $headsQuery->fetchAll(PDO::FETCH_ASSOC);
 
-                require_once __DIR__ . '/../services/mail/Mail.php';
-                foreach ($familyHeads as $head) {
-                    Mail::coachPlanUploaded($head['email'], $head['name']);
+                    require_once __DIR__ . '/../services/mail/Mail.php';
+                    foreach ($familyHeads as $head) {
+                        Mail::coachPlanUploaded($head['email'], $head['name']);
+                    }
+                } catch (Throwable $e) {
+                    error_log("Failed to send coach plan email: " . $e->getMessage());
                 }
             }
             
             ob_clean();
-            echo json_encode(['status' => 'success', 'message' => 'Plan uploaded successfully. Family has been notified.']);
+            echo json_encode(['status' => 'success', 'message' => 'Plan uploaded successfully.']);
         } else {
             ob_clean();
             echo json_encode(['status' => 'error', 'message' => $upload['message']]);

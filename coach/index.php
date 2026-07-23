@@ -137,7 +137,7 @@ $coachFamilies = ($familiesRes['status'] === 'success') ? $familiesRes['data'] :
 <div class="modal fade" id="uploadPlanModal" tabindex="-1" aria-labelledby="uploadPlanModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="uploadPlanForm">
+            <form id="uploadPlanForm" enctype="multipart/form-data">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold" id="uploadPlanModalLabel">Upload CSV Plan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -207,16 +207,11 @@ $coachFamilies = ($familiesRes['status'] === 'success') ? $familiesRes['data'] :
     </div>
 </div>
 
+<?php require_once $path_prefix . 'components/admin-footer.php'; ?>
+
 <!-- Bootstrap Datepicker -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-<!-- Premium Alert System -->
-<script src="../public/js/alert.js"></script>
 <!-- FullCalendar -->
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 <!-- Coach Calendar JS -->
-<script>
-    const API_PATH = '<?php echo $path_prefix; ?>api/';
-</script>
 <script src="<?php echo $path_prefix; ?>public/js/coach-calendar.js?v=<?php echo time(); ?>"></script>
-
-<?php require_once $path_prefix . 'components/admin-footer.php'; ?>

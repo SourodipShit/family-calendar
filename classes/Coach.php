@@ -553,7 +553,7 @@ class Coach
             $sql = "SELECT fc.*, u.name as coach_name, u.email as coach_email, u.phone as coach_phone, u.image as coach_image, cp.price as plan_price, cp.duration_days 
                     FROM family_coaches fc
                     INNER JOIN users u ON fc.coach_id = u.id
-                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    LEFT JOIN coach_plans cp ON fc.plan_id = cp.id
                     WHERE fc.family_id = ?
                     ORDER BY fc.created_at DESC";
             $stmt = Database::runPrepared($sql, [$familyId]);
@@ -574,7 +574,7 @@ class Coach
                     FROM family_coaches fc
                     INNER JOIN families f ON fc.family_id = f.id
                     INNER JOIN users u ON fc.coach_id = u.id
-                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    LEFT JOIN coach_plans cp ON fc.plan_id = cp.id
                     WHERE fc.status = 'pending_admin_approval'
                     ORDER BY fc.created_at DESC";
             $stmt = Database::runPrepared($sql);
@@ -625,7 +625,7 @@ class Coach
                     FROM family_coaches fc
                     INNER JOIN families f ON fc.family_id = f.id
                     INNER JOIN users u ON fc.coach_id = u.id
-                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    LEFT JOIN coach_plans cp ON fc.plan_id = cp.id
                     WHERE fc.id = ?";
             $stmt = Database::runPrepared($sql, [$id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -647,7 +647,7 @@ class Coach
             $sql = "SELECT fc.*, f.name as family_name, f.email as family_email, cp.price as plan_price, cp.duration_days 
                     FROM family_coaches fc
                     INNER JOIN families f ON fc.family_id = f.id
-                    INNER JOIN coach_plans cp ON fc.plan_id = cp.id
+                    LEFT JOIN coach_plans cp ON fc.plan_id = cp.id
                     WHERE fc.coach_id = ? AND fc.status = 'approved'
                     ORDER BY fc.created_at DESC";
             $stmt = Database::runPrepared($sql, [$coachId]);
