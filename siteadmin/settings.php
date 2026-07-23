@@ -639,6 +639,42 @@ require_once $path_prefix . 'components/admin-sidebar.php';
                                                 </div>
                                             </div>
 
+                                            <!-- Microsoft Calendar Configuration -->
+                                            <div class="accordion-item border-0 mb-3 rounded-3 shadow-sm overflow-hidden">
+                                                <h2 class="accordion-header" id="headingMicrosoft">
+                                                    <button class="accordion-button collapsed fw-bold bg-light text-dark border-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMicrosoft" aria-expanded="false" aria-controls="collapseMicrosoft">
+                                                        <i class="ri-windows-fill me-2 text-primary"></i> Microsoft Calendar Settings
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseMicrosoft" class="accordion-collapse collapse" aria-labelledby="headingMicrosoft" data-bs-parent="#configAccordion">
+                                                    <div class="accordion-body border-top border-light bg-white">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Client ID</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-key-line"></i></span>
+                                                                <input type="text" class="form-control border-0 px-3 py-2 small" id="ms_client_id" name="ms_client_id" placeholder="Your Microsoft Client ID">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Client Secret</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-key-2-line"></i></span>
+                                                                <input type="password" class="form-control border-0 px-3 py-2 small" id="ms_client_secret" name="ms_client_secret" placeholder="Your Microsoft Client Secret">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold small text-muted text-uppercase ls-1">Redirect URI</label>
+                                                            <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                                                                <span class="input-group-text bg-white border-0"><i class="ri-link"></i></span>
+                                                                <input type="url" class="form-control border-0 px-3 py-2 small" id="ms_redirect_uri" name="ms_redirect_uri" placeholder="e.g. https://domain.com/api/ms_callback.php">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                         </div>
 
                                         <div class="mt-4 pt-3 border-top">

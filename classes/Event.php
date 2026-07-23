@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/Remainder.php";
 require_once __DIR__ . "/GoogleCalendarService.php";
+require_once __DIR__ . "/MicrosoftCalendarService.php";
 
 class  Event
 {
@@ -89,6 +90,7 @@ class  Event
             }
 
             GoogleCalendarService::pushEvent($userId, $id, $data);
+            MicrosoftCalendarService::pushEvent($userId, $id, $data);
 
             return ["msg" => "Event added successfully", "status" => "success"];
         } catch (Exception $e) {
@@ -131,6 +133,7 @@ class  Event
             }
 
             GoogleCalendarService::pushEvent($userId, $id, $data);
+            MicrosoftCalendarService::pushEvent($userId, $id, $data);
 
             return ["msg" => "Event updated successfully", "status" => "success"];
         } catch (Exception $e) {
@@ -147,6 +150,7 @@ class  Event
             }
 
             GoogleCalendarService::deleteEvent($userId, $id);
+            MicrosoftCalendarService::deleteEvent($userId, $id);
 
             Database::runPrepared("DELETE FROM event_reminders WHERE event_id = ?", [$id]);
             Database::runPrepared("DELETE FROM event_members WHERE event_id = ?", [$id]);

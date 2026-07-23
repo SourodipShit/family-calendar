@@ -189,6 +189,31 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-12 mt-3">
+                                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1 small"><i class="ri-windows-fill text-primary me-1"></i> Microsoft Calendar</h6>
+                                            <p class="text-muted extra-small mb-0" id="ms-sync-status-text">Checking connection status...</p>
+                                        </div>
+                                        <div class="d-flex gap-3">
+                                            <button id="ms-sync-pull-btn" class="btn btn-outline-primary btn-sm px-3 py-1 fw-medium rounded-2" style="display: none;" onclick="pullMsSync()">Sync Now</button>
+                                            <button id="ms-sync-btn" class="btn btn-outline-primary btn-sm px-3 py-1 fw-medium rounded-2" style="display: none;">Connect Microsoft Calendar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1 small"><i class="ri-apple-fill text-dark me-1"></i> Apple Calendar (WebCal)</h6>
+                                            <p class="text-muted extra-small mb-0" id="apple-sync-status-text">Checking connection status...</p>
+                                        </div>
+                                        <div class="d-flex gap-3">
+                                            <button id="apple-sync-pull-btn" class="btn btn-outline-primary btn-sm px-3 py-1 fw-medium rounded-2" style="display: none;" onclick="pullAppleSync()">Sync Now</button>
+                                            <button id="apple-sync-btn" class="btn btn-outline-dark btn-sm px-3 py-1 fw-medium rounded-2" style="display: none;" data-bs-toggle="modal" data-bs-target="#appleCalendarModal">Connect Apple Calendar</button>
+                                            <button id="apple-sync-disconnect-btn" class="btn btn-outline-secondary btn-sm px-3 py-1 fw-medium rounded-2" style="display: none;" onclick="disconnectAppleSync()">Disconnect</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -626,6 +651,31 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
                 <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="saveEventTypeBtn" class="btn btn-primary btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm">Save Type</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Apple Calendar WebCal Modal -->
+<div class="modal fade" id="appleCalendarModal" tabindex="-1" aria-labelledby="appleCalendarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow p-3">
+            <div class="modal-header border-0 pb-1">
+                <h6 class="modal-title fw-bold" id="appleCalendarModalLabel">Connect Apple Calendar</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark small">WebCal URL <span class="text-danger">*</span></label>
+                    <div class="input-group border rounded-3 overflow-hidden shadow-sm border-light">
+                        <input type="text" class="form-control border-0 px-3 py-2 small" id="apple_webcal_url" placeholder="webcal://pXX-caldav.icloud.com/published/..." required>
+                    </div>
+                    <p class="text-muted mt-2 extra-small mb-0">To find this URL, open Calendar on Mac/iOS, make a calendar public, and copy the sharing URL.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-2 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light btn-sm border px-3 py-1 fw-medium rounded-2 text-dark" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveAppleCalendarBtn" class="btn btn-dark btn-sm px-3 py-1 fw-medium rounded-2 shadow-sm" onclick="connectAppleSync()">Save & Sync</button>
             </div>
         </div>
     </div>
@@ -1947,9 +1997,194 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
         }
     }
 
+    async function checkMsSyncStatus() {
+        try {
+            const response = await fetch(`${API_PATH}user_ms_sync.php?action=status`);
+            const result = await response.json();
+            
+            const statusText = document.getElementById('ms-sync-status-text');
+            const btn = document.getElementById('ms-sync-btn');
+            const pullBtn = document.getElementById('ms-sync-pull-btn');
+            
+            if (result.status === 'success' && result.connected) {
+                statusText.innerHTML = '<span class="text-success fw-bold">Connected</span>';
+                btn.innerText = 'Disconnect';
+                btn.className = 'btn btn-outline-secondary btn-sm px-3 py-1 fw-medium rounded-2';
+                btn.onclick = disconnectMsSync;
+                pullBtn.style.display = 'block';
+            } else {
+                statusText.innerHTML = 'Not connected';
+                btn.innerText = 'Connect Microsoft Calendar';
+                btn.className = 'btn btn-outline-primary btn-sm px-3 py-1 fw-medium rounded-2';
+                btn.onclick = connectMsSync;
+                pullBtn.style.display = 'none';
+            }
+            btn.style.display = 'block';
+        } catch (e) {
+            console.error('Error checking MS sync status:', e);
+        }
+    }
+
+    async function connectMsSync() {
+        try {
+            const response = await fetch(`${API_PATH}user_ms_sync.php?action=connect`);
+            const result = await response.json();
+            if (result.status === 'success' && result.url) {
+                window.location.href = result.url;
+            } else {
+                showAlert(result.message || 'Error connecting to Microsoft', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        }
+    }
+
+    async function disconnectMsSync() {
+        if (!confirm('Are you sure you want to disconnect your Microsoft Calendar?')) return;
+        
+        try {
+            const response = await fetch(`${API_PATH}user_ms_sync.php?action=disconnect`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Disconnected successfully', 'success');
+                checkMsSyncStatus();
+            } else {
+                showAlert(result.message || 'Error disconnecting', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        }
+    }
+
+    async function pullMsSync() {
+        const pullBtn = document.getElementById('ms-sync-pull-btn');
+        const originalText = pullBtn.innerHTML;
+        pullBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Syncing...';
+        pullBtn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_PATH}user_ms_sync.php?action=sync`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Microsoft Calendar synced successfully!', 'success');
+            } else {
+                showAlert(result.message || 'Error syncing', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        } finally {
+            pullBtn.innerHTML = originalText;
+            pullBtn.disabled = false;
+        }
+    }
+
+    async function checkAppleSyncStatus() {
+        try {
+            const response = await fetch(`${API_PATH}user_apple_sync.php?action=status`);
+            const result = await response.json();
+            
+            const statusText = document.getElementById('apple-sync-status-text');
+            const btn = document.getElementById('apple-sync-btn');
+            const pullBtn = document.getElementById('apple-sync-pull-btn');
+            const disconnectBtn = document.getElementById('apple-sync-disconnect-btn');
+            
+            if (result.status === 'success' && result.connected) {
+                statusText.innerHTML = '<span class="text-success fw-bold">Connected</span>';
+                btn.style.display = 'none';
+                disconnectBtn.style.display = 'block';
+                pullBtn.style.display = 'block';
+            } else {
+                statusText.innerHTML = 'Not connected';
+                btn.style.display = 'block';
+                disconnectBtn.style.display = 'none';
+                pullBtn.style.display = 'none';
+            }
+        } catch (e) {
+            console.error('Error checking Apple sync status:', e);
+        }
+    }
+
+    async function connectAppleSync() {
+        const urlInput = document.getElementById('apple_webcal_url').value;
+        if (!urlInput) {
+            showAlert('Please enter a WebCal URL', 'error');
+            return;
+        }
+        
+        const btn = document.getElementById('saveAppleCalendarBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Connecting...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_PATH}user_apple_sync.php?action=connect`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `webcal_url=${encodeURIComponent(urlInput)}`
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Apple Calendar connected successfully!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('appleCalendarModal')).hide();
+                document.getElementById('apple_webcal_url').value = '';
+                checkAppleSyncStatus();
+            } else {
+                showAlert(result.message || 'Error connecting to Apple Calendar', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    async function disconnectAppleSync() {
+        if (!confirm('Are you sure you want to disconnect your Apple Calendar?')) return;
+        
+        try {
+            const response = await fetch(`${API_PATH}user_apple_sync.php?action=disconnect`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Disconnected successfully', 'success');
+                checkAppleSyncStatus();
+            } else {
+                showAlert(result.message || 'Error disconnecting', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        }
+    }
+
+    async function pullAppleSync() {
+        const pullBtn = document.getElementById('apple-sync-pull-btn');
+        const originalText = pullBtn.innerHTML;
+        pullBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Syncing...';
+        pullBtn.disabled = true;
+
+        try {
+            const response = await fetch(`${API_PATH}user_apple_sync.php?action=sync`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlert('Apple Calendar synced successfully!', 'success');
+            } else {
+                showAlert(result.message || 'Error syncing', 'error');
+            }
+        } catch (e) {
+            showAlert('Network error', 'error');
+        } finally {
+            pullBtn.innerHTML = originalText;
+            pullBtn.disabled = false;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         loadStoreRewards();
         checkGoogleSyncStatus();
+        checkMsSyncStatus();
+        checkAppleSyncStatus();
         
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('google_sync') === 'success') {
@@ -1958,6 +2193,14 @@ $family_id = $_SESSION['user']['active_family_id'] ?? null;
             window.history.replaceState({}, document.title, window.location.pathname);
         } else if (urlParams.get('google_sync') === 'error') {
             showAlert('Google Calendar connection failed: ' + (urlParams.get('message') || ''), 'error');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        if (urlParams.get('ms_sync') === 'success') {
+            showAlert('Microsoft Calendar connected successfully!', 'success');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (urlParams.get('ms_sync') === 'error') {
+            showAlert('Microsoft Calendar connection failed: ' + (urlParams.get('message') || ''), 'error');
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     });
