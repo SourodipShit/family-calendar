@@ -191,4 +191,31 @@ function previewImage(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.querySelector('select[name="role"]');
+    const emailInput = document.querySelector('input[name="email"]');
+    const phoneInput = document.querySelector('input[name="phone"]');
+    
+    function updateRequirements() {
+        if (!roleSelect || !emailInput || !phoneInput) return;
+        
+        const role = roleSelect.value;
+        if (role === 'member') {
+            emailInput.required = false;
+            phoneInput.required = false;
+        } else if (role === 'family-head') {
+            emailInput.required = true;
+            phoneInput.required = true;
+        } else {
+            emailInput.required = true;
+            phoneInput.required = false;
+        }
+    }
+
+    if (roleSelect) {
+        roleSelect.addEventListener('change', updateRequirements);
+        updateRequirements();
+    }
+});
 </script>
