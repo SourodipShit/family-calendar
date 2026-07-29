@@ -255,7 +255,7 @@ if (isset($_POST['login'])) {
                     <div class="text-center">
                         <p class="text-secondary mb-1">Don't have an account? <a href="#" class="fw-semibold">Contact
                                 your admin</a></p>
-                        <p class="text-secondary mb-4">Want to set up a new family? <a href="index.php" class="fw-semibold">Register here</a></p>
+                        <p class="text-secondary mb-4">Want to set up a new family? <a href="signup.php" class="fw-semibold">Register here</a></p>
 
                         <div class="mt-4 pt-3 border-top text-secondary small">
                             <a href="agreement.php?type=terms_of_service" class="text-secondary text-decoration-none mx-1 hover-primary">Terms of Service</a> &bull;
