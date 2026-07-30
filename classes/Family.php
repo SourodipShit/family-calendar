@@ -44,8 +44,10 @@ class Family
                 [$family_id, $user_id]
             )->fetchAll(PDO::FETCH_ASSOC);
 
-            $existing_ids = array_map(function($m) { return $m['id']; }, $members);
-            
+            $existing_ids = array_map(function ($m) {
+                return $m['id'];
+            }, $members);
+
             foreach (array_merge($external_requesters, $external_receivers) as $eu) {
                 if (!in_array($eu['id'], $existing_ids)) {
                     $eu['is_external'] = true;
@@ -95,7 +97,7 @@ class Family
             ]);
 
             $familyId = Database::getLastInsertId();
-            
+
             // Allocate shared email if available
             SharedEmails::allocateFamily($familyId);
 
@@ -196,4 +198,3 @@ class Family
         }
     }
 }
-

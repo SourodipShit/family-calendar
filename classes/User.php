@@ -6,17 +6,22 @@ class User
 {
     public static function addUser($data)
     {
+        // Treat empty email as null
+        $email = !empty($data['email']) ? $data['email'] : null;
+
         // Check if email already exists
-        $check = Database::runPrepared("SELECT id FROM users WHERE email = ?", [$data['email']]);
-        if ($check->fetch()) {
-            return ['status' => 'error', 'message' => 'Email already exists'];
+        if ($email !== null) {
+            $check = Database::runPrepared("SELECT id FROM users WHERE email = ?", [$email]);
+            if ($check->fetch()) {
+                return ['status' => 'error', 'message' => 'Email already exists'];
+            }
         }
 
         try {
             $result = Database::runPrepared("INSERT INTO users(name, nickname, email, phone, role, image, password, color) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", [
                 $data['name'],
                 $data['nickname'] ?? null,
-                $data['email'],
+                $email,
                 $data['phone'],
                 $data['role'],
                 $data['image'],
@@ -24,8 +29,7 @@ class User
                 $data['color'] ?? '#0d6efd'
             ]);
 
-            $user_id = Database::runPrepared("SELECT id FROM users WHERE email = ?", [$data['email']]);
-            $user_id = $user_id->fetchColumn();
+            $user_id = Database::getLastInsertId();
             self::linkUserToFamily($user_id, $data['family_id']);
             Points::createInstance($user_id);
 
@@ -66,9 +70,14 @@ class User
     {
         // Check if email belongs to another user
         if (isset($data['email'])) {
-            $check = Database::runPrepared("SELECT id FROM users WHERE email = ? AND id != ?", [$data['email'], $user_id]);
-            if ($check->fetch()) {
-                return ['status' => 'error', 'message' => 'Email already exists for another user'];
+            // Treat empty email as null
+            $data['email'] = !empty($data['email']) ? $data['email'] : null;
+            
+            if ($data['email'] !== null) {
+                $check = Database::runPrepared("SELECT id FROM users WHERE email = ? AND id != ?", [$data['email'], $user_id]);
+                if ($check->fetch()) {
+                    return ['status' => 'error', 'message' => 'Email already exists for another user'];
+                }
             }
         }
 
